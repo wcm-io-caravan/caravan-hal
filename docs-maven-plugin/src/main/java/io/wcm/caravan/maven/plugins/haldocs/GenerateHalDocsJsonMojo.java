@@ -84,7 +84,7 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
       // generate JSON for service info
       File jsonFile = new File(getGeneratedResourcesDirectory(), HalDocsBundleTracker.SERVICE_DOC_FILE);
       try (OutputStream os = new FileOutputStream(jsonFile)) {
-        ServiceJson.write(service, os);
+        new ServiceJson().write(service, os);
       }
 
       // add as resources to classpath

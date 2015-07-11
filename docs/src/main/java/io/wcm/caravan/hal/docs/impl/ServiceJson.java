@@ -33,18 +33,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public final class ServiceJson {
 
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-  static {
+  private final ObjectMapper objectMapper = new ObjectMapper();
+
+  /**
+   * Constructor
+   */
+  public ServiceJson() {
     // ensure only field serialization is used for jackson
-    OBJECT_MAPPER.setVisibilityChecker(OBJECT_MAPPER.getSerializationConfig().getDefaultVisibilityChecker()
+    objectMapper.setVisibilityChecker(objectMapper.getSerializationConfig().getDefaultVisibilityChecker()
         .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
         .withGetterVisibility(JsonAutoDetect.Visibility.NONE)
         .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
         .withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
-  }
-
-  private ServiceJson() {
-    // static methods only
   }
 
   /**
@@ -53,8 +53,8 @@ public final class ServiceJson {
    * @param os Stream
    * @throws IOException
    */
-  public static void write(Service model, OutputStream os) throws IOException {
-    OBJECT_MAPPER.writeValue(os, model);
+  public void write(Service model, OutputStream os) throws IOException {
+    objectMapper.writeValue(os, model);
   }
 
   /**
@@ -63,8 +63,8 @@ public final class ServiceJson {
    * @return Model
    * @throws IOException
    */
-  public static Service read(InputStream is) throws IOException {
-    return OBJECT_MAPPER.readValue(is, Service.class);
+  public Service read(InputStream is) throws IOException {
+    return objectMapper.readValue(is, Service.class);
   }
 
 }

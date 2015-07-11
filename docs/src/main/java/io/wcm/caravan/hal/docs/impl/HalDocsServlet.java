@@ -40,6 +40,7 @@ import org.apache.commons.lang3.CharEncoding;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
+import org.apache.felix.scr.annotations.Deactivate;
 import org.apache.felix.scr.annotations.Reference;
 import org.apache.felix.scr.annotations.Service;
 import org.osgi.framework.Bundle;
@@ -71,11 +72,16 @@ public class HalDocsServlet extends HttpServlet {
     Bundle bundle = (Bundle)componentContext.getProperties().get(PROPERTY_BUNDLE);
     String resourcePath = DOCS_CLASSPATH_PREFIX + "/" + SERVICE_DOC_FILE;
     try (InputStream is = bundle.getResource(resourcePath).openStream()) {
-      serviceModel = ServiceJson.read(is);
+      serviceModel = new ServiceJson().read(is);
     }
     catch (Throwable ex) {
       log.error("Unable to parse JSON file " + resourcePath + " from bundle " + bundle.getSymbolicName());
     }
+  }
+
+  @Deactivate
+  void deactivate(ComponentContext componentContext) {
+    serviceModel = null;
   }
 
   @Override

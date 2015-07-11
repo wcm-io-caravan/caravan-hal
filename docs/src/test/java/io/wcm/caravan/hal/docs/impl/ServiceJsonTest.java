@@ -80,12 +80,13 @@ public class ServiceJsonTest {
     File targetFile = new File("target/documentation-test/serviceDoc.json");
     targetFile.getParentFile().mkdirs();
 
+    ServiceJson serviceJson = new ServiceJson();
     try (OutputStream os = new FileOutputStream(targetFile)) {
-      ServiceJson.write(service, os);
+      serviceJson.write(service, os);
     }
     Service service2;
     try (InputStream is = new FileInputStream(targetFile)) {
-      service2 = ServiceJson.read(is);
+      service2 = serviceJson.read(is);
     }
 
     assertEquals(service.getServiceId(), service2.getServiceId());
