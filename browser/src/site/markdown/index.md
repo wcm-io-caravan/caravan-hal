@@ -1,6 +1,6 @@
 ## About HAL Browser
 
-[HAL Browser][hal-browser] from Mike Kelly packaged in an OSGi bundle.
+[HAL Browser][hal-browser] packaged in an OSGi bundle.
 
 
 ### Maven Dependency
@@ -16,6 +16,11 @@
 ### Documentation
 
 * [Changelog][changelog]
+
+
+### Overview
+
+Contains the [HAL Browser][hal-browser] JavaScript application from Mike Kelly and mounts it at `/hal`
 
 
 [changelog]: changes-report.html

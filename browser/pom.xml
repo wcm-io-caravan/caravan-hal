@@ -35,7 +35,7 @@
   <packaging>bundle</packaging>
 
   <name>HAL Browser</name>
-  <description>HAL Browser from Mike Kelly packaged in an OSGi bundle.</description>
+  <description>HAL Browser packaged in an OSGi bundle.</description>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>
