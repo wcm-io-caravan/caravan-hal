@@ -36,8 +36,10 @@
   <packaging>pom</packaging>
 
   <name>Caravan HAL Root</name>
+  <description>Hypertext Application Language (HAL) Support.</description>
 
   <modules>
+    <module>parent</module>
     <module>commons</module>
     <module>browser</module>
     <module>docs</module>

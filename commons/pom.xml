@@ -24,9 +24,9 @@
 
   <parent>
     <groupId>io.wcm.caravan</groupId>
-    <artifactId>io.wcm.caravan.parent_toplevel</artifactId>
-    <version>0.5.4</version>
-    <relativePath/>
+    <artifactId>io.wcm.caravan.hal.parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../parent/pom.xml</relativePath>
   </parent>
 
   <groupId>io.wcm.caravan</groupId>
@@ -34,8 +34,8 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
 
-  <name>HAL Commons Resource Library</name>
-  <description>A building and reading library for JSON HAL resources.</description>
+  <name>HAL Commons</name>
+  <description>Library for building and reading JSON HAL resources.</description>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>
@@ -43,6 +43,10 @@
     <url>https://github.com/wcm-io-caravan/caravan-hal</url>
     <tag>HEAD</tag>
   </scm>
+
+  <properties>
+    <site.url.module.prefix>hal/commons</site.url.module.prefix>
+  </properties>
 
   <dependencies>
 
@@ -118,5 +122,12 @@
 
     </plugins>
   </build>
+
+  <distributionManagement>
+    <site>
+      <id>${site.deploy.id}</id>
+      <url>${site.deploy.url}${site.url.module.prefix}</url>
+    </site>
+  </distributionManagement>
 
 </project>
