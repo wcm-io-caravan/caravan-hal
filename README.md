@@ -8,7 +8,7 @@ wcm.io Caravan - JSON Data Pipelining Infrastructure
 
 [Hypertext Application Language (HAL)](http://stateless.co/hal_specification.html) Support.
 
-Documentation: http://caravan.wcm.io/commons/<br/>
+Documentation: http://caravan.wcm.io/hal/<br/>
 Issues: https://wcm-io.atlassian.net/<br/>
 Wiki: https://wcm-io.atlassian.net/wiki/<br/>
 Continuous Integration: https://travis-ci.org/wcm-io-caravan/caravan-hal/
