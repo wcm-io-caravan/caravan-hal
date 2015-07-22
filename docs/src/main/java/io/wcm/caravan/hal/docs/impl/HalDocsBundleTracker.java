@@ -19,8 +19,8 @@
  */
 package io.wcm.caravan.hal.docs.impl;
 
-import io.wcm.caravan.commons.jaxrs.ApplicationPath;
 import io.wcm.caravan.hal.docs.impl.reader.ServiceModelReader;
+import io.wcm.caravan.jaxrs.publisher.ApplicationPath;
 
 import java.util.Dictionary;
 import java.util.Hashtable;

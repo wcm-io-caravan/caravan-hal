@@ -52,8 +52,8 @@
   
     <dependency>
       <groupId>io.wcm.caravan</groupId>
-      <artifactId>io.wcm.caravan.commons.jax-rs</artifactId>
-      <version>0.5.1-SNAPSHOT</version>
+      <artifactId>io.wcm.caravan.jaxrs.publisher</artifactId>
+      <version>1.0.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     
