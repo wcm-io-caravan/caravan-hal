@@ -5,11 +5,11 @@
 
 ### Overview
 
-* [Commons](commons/): HAL Commons
 * [Browser](browser/): HAL Browser
 * [Docs](docs/): HAL Interface Documentation
 * [Docs Annotations](docs-annotations/): HAL Documentation Annotations
 * [Docs Maven Plugin](docs-maven-plugin/): HAL Documentation Maven Plugin
+* [Resource](resource/): Library for building and reading JSON HAL resources.
 
 
 ### GitHub Repository
