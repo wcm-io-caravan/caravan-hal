@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.docs.impl;
+package io.wcm.caravan.hal.docs.impl.reader;
 
 import static org.junit.Assert.assertEquals;
 import io.wcm.caravan.hal.docs.impl.model.LinkRelation;

@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.docs.impl;
+package io.wcm.caravan.hal.docs.impl.reader;
 
 import io.wcm.caravan.hal.docs.impl.model.Service;
 
