@@ -25,11 +25,11 @@
 
     <release version="1.0.0" date="2015-07-24">
       <action type="update" dev="sseifert">
-        Move to own "hal" category, rename artifactId name.
+        Move to own "hal" category, rename artifactId and package names.
       </action>
     </release>
 
-    <release version="0.5.0" date="2015-06-05">
+    <release version="0.5.0" date="2015-06-11">
       <action type="update" dev="sseifert">
         Initial release.
       </action>

@@ -24,9 +24,9 @@
 
   <parent>
     <groupId>io.wcm.caravan</groupId>
-    <artifactId>io.wcm.caravan.parent_toplevel</artifactId>
-    <version>0.5.3-SNAPSHOT</version>
-    <relativePath/>
+    <artifactId>io.wcm.caravan.hal.parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../parent/pom.xml</relativePath>
   </parent>
 
   <groupId>io.wcm.caravan.maven.plugins</groupId>
@@ -34,7 +34,7 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
-  <name>HAL Docs Maven Plugin</name>
+  <name>HAL Documentation Maven Plugin</name>
   <description>Generates API service documenation and JSON Schema files for HAL- and JAX-RS based RESTful services.</description>
 
   <scm>
@@ -45,6 +45,8 @@
   </scm>
 
   <properties>
+    <site.url.module.prefix>hal/docs-maven-plugin</site.url.module.prefix>
+
     <maven.version>3.0.5</maven.version>
 
     <!-- Target Java 8 to support new language features like Lambda expressions -->
@@ -71,7 +73,7 @@
     <dependency>
       <groupId>io.wcm.caravan</groupId>
       <artifactId>io.wcm.caravan.commons.stream</artifactId>
-      <version>0.5.1-SNAPSHOT</version>
+      <version>1.0.0</version>
       <scope>compile</scope>
     </dependency>
 
@@ -241,5 +243,12 @@
       </build>
     </profile>
   </profiles>
+
+  <distributionManagement>
+    <site>
+      <id>${site.deploy.id}</id>
+      <url>${site.deploy.url}${site.url.module.prefix}</url>
+    </site>
+  </distributionManagement>
 
 </project>

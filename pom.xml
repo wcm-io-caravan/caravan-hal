@@ -26,7 +26,7 @@
   <parent>
     <groupId>io.wcm.caravan.maven</groupId>
     <artifactId>io.wcm.caravan.maven.caravan-global-parent</artifactId>
-    <version>4-SNAPSHOT</version>
+    <version>4</version>
     <relativePath/>
   </parent>
 
@@ -36,13 +36,15 @@
   <packaging>pom</packaging>
 
   <name>Caravan HAL Root</name>
+  <description>Hypertext Application Language (HAL) Support.</description>
 
   <modules>
-    <module>commons</module>
+    <module>parent</module>
     <module>browser</module>
     <module>docs</module>
     <module>docs-annotations</module>
     <module>docs-maven-plugin</module>
+    <module>resource</module>
   </modules>
 
   <build>

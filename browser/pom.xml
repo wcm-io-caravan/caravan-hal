@@ -24,9 +24,9 @@
 
   <parent>
     <groupId>io.wcm.caravan</groupId>
-    <artifactId>io.wcm.caravan.parent_toplevel</artifactId>
-    <version>0.5.3-SNAPSHOT</version>
-    <relativePath/>
+    <artifactId>io.wcm.caravan.hal.parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../parent/pom.xml</relativePath>
   </parent>
 
   <groupId>io.wcm.caravan</groupId>
@@ -35,7 +35,7 @@
   <packaging>bundle</packaging>
 
   <name>HAL Browser</name>
-  <description>Hypertext Application Language (HAL) Support with HAL Browser.</description>
+  <description>HAL Browser packaged in an OSGi bundle.</description>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>
@@ -43,6 +43,10 @@
     <url>https://github.com/wcm-io-caravan/caravan-hal</url>
     <tag>HEAD</tag>
   </scm>
+
+  <properties>
+    <site.url.module.prefix>hal/browser</site.url.module.prefix>
+  </properties>
 
   <dependencies>
 
@@ -73,19 +77,6 @@
         <artifactId>maven-scr-plugin</artifactId>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.sling</groupId>
-        <artifactId>maven-sling-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>validate-bundle</id>
-            <goals>
-              <goal>validate</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
     </plugins>
     <pluginManagement>
       <plugins>
@@ -108,5 +99,12 @@
       </plugins>
     </pluginManagement>
   </build>
+
+  <distributionManagement>
+    <site>
+      <id>${site.deploy.id}</id>
+      <url>${site.deploy.url}${site.url.module.prefix}</url>
+    </site>
+  </distributionManagement>
 
 </project>

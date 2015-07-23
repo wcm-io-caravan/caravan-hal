@@ -24,18 +24,18 @@
 
   <parent>
     <groupId>io.wcm.caravan</groupId>
-    <artifactId>io.wcm.caravan.hal.parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../parent/pom.xml</relativePath>
+    <artifactId>io.wcm.caravan.parent_toplevel</artifactId>
+    <version>1.0.0</version>
+    <relativePath />
   </parent>
 
   <groupId>io.wcm.caravan</groupId>
-  <artifactId>io.wcm.caravan.hal.docs-annotations</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <packaging>bundle</packaging>
+  <artifactId>io.wcm.caravan.hal.parent</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
 
-  <name>HAL Documentation Annotations</name>
-  <description>Annotates service information classes for HAL documentation.</description>
+  <name>HAL</name>
+  <description>Hypertext Application Language (HAL) Support.</description>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>
@@ -45,24 +45,8 @@
   </scm>
 
   <properties>
-    <site.url.module.prefix>hal/docs-annotations</site.url.module.prefix>
+    <site.url.module.prefix>hal</site.url.module.prefix>
   </properties>
-
-  <build>
-    <plugins>
-
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-scr-plugin</artifactId>
-      </plugin>
-
-    </plugins>
-  </build>
 
   <distributionManagement>
     <site>

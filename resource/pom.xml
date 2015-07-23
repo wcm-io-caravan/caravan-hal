@@ -3,7 +3,7 @@
   #%L
   wcm.io
   %%
-  Copyright (C) 2015 wcm.io
+  Copyright (C) 2014 wcm.io
   %%
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -30,12 +30,12 @@
   </parent>
 
   <groupId>io.wcm.caravan</groupId>
-  <artifactId>io.wcm.caravan.hal.docs-annotations</artifactId>
+  <artifactId>io.wcm.caravan.hal.resource</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
 
-  <name>HAL Documentation Annotations</name>
-  <description>Annotates service information classes for HAL documentation.</description>
+  <name>HAL Resource</name>
+  <description>Library for building and reading JSON HAL resources.</description>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>
@@ -45,8 +45,67 @@
   </scm>
 
   <properties>
-    <site.url.module.prefix>hal/docs-annotations</site.url.module.prefix>
+    <site.url.module.prefix>hal/resource</site.url.module.prefix>
   </properties>
+
+  <dependencies>
+
+    <!-- Caravan -->
+    <dependency>
+      <groupId>io.wcm.caravan</groupId>
+      <artifactId>io.wcm.caravan.commons.stream</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- OSGi -->
+    <dependency>
+      <groupId>org.apache.felix</groupId>
+      <artifactId>org.apache.felix.http.api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.sling</groupId>
+      <artifactId>org.apache.sling.commons.osgi</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- Standard APIs -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Commons -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+  </dependencies>
 
   <build>
     <plugins>
