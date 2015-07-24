@@ -3,11 +3,21 @@
 
 ### Document link relations
 
-First make sure you have a propert name and description in the POM of your RESTful service project. They will be used as part of the documentation.
+First make sure you have a proper name and description in the POM of your RESTful service project. They will be used as part of the documentation.
 
-To show the correct documentation at run time a JSON file with documentation metadata needs to be created when the bundle is compile. To activate this add this plugin to your POM:
+To show the correct documentation at run time a JSON file with documentation metadata needs to be created when the bundle is compile. To activate this add this plugins to your POM:
 
 ```xml
+<plugin>
+  <groupId>org.apache.felix</groupId>
+  <artifactId>maven-bundle-plugin</artifactId>
+  <configuration>
+    <instructions>
+      <Caravan-JaxRs-ApplicationPath>/myproject/myservice</Caravan-JaxRs-ApplicationPath>
+    </instructions>
+  </configuration>
+</plugin>
+
 <plugin>
   <groupId>io.wcm.caravan.maven.plugins</groupId>
   <artifactId>hal-docs-maven-plugin</artifactId>
@@ -23,7 +33,7 @@ To show the correct documentation at run time a JSON file with documentation met
 
 The Service ID is detected automatically from the `Caravan-JaxRs-ApplicationPath` of the `maven-bundle-plugin`.
 
-You have to create an annotated `ServiceInfo` class within your bundle which contains a constant for each link releation and additional documentation metadata. The name of the class is not relevant and it does not have to be exported via OSGi, it is only inspected at compile time. But the link relation constants defined in the project should be used in the implementation code of the service as well to have a single source of thruth for them.
+You have to create an annotated `ServiceInfo` class within your bundle which contains a constant for each link relation and additional documentation metadata. The name of the class is not relevant and it does not have to be exported via OSGi, it is only inspected at compile time. But the link relation constants defined in the project should be used in the implementation code of the service as well to have a single source of truth for them.
 
 Example:
 
@@ -116,11 +126,21 @@ With this the documentation links integrated in the HAL browser will work and li
 
 ### Publish JSON schema files for domain models
 
-If you want to reference model classes with JSON schema files automatic generated from the HAL documentaiton those model files should be put to a separate bundle which contain only the model classes.
+If you want to reference model classes with JSON schema files automatic generated from the HAL documentation those model files should be put to a separate bundle which contain only the model classes.
 
-In this bundle add the this plugin in the POM:
+Add this plugins to the POM:
 
 ```xml
+<plugin>
+  <groupId>org.apache.felix</groupId>
+  <artifactId>maven-bundle-plugin</artifactId>
+  <configuration>
+    <instructions>
+      <Caravan-HalDocs-DomainPath>/myproject/mydomainmodels</Caravan-HalDocs-DomainPath>
+    </instructions>
+  </configuration>
+</plugin>
+
 <plugin>
   <groupId>io.wcm.caravan.maven.plugins</groupId>
   <artifactId>hal-docs-maven-plugin</artifactId>
@@ -139,9 +159,9 @@ In this bundle add the this plugin in the POM:
 </plugin>
 ```
 
-The include/exclude patterns define which packagen names contain the classes to generated the JSON schema files for.
+The include/exclude patterns define which package names contain the classes to generated the JSON schema files for.
 
-The link between the bundle containing the RESTful service implementation and the bundle with the generated JSON schema files is detected automatically if a Maven compile dependency existes between them.
+The link between the bundle containing the RESTful service implementation and the bundle with the generated JSON schema files is detected automatically if a Maven compile dependency exists between them.
 
 The JSON schema is displayed graphically with the [Docson JavaScript widget][docson] within the documentation.
 
