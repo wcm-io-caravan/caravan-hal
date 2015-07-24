@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.docs.impl;
+package io.wcm.caravan.hal.docs.impl.reader;
 
 import io.wcm.caravan.hal.docs.impl.model.Service;
 
@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -33,7 +34,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public final class ServiceJson {
 
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper()
+      .setSerializationInclusion(Include.NON_EMPTY);
 
   /**
    * Constructor
@@ -54,7 +56,7 @@ public final class ServiceJson {
    * @throws IOException
    */
   public void write(Service model, OutputStream os) throws IOException {
-    objectMapper.writeValue(os, model);
+    objectMapper.writerWithDefaultPrettyPrinter().writeValue(os, model);
   }
 
   /**

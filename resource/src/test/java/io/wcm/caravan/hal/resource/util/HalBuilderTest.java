@@ -59,7 +59,7 @@ public class HalBuilderTest {
   public void halBuilderObjectString_shouldConvertStateAndSetHref() throws Exception {
     HalResource hal = new HalBuilder(new State().setAtt1("value").setAtt2(2), HAL_URI).build();
     assertEquals(HAL_URI, hal.getLink().getHref());
-    assertEquals("value", hal.getModel().get("att1").asText());
+    assertEquals("value", hal.getModel().get("att1").asText(null));
     assertEquals(2, hal.getModel().get("att2").asInt());
   }
 
@@ -69,7 +69,7 @@ public class HalBuilderTest {
     ObjectNode state = mapper.createObjectNode().put("att1", "value").put("att2", 2);
     HalResource hal = new HalBuilder(state, HAL_URI).build();
     assertEquals(HAL_URI, hal.getLink().getHref());
-    assertEquals("value", hal.getModel().get("att1").asText());
+    assertEquals("value", hal.getModel().get("att1").asText(null));
     assertEquals(2, hal.getModel().get("att2").asInt());
   }
 

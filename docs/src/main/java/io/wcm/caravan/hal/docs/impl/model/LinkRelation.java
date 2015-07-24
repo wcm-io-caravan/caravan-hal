@@ -19,7 +19,9 @@
  */
 package io.wcm.caravan.hal.docs.impl.model;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -31,9 +33,11 @@ import org.apache.commons.lang3.StringUtils;
 public class LinkRelation implements Comparable<LinkRelation> {
 
   private String rel;
+  private String shortDescription;
   private String descriptionMarkup;
   private String jsonSchemaRef;
-  private SortedSet<LinkRelationRef> nestedRels = new TreeSet<>();
+  private List<ResourceRef> resourceRefs = new ArrayList<>();
+  private SortedSet<LinkRelationRef> linkRelationRefs = new TreeSet<>();
 
   public String getRel() {
     return this.rel;
@@ -41,6 +45,14 @@ public class LinkRelation implements Comparable<LinkRelation> {
 
   public void setRel(String rel) {
     this.rel = rel;
+  }
+
+  public String getShortDescription() {
+    return this.shortDescription;
+  }
+
+  public void setShortDescription(String shortDescription) {
+    this.shortDescription = shortDescription;
   }
 
   public String getDescriptionMarkup() {
@@ -60,21 +72,41 @@ public class LinkRelation implements Comparable<LinkRelation> {
   }
 
   /**
-   * @return Get link relations of embedded resources.
+   * @return Get embedded resoruces
    */
-  public Set<LinkRelationRef> getNestedLinkRelations() {
-    return nestedRels;
+  public Collection<ResourceRef> getResourceRefs() {
+    return resourceRefs;
   }
 
   /**
-   * @param nestedRel Link relation name.
-   * @param nestedDescription Optional description for describing the link relation in context of the parent link relation.
+   * @param refName Resource name
+   * @param refDescription Resource description
+   * @param refJsonSchemaRef JSON schema reference
    */
-  public void addNestedLinkRelation(String nestedRel, String nestedDescription) {
+  public void addResourceRef(String refName, String refDescription, String refJsonSchemaRef) {
+    ResourceRef ref = new ResourceRef();
+    ref.setName(refName);
+    ref.setShortDescription(refDescription);
+    ref.setJsonSchemaRef(refJsonSchemaRef);
+    this.resourceRefs.add(ref);
+  }
+
+  /**
+   * @return Get contained link relations
+   */
+  public Collection<LinkRelationRef> getLinkRelationRefs() {
+    return linkRelationRefs;
+  }
+
+  /**
+   * @param refRel Link relation name.
+   * @param refDescription Optional description for describing the link relation in context of the parent link relation.
+   */
+  public void addLinkRelationRef(String refRel, String refDescription) {
     LinkRelationRef ref = new LinkRelationRef();
-    ref.setRel(nestedRel);
-    ref.setDescriptionMarkup(nestedDescription);
-    this.nestedRels.add(ref);
+    ref.setRel(refRel);
+    ref.setShortDescription(refDescription);
+    this.linkRelationRefs.add(ref);
   }
 
   @Override

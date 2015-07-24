@@ -59,6 +59,13 @@
     
     <dependency>
       <groupId>io.wcm.caravan</groupId>
+      <artifactId>io.wcm.caravan.hal.resource</artifactId>
+      <version>1.0.1-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.wcm.caravan</groupId>
       <artifactId>io.wcm.caravan.commons.stream</artifactId>
       <version>1.0.0</version>
       <scope>compile</scope>
@@ -97,7 +104,7 @@
       <artifactId>handlebars</artifactId>
       <scope>compile</scope>
     </dependency>
-
+    
   </dependencies>
 
   <build>

@@ -19,13 +19,11 @@
  */
 package io.wcm.caravan.hal.docs.impl;
 
-import static io.wcm.caravan.hal.docs.impl.HalDocsBundleTracker.DOCS_CLASSPATH_PREFIX;
-import static io.wcm.caravan.hal.docs.impl.HalDocsBundleTracker.SERVICE_DOC_FILE;
 import io.wcm.caravan.commons.stream.Streams;
 import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
+import io.wcm.caravan.hal.docs.impl.reader.ServiceModelReader;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
@@ -70,13 +68,7 @@ public class HalDocsServlet extends HttpServlet {
   void activate(ComponentContext componentContext) {
     // bundle which contains the JAX-RS services
     Bundle bundle = (Bundle)componentContext.getProperties().get(PROPERTY_BUNDLE);
-    String resourcePath = DOCS_CLASSPATH_PREFIX + "/" + SERVICE_DOC_FILE;
-    try (InputStream is = bundle.getResource(resourcePath).openStream()) {
-      serviceModel = new ServiceJson().read(is);
-    }
-    catch (Throwable ex) {
-      log.error("Unable to parse JSON file " + resourcePath + " from bundle " + bundle.getSymbolicName());
-    }
+    serviceModel = ServiceModelReader.read(bundle);
   }
 
   @Deactivate

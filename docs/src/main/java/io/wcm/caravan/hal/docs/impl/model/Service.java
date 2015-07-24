@@ -88,7 +88,7 @@ public class Service {
    * @param rel Link relations
    */
   private void resolve(LinkRelation rel) {
-    Iterator<LinkRelationRef> refs = rel.getNestedLinkRelations().iterator();
+    Iterator<LinkRelationRef> refs = rel.getLinkRelationRefs().iterator();
     while (refs.hasNext()) {
       LinkRelationRef ref = refs.next();
       LinkRelation referencedRel = Streams.of(linkRelations)
@@ -98,8 +98,8 @@ public class Service {
         refs.remove();
       }
       else {
-        if (StringUtils.isBlank(ref.getDescriptionMarkup())) {
-          ref.setDescriptionMarkup(referencedRel.getDescriptionMarkup());
+        if (StringUtils.isBlank(ref.getShortDescription())) {
+          ref.setShortDescription(referencedRel.getShortDescription());
         }
       }
     }

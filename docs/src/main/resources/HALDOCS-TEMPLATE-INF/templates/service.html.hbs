@@ -15,7 +15,7 @@
 <table class="table">
   <thead>
     <tr>
-      <th>Link Relation</th>
+      <th>Link relation</th>
       <th>Description</th>
       <th>Docs</th>
     </tr>
@@ -24,7 +24,7 @@
     {{#each service.linkRelations}}
     <tr>
       <td><a href="{{docsContext.baseUrl}}{{this.rel}}"><strong>{{this.rel}}</strong></a></td>
-      <td>{{{this.descriptionMarkup}}}</td>
+      <td>{{this.shortDescription}}</td>
       <td><a href="{{docsContext.baseUrl}}{{this.rel}}" title="Documentation"><i class="icon-book"></i></a></td>
     </tr>
     {{/each}}

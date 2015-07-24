@@ -9,7 +9,7 @@ Annotates service information classes for HAL documentation.
 <dependency>
   <groupId>io.wcm.caravan</groupId>
   <artifactId>io.wcm.caravan.hal.docs-annotations</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
@@ -19,5 +19,11 @@ Annotates service information classes for HAL documentation.
 * [Changelog][changelog]
 
 
+### Overview
+
+See [HAL Interface Documentation][hal-docs] for a usage description.
+
+
 [apidocs]: apidocs/
 [changelog]: changes-report.html
+[hal-docs]: http://caravan.wcm.io/hal/docs/

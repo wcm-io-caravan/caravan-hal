@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.docs.impl;
+package io.wcm.caravan.hal.docs.impl.reader;
 
 import static org.junit.Assert.assertEquals;
 import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
@@ -70,9 +70,11 @@ public class ServiceJsonTest {
     rel3.setJsonSchemaRef("schema3.json");
     service.addLinkRelation(rel3);
 
-    rel1.addNestedLinkRelation(rel2.getRel(), "Description for rel1->rel2");
-    rel2.addNestedLinkRelation(rel3.getRel(), null);
-    rel2.addNestedLinkRelation("unknown/invalid", null);
+    rel1.addLinkRelationRef(rel2.getRel(), "Description for rel1->rel2");
+    rel2.addLinkRelationRef(rel3.getRel(), null);
+    rel2.addLinkRelationRef("unknown/invalid", null);
+
+    rel1.addResourceRef("embResName", "embResDesrciption", "/schema/ref.json");
   }
 
   @Test

@@ -100,7 +100,7 @@ public class TemplateRenderer {
     Map<String, Object> mergedModel = ImmutableMap.<String, Object>builder()
         .putAll(model)
         .put("docsContext", ImmutableMap.<String, Object>builder()
-            .put("baseUrl", HalDocsBundleTracker.DOCS_URI_PREFIX + service.getServiceId() + "/")
+            .put("baseUrl", DocsPath.get(service.getServiceId()) + "/")
             .put("resourcesPath", HalDocsBundleTracker.DOCS_RESOURCES_URI_PREFIX)
             .build())
             .build();

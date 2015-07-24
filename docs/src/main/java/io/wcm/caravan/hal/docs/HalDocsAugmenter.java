@@ -17,28 +17,19 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.docs.annotations;
+package io.wcm.caravan.hal.docs;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.wcm.caravan.hal.resource.HalResource;
 
 /**
- * Marks a string constand als link relation documentation.
+ * Augments an HAL resource with documentation information from service documentation metadata.
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface LinkRelationRef {
+public interface HalDocsAugmenter {
 
   /**
-   * Link relation name.
+   * Adds curie links and link relation titles to the given hal resource.
+   * @param resource
    */
-  String value() default "";
-
-  /**
-   * Optional description for describing the link relation in context of the parent link relation.
-   */
-  String description() default "";
+  void augment(HalResource resource);
 
 }
