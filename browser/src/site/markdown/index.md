@@ -9,7 +9,7 @@
 <dependency>
   <groupId>io.wcm.caravan</groupId>
   <artifactId>io.wcm.caravan.hal.browser</artifactId>
-  <version>0.5.0</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
