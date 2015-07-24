@@ -31,7 +31,7 @@
 
   <groupId>io.wcm.caravan.maven.plugins</groupId>
   <artifactId>hal-docs-maven-plugin</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>0.5.1-SNAPSHOT</version>
   <packaging>maven-plugin</packaging>
 
   <name>HAL Documentation Maven Plugin</name>
