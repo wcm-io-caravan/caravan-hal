@@ -216,7 +216,7 @@ public class HalResourceTest {
     ListMultimap<String, HalResource> resources = hal.getEmbedded();
     assertEquals(3, resources.size());
     assertEquals(1, resources.get("one").size());
-    assertEquals("value", resources.get("one").get(0).getModel().get("att").asText());
+    assertEquals("value", resources.get("one").get(0).getModel().get("att").asText(null));
     assertTrue(resources.containsKey("multiple"));
   }
 
@@ -263,13 +263,13 @@ public class HalResourceTest {
     hal.addLinks("children", Lists.newArrayList(children3, children4));
     JsonNode children = hal.getModel().get("_links").get("children");
     assertEquals(4, children.size());
-    assertEquals("/children3", children.get(2).get("href").asText());
+    assertEquals("/children3", children.get(2).get("href").asText(null));
   }
 
   @Test
   public void setEmbedded_shouldSetOneEmbeddedResource() {
     hal.setEmbedded("new", new HalResource(OBJECT_MAPPER.createObjectNode()).setLink("self", new Link(OBJECT_MAPPER.createObjectNode()).setHref("/new")));
-    assertEquals("/new", hal.getModel().get("_embedded").get("new").get("_links").get("self").get("href").asText());
+    assertEquals("/new", hal.getModel().get("_embedded").get("new").get("_links").get("self").get("href").asText(null));
   }
 
   @Test
@@ -285,7 +285,7 @@ public class HalResourceTest {
     hal.addEmbedded("new", embedded1, embedded2);
     JsonNode embedded = hal.getModel().get("_embedded").get("new");
     assertEquals(2, embedded.size());
-    assertEquals("/new1", embedded.get(0).get("_links").get("self").get("href").asText());
+    assertEquals("/new1", embedded.get(0).get("_links").get("self").get("href").asText(null));
   }
 
   @Test
@@ -301,7 +301,7 @@ public class HalResourceTest {
     hal.addEmbedded("new", Lists.newArrayList(embedded1, embedded2));
     JsonNode embedded = hal.getModel().get("_embedded").get("new");
     assertEquals(2, embedded.size());
-    assertEquals("/new1", embedded.get(0).get("_links").get("self").get("href").asText());
+    assertEquals("/new1", embedded.get(0).get("_links").get("self").get("href").asText(null));
   }
 
   @Test
@@ -326,7 +326,7 @@ public class HalResourceTest {
     hal.removeEmbedded("multiple", 0);
     JsonNode embedded = hal.getModel().get("_embedded").get("multiple");
     assertEquals(1, embedded.size());
-    assertEquals("/multiple2", embedded.get(0).get("_links").get("self").get("href").asText());
+    assertEquals("/multiple2", embedded.get(0).get("_links").get("self").get("href").asText(null));
   }
 
   @Test
@@ -364,7 +364,7 @@ public class HalResourceTest {
   public void addState() {
     ObjectNode state = OBJECT_MAPPER.createObjectNode().put("property3", "value3");
     hal.addState(state);
-    assertEquals("value3", hal.getModel().get("property3").asText());
+    assertEquals("value3", hal.getModel().get("property3").asText(null));
   }
 
 }

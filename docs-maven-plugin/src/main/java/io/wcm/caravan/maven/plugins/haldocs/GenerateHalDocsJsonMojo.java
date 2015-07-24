@@ -21,10 +21,10 @@ package io.wcm.caravan.maven.plugins.haldocs;
 
 import io.wcm.caravan.hal.docs.annotations.LinkRelationDoc;
 import io.wcm.caravan.hal.docs.annotations.ServiceDoc;
-import io.wcm.caravan.hal.docs.impl.HalDocsBundleTracker;
-import io.wcm.caravan.hal.docs.impl.ServiceJson;
 import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
 import io.wcm.caravan.hal.docs.impl.model.Service;
+import io.wcm.caravan.hal.docs.impl.reader.ServiceJson;
+import io.wcm.caravan.hal.docs.impl.reader.ServiceModelReader;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -66,7 +66,7 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
   /**
    * Relative target path for the generated resources.
    */
-  @Parameter(defaultValue = HalDocsBundleTracker.DOCS_CLASSPATH_PREFIX)
+  @Parameter(defaultValue = ServiceModelReader.DOCS_CLASSPATH_PREFIX)
   private String target;
 
   @Parameter(defaultValue = "generated-hal-docs-resources")
@@ -82,7 +82,7 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
       Service service = getServiceInfos(compileClassLoader);
 
       // generate JSON for service info
-      File jsonFile = new File(getGeneratedResourcesDirectory(), HalDocsBundleTracker.SERVICE_DOC_FILE);
+      File jsonFile = new File(getGeneratedResourcesDirectory(), ServiceModelReader.SERVICE_DOC_FILE);
       try (OutputStream os = new FileOutputStream(jsonFile)) {
         new ServiceJson().write(service, os);
       }

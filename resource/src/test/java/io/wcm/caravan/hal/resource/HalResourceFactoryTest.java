@@ -48,7 +48,7 @@ public class HalResourceFactoryTest {
     state.property1 = "value1";
     state.property2 = "value2";
     ObjectNode json = HalResourceFactory.convert(state);
-    assertEquals("value1", json.get("property1").asText());
+    assertEquals("value1", json.get("property1").asText(null));
   }
 
   @Test
@@ -81,7 +81,7 @@ public class HalResourceFactoryTest {
     TestObject model = new TestObject();
     model.property1 = "value1";
     HalResource hal = HalResourceFactory.createResource(model, "/");
-    assertEquals("value1", hal.getModel().get("property1").asText());
+    assertEquals("value1", hal.getModel().get("property1").asText(null));
     assertEquals("/", hal.getLink().getHref());
   }
 
@@ -89,7 +89,7 @@ public class HalResourceFactoryTest {
   public void createResourceObjectNodeString_shouldSetStateAndHrefForSelfLink() {
     ObjectNode model = OBJECT_MAPPER.createObjectNode().put("att", "value");
     HalResource hal = HalResourceFactory.createResource(model, "/");
-    assertEquals("value", hal.getModel().get("att").asText());
+    assertEquals("value", hal.getModel().get("att").asText(null));
     assertEquals("/", hal.getLink().getHref());
   }
 

@@ -1,0 +1,36 @@
+{
+  "type" : "object",
+  "id" : "urn:jsonschema:sample:Media",
+  "properties" : {
+    "name" : {
+      "type" : "string",
+      "description" : "Media name"
+    },
+    "renditions" : {
+      "type" : "array",
+      "description" : "List of renditions",
+      "items" : {
+        "type" : "object",
+        "id" : "urn:jsonschema:sample:MediaRendition",
+        "properties" : {
+          "width" : {
+            "type" : "integer",
+            "description" : "Image width in px"
+          },
+          "url" : {
+            "type" : "string",
+            "description" : "URL to media binary file"
+          },
+          "height" : {
+            "type" : "integer",
+            "description" : "Image height in px"
+          }
+        }
+      }
+    },
+    "type" : {
+      "type" : "string",
+      "description" : "Media type (e.g. XXX or YYY)"
+    }
+  }
+}

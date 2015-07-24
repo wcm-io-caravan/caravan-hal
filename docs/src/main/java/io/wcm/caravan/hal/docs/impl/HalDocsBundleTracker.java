@@ -24,7 +24,6 @@ import io.wcm.caravan.jaxrs.publisher.ApplicationPath;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.felix.scr.annotations.Activate;
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Deactivate;
@@ -50,17 +49,6 @@ import org.slf4j.LoggerFactory;
 @Component(immediate = true)
 public class HalDocsBundleTracker implements BundleTrackerCustomizer<ComponentInstance> {
 
-  /**
-   * Classpath prefix where HAL documentation files are stored.
-   */
-  public static final String DOCS_CLASSPATH_PREFIX = "HAL-DOCS-INF";
-
-  /**
-   * Filename with serialized model information for HAL documentation.
-   */
-  public static final String SERVICE_DOC_FILE = "serviceDoc.json";
-
-  static final String DOCS_URI_PREFIX = "/docs/api";
   static final String DOCS_RESOURCES_URI_PREFIX = "/docs/resources";
   static final String CLASSPATH_FRONTEND = "HALDOCS-TEMPLATE-INF/frontend";
 
@@ -93,9 +81,8 @@ public class HalDocsBundleTracker implements BundleTrackerCustomizer<ComponentIn
 
   @Override
   public ComponentInstance addingBundle(Bundle bundle, BundleEvent event) {
-    String applicationPath = ApplicationPath.get(bundle);
-    if (StringUtils.isNotBlank(applicationPath) && hasHalDocs(bundle)) {
-      String docsPath = getDocsPath(applicationPath);
+    String docsPath = DocsPath.get(bundle);
+    if (docsPath != null) {
 
       if (log.isInfoEnabled()) {
         log.info("Mount HAL docs for {} to {}", bundle.getSymbolicName(), docsPath);
@@ -122,18 +109,10 @@ public class HalDocsBundleTracker implements BundleTrackerCustomizer<ComponentIn
     }
     if (log.isInfoEnabled()) {
       String applicationPath = ApplicationPath.get(bundle);
-      String docsPath = getDocsPath(applicationPath);
+      String docsPath = DocsPath.get(applicationPath);
       log.info("Unmount HAL docs for {} from {}", bundle.getSymbolicName(), docsPath);
     }
     componentInstance.dispose();
-  }
-
-  private boolean hasHalDocs(Bundle bundle) {
-    return bundle.getResource(DOCS_CLASSPATH_PREFIX + "/" + SERVICE_DOC_FILE) != null;
-  }
-
-  private String getDocsPath(String applicationPath) {
-    return DOCS_URI_PREFIX + applicationPath;
   }
 
 }
