@@ -19,5 +19,11 @@ Annotates service information classes for HAL documentation.
 * [Changelog][changelog]
 
 
+### Overview
+
+See [HAL Interface Documentation][hal-docs] for a usage description.
+
+
 [apidocs]: apidocs/
 [changelog]: changes-report.html
+[hal-docs]: http://caravan.wcm.io/hal/docs/

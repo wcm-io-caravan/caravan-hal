@@ -27,6 +27,9 @@
       <action type="fix" dev="sseifert">
         Link getter methods: Make sure null and not String "null" is returned when property is not set.
       </action>
+      <action type="update" dev="sseifert">
+        Deprecate HalCuriAugmenter in favor of the io.wcm.caravan.hal.docs bundle.
+      </action>
     </release>
 
     <release version="1.0.0" date="2015-07-24">

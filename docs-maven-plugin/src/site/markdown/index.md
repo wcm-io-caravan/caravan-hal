@@ -19,5 +19,11 @@ Generates API service documenation and JSON Schema files for HAL- and JAX-RS bas
 * [Changelog][changelog]
 
 
+### Overview
+
+See [HAL Interface Documentation][hal-docs] for a usage description.
+
+
 [plugindocs]: plugin-info.html
 [changelog]: changes-report.html
+[hal-docs]: http://caravan.wcm.io/hal/docs/
