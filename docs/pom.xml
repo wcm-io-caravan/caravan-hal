@@ -59,6 +59,13 @@
     
     <dependency>
       <groupId>io.wcm.caravan</groupId>
+      <artifactId>io.wcm.caravan.hal.resource</artifactId>
+      <version>1.0.0</version>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.wcm.caravan</groupId>
       <artifactId>io.wcm.caravan.commons.stream</artifactId>
       <version>1.0.0</version>
       <scope>compile</scope>
@@ -95,6 +102,13 @@
     <dependency>
       <groupId>com.github.jknack</groupId>
       <artifactId>handlebars</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.jsoup</groupId>
+      <artifactId>jsoup</artifactId>
+      <version>1.8.2</version>
       <scope>compile</scope>
     </dependency>
 
