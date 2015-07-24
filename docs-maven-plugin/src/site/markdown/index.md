@@ -9,7 +9,7 @@ Generates API service documenation and JSON Schema files for HAL- and JAX-RS bas
 <plugin>
   <groupId>io.wcm.caravan.maven.plugins</groupId>
   <artifactId>hal-docs-maven-plugin</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </plugin>
 ```
 

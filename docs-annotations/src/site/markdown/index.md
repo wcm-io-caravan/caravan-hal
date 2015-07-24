@@ -9,7 +9,7 @@ Annotates service information classes for HAL documentation.
 <dependency>
   <groupId>io.wcm.caravan</groupId>
   <artifactId>io.wcm.caravan.hal.docs-annotations</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0.0</version>
 </dependency>
 ```
 
