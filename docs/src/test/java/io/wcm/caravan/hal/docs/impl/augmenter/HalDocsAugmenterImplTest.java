@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.docs.impl.augmenter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import io.wcm.caravan.commons.stream.Streams;
 import io.wcm.caravan.hal.docs.HalDocsAugmenter;
@@ -41,18 +42,18 @@ public class HalDocsAugmenterImplTest {
   private static final String DOCS_PATH = "/docs";
 
   private HalDocsAugmenter underTest;
-  private HalResource hal;
+  private HalResource resource;
 
   @Before
   public void setUp() {
     Service service = new Service();
     LinkRelation rel1 = new LinkRelation();
-    rel1.setRel("ex:rel1");
+    rel1.setRel("ex:external-link");
     rel1.setDescriptionMarkup("rel1-title");
     service.addLinkRelation(rel1);
 
     LinkRelation rel2 = new LinkRelation();
-    rel2.setRel("in:rel2");
+    rel2.setRel("in:children");
     rel2.setDescriptionMarkup("rel2-title");
     service.addLinkRelation(rel2);
 
@@ -63,7 +64,7 @@ public class HalDocsAugmenterImplTest {
 
     underTest = new HalDocsAugmenterImpl(service, DOCS_PATH);
 
-    hal = HalResourceFactory.createResource("/resource")
+    resource = HalResourceFactory.createResource("/resource")
         .setLink("ex:external-link", HalResourceFactory.createLink("/external-link"))
         .addLinks("in:children", HalResourceFactory.createLink("/child-1"), HalResourceFactory.createLink("/child-2"))
         .addLinks("no-curie", HalResourceFactory.createLink("/no-curi-1"));
@@ -71,8 +72,8 @@ public class HalDocsAugmenterImplTest {
 
   @Test
   public void shouldAddAllCuriesForCurieNames() {
-    underTest.augment(hal);
-    List<Link> curies = hal.getLinks("curies");
+    underTest.augment(resource);
+    List<Link> curies = resource.getLinks("curies");
     assertEquals(2, curies.size());
     assertEquals("ex", curies.get(0).getName());
     assertEquals("/docs/ex:{rel}", curies.get(0).getHref());
@@ -80,8 +81,8 @@ public class HalDocsAugmenterImplTest {
 
   @Test
   public void shouldNotAddCuriForMissingCurieName() {
-    underTest.augment(hal);
-    Streams.of(hal.getLinks("curies"))
+    underTest.augment(resource);
+    Streams.of(resource.getLinks("curies"))
     .map(link -> link.getName())
     .filter(name -> StringUtils.equals(name, "cust"))
     .forEach(name -> fail("cust is no CURI for this HAL"));
@@ -89,17 +90,17 @@ public class HalDocsAugmenterImplTest {
 
   @Test
   public void shouldNotOverrideExistingCuri() {
-    hal.addLinks("curies", HalResourceFactory.createLink("https://example.com/doc/other/{rel}").setName("ex"));
-    underTest.augment(hal);
-    List<Link> curies = hal.getLinks("curies");
+    resource.addLinks("curies", HalResourceFactory.createLink("https://example.com/doc/other/{rel}").setName("ex"));
+    underTest.augment(resource);
+    List<Link> curies = resource.getLinks("curies");
     assertEquals("https://example.com/doc/other/{rel}", curies.get(0).getHref());
   }
 
   @Test
   public void shouldOnlyAddCuriLinkOnce() {
-    hal.addLinks("ex:external-link2", HalResourceFactory.createLink("/external-link2"));
-    underTest.augment(hal);
-    List<Link> curies = hal.getLinks("curies");
+    resource.addLinks("ex:external-link2", HalResourceFactory.createLink("/external-link2"));
+    underTest.augment(resource);
+    List<Link> curies = resource.getLinks("curies");
     assertEquals(2, curies.size());
   }
 
@@ -107,13 +108,27 @@ public class HalDocsAugmenterImplTest {
   public void shouldAddCuriForLinksInEmbeddedResource() {
     HalResource item = HalResourceFactory.createResource("/item")
         .addLinks("cust:item", HalResourceFactory.createLink("/item-link"));
-    hal.addEmbedded("item", item);
+    resource.addEmbedded("item", item);
 
-    underTest.augment(hal);
+    underTest.augment(resource);
 
-    List<Link> curies = hal.getLinks("curies");
+    List<Link> curies = resource.getLinks("curies");
     assertEquals(3, curies.size());
     assertEquals("cust", curies.get(2).getName());
+  }
+
+  @Test
+  public void testLinkRelationTitles() {
+    underTest.augment(resource);
+
+    Link link1 = resource.getLink("ex:external-link");
+    assertEquals("rel1-title", link1.getTitle());
+
+    Link link2 = resource.getLink("in:children");
+    assertEquals("rel2-title", link2.getTitle());
+
+    Link link3 = resource.getLink("no-curie");
+    assertNull(link3.getTitle());
   }
 
 }
