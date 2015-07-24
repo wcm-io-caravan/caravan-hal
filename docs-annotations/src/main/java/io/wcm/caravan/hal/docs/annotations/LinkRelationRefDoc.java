@@ -25,16 +25,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a string constand als link relation documentation.
+ * Describes a link relation contained in the HAL resource.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface LinkRelationRef {
+public @interface LinkRelationRefDoc {
 
   /**
    * Link relation name.
    */
-  String value() default "";
+  String value();
 
   /**
    * Optional description for describing the link relation in context of the parent link relation.

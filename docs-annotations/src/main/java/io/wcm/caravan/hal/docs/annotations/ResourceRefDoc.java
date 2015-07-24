@@ -25,11 +25,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Marks a string constant as link relation documentation.
+ * Describes an embedded resource in a HAL response.
  */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface LinkRelationDoc {
+public @interface ResourceRefDoc {
+
+  /**
+   * Embedded resource name.
+   */
+  String value();
 
   /**
    * Reference/URL to JSON schema.
@@ -42,13 +47,8 @@ public @interface LinkRelationDoc {
   Class<?> model() default void.class;
 
   /**
-   * Embedded resources that may be returned in the response of this relation.
+   * Optional description for describing the embedded resource.
    */
-  ResourceRefDoc[] embedded() default {};
-
-  /**
-   * Link relations that may be returned in the response of this relation.
-   */
-  LinkRelationRefDoc[] links() default {};
+  String description() default "";
 
 }

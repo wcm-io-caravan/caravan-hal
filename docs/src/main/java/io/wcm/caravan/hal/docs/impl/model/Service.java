@@ -88,7 +88,7 @@ public class Service {
    * @param rel Link relations
    */
   private void resolve(LinkRelation rel) {
-    Iterator<LinkRelationRef> refs = rel.getNestedLinkRelations().iterator();
+    Iterator<LinkRelationRef> refs = rel.getLinkRelationRefs().iterator();
     while (refs.hasNext()) {
       LinkRelationRef ref = refs.next();
       LinkRelation referencedRel = Streams.of(linkRelations)

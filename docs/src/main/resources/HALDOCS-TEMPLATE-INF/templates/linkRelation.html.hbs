@@ -18,11 +18,28 @@
 {{/if}}
 
 
-{{#if linkRelation.nestedLinkRelations}}
+{{#if linkRelation.resourceRefs}}
 
 <hr/>
 
 <h2>Embedded resources</h2>
+
+{{#each linkRelation.resourceRefs}}
+<h3>{{this.name}}</h3>
+{{#if this.shortDescription}}<p>{{this.shortDescription}}</p>{{/if}}
+{{#if this.jsonSchemaRef}}
+<script src="{{docsContext.resourcesPath}}/lib/docson/widget.js" data-schema="{{this.jsonSchemaRef}}"></script>
+{{/if}}
+{{/each}}
+
+{{/if}}
+
+
+{{#if linkRelation.linkRelationRefs}}
+
+<hr/>
+
+<h2>Link relations</h2>
 
 <table class="table">
   <thead>
@@ -33,7 +50,7 @@
     </tr>
   </thead>
   <tbody>
-    {{#each linkRelation.nestedLinkRelations}}
+    {{#each linkRelation.linkRelationRefs}}
     <tr>
       <td><a href="{{docsContext.baseUrl}}{{this.rel}}"><strong>{{this.rel}}</strong></a></td>
       <td>{{this.shortDescription}}</td>

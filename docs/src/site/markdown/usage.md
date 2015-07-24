@@ -58,9 +58,9 @@ public final class ServiceInfo {
   /**
    * If the resource contains nested HAL resources their link relations should be referenced here.
    */
-  @LinkRelationDoc(nested = {
-      @LinkRelationRef("myapi:item1"),
-      @LinkRelationRef("myapi:item2", 
+  @LinkRelationDoc(links = {
+      @LinkRelationRefDoc("myapi:item1"),
+      @LinkRelationRefDoc(value = "myapi:item2", 
         description = "A description specific to the relation of rel1 and item2")
   })
   public static final String REL1 = "myapi:rel1";
@@ -69,8 +69,11 @@ public final class ServiceInfo {
    * To document the payload JSON of the HAL reponse either a JSON schema reference or a model 
    * class can be given. If it is a model class the JSON schema reference is detected 
    * automatically if the schema was published with the haldocs-maven-plugin as well.
+   * Embedded resources can be described as well.
    */
-  @LinkRelationDoc(model = Rel2Model.class)
+  @LinkRelationDoc(model = Rel2Model.class, embedded = {
+      @ResourceRefDoc(value = "item", model = Item.class)
+  })
   public static final String REL2 = "myapi:rel2";
 
 }

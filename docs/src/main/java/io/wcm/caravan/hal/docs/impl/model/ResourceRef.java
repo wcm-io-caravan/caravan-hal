@@ -19,22 +19,21 @@
  */
 package io.wcm.caravan.hal.docs.impl.model;
 
-import org.apache.commons.lang3.StringUtils;
-
 /**
- * Link relation reference.
+ * Embedded resource reference.
  */
-public class LinkRelationRef implements Comparable<LinkRelationRef> {
+public class ResourceRef {
 
-  private String rel;
+  private String name;
   private String shortDescription;
+  private String jsonSchemaRef;
 
-  public String getRel() {
-    return this.rel;
+  public String getName() {
+    return this.name;
   }
 
-  public void setRel(String rel) {
-    this.rel = rel;
+  public void setName(String name) {
+    this.name = name;
   }
 
   public String getShortDescription() {
@@ -45,22 +44,12 @@ public class LinkRelationRef implements Comparable<LinkRelationRef> {
     this.shortDescription = shortDescription;
   }
 
-  @Override
-  public int hashCode() {
-    return rel.hashCode();
+  public String getJsonSchemaRef() {
+    return this.jsonSchemaRef;
   }
 
-  @Override
-  public boolean equals(Object obj) {
-    if (!(obj instanceof LinkRelationRef)) {
-      return false;
-    }
-    return StringUtils.equals(rel, ((LinkRelationRef)obj).rel);
-  }
-
-  @Override
-  public int compareTo(LinkRelationRef o) {
-    return StringUtils.defaultString(rel).compareTo(o.getRel());
+  public void setJsonSchemaRef(String jsonSchemaRef) {
+    this.jsonSchemaRef = jsonSchemaRef;
   }
 
 }
