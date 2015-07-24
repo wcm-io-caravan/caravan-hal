@@ -49,7 +49,7 @@ public final class Link implements HalObject {
    * @return the type
    */
   public String getType() {
-    return model.path("type").asText();
+    return model.path("type").asText(null);
   }
 
   /**
@@ -65,7 +65,7 @@ public final class Link implements HalObject {
    * @return the deprecation
    */
   public String getDeprecation() {
-    return model.path("deprecation").asText();
+    return model.path("deprecation").asText(null);
   }
 
   /**
@@ -81,7 +81,7 @@ public final class Link implements HalObject {
    * @return the name
    */
   public String getName() {
-    return model.path("name").asText();
+    return model.path("name").asText(null);
   }
 
   /**
@@ -97,7 +97,7 @@ public final class Link implements HalObject {
    * @return the profile
    */
   public String getProfile() {
-    return model.path("profile").asText();
+    return model.path("profile").asText(null);
   }
 
   /**
@@ -113,7 +113,7 @@ public final class Link implements HalObject {
    * @return the title
    */
   public String getTitle() {
-    return model.path("title").asText();
+    return model.path("title").asText(null);
   }
 
   /**
@@ -129,7 +129,7 @@ public final class Link implements HalObject {
    * @return the hreflang
    */
   public String getHreflang() {
-    return model.path("hreflang").asText();
+    return model.path("hreflang").asText(null);
   }
 
   /**
@@ -145,7 +145,7 @@ public final class Link implements HalObject {
    * @return the href
    */
   public String getHref() {
-    return model.path("href").asText();
+    return model.path("href").asText(null);
   }
 
   /**
