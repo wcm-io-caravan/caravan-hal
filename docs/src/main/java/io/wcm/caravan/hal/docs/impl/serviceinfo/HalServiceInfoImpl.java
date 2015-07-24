@@ -23,6 +23,7 @@ import io.wcm.caravan.commons.stream.Streams;
 import io.wcm.caravan.hal.docs.HalServiceInfo;
 import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
 import io.wcm.caravan.hal.docs.impl.model.Service;
+import io.wcm.caravan.hal.resource.HalResourceFactory;
 import io.wcm.caravan.hal.resource.util.HalCuriAugmenter;
 
 import java.util.HashMap;
@@ -52,7 +53,8 @@ public class HalServiceInfoImpl implements HalServiceInfo {
 
     curieAugmenter = new HalCuriAugmenter();
     Streams.of(curieLinks.entrySet())
-    .forEach(entry -> curieAugmenter.register(entry.getKey(), entry.getValue()));
+    .map(entry -> HalResourceFactory.createLink(entry.getValue()).setName(entry.getKey()).setTitle("Documentation link"))
+    .forEach(curieAugmenter::register);
   }
 
   private static Map<String, String> buildCurieLinkMap(Service serviceModel, String docsPath) {
