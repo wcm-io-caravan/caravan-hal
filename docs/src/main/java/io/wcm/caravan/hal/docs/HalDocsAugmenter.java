@@ -19,18 +19,17 @@
  */
 package io.wcm.caravan.hal.docs;
 
-import org.osgi.framework.Bundle;
+import io.wcm.caravan.hal.resource.HalResource;
 
 /**
- * Provides a {@link HalServiceInfo} for JAX-RS application bundles.
+ * Augments an HAL resource with documentation information from service documentation metadata.
  */
-public interface HalServiceInfoProvider {
+public interface HalDocsAugmenter {
 
   /**
-   * Get {@link HalServiceInfo} for the given bundle.
-   * @param bundle JAX-RS application bundle
-   * @return Service info or null if not docs metadata found or not a JAX-RS application bundle
+   * Adds curie links and link relation titles to the given hal resource.
+   * @param resource
    */
-  HalServiceInfo get(Bundle bundle);
+  void augment(HalResource resource);
 
 }

@@ -17,24 +17,21 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.docs.impl.serviceinfo;
+package io.wcm.caravan.hal.docs.impl.augmenter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import io.wcm.caravan.hal.docs.HalServiceInfo;
 import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
 import io.wcm.caravan.hal.docs.impl.model.Service;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.ImmutableMap;
-
-public class HalServiceInfoImplTest {
+public class DocsMetadataTest {
 
   private static final String DOCS_PATH = "/docs";
 
-  private HalServiceInfo underTest;
+  private DocsMetadata underTest;
 
   @Before
   public void setUp() {
@@ -64,15 +61,13 @@ public class HalServiceInfoImplTest {
     rel5.setRel("ns2:rel5");
     service.addLinkRelation(rel5);
 
-    underTest = new HalServiceInfoImpl(service, DOCS_PATH);
+    underTest = new DocsMetadata(service, DOCS_PATH);
   }
 
   @Test
   public void testGetCurieLinks() {
-    assertEquals(ImmutableMap.<String,String>builder()
-        .put("ns1", DOCS_PATH + "/ns1:{rel}")
-        .put("ns2", DOCS_PATH + "/ns2:{rel}")
-        .build(), underTest.getCurieLinks());
+    assertEquals(DOCS_PATH + "/ns1:{rel}", underTest.getCurieLink("ns1"));
+    assertEquals(DOCS_PATH + "/ns2:{rel}", underTest.getCurieLink("ns2"));
   }
 
   @Test

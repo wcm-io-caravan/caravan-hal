@@ -17,14 +17,11 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.docs.impl.serviceinfo;
+package io.wcm.caravan.hal.docs.impl.augmenter;
 
 import io.wcm.caravan.commons.stream.Streams;
-import io.wcm.caravan.hal.docs.HalServiceInfo;
 import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
 import io.wcm.caravan.hal.docs.impl.model.Service;
-import io.wcm.caravan.hal.resource.HalResourceFactory;
-import io.wcm.caravan.hal.resource.util.HalCuriAugmenter;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,47 +32,43 @@ import org.jsoup.Jsoup;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Default implementation of {@link HalServiceInfo}.
+ * Curie and link relation title metadata extracted from service info metadata.
  */
-public class HalServiceInfoImpl implements HalServiceInfo {
+class DocsMetadata {
 
   private final Map<String, String> curieLinks;
   private final Map<String, String> linkRelationTitles;
-  private final HalCuriAugmenter curieAugmenter;
 
   /**
    * @param serviceModel Service model
    * @param docsPath Documenation URI base path
    */
-  public HalServiceInfoImpl(Service serviceModel, String docsPath) {
+  public DocsMetadata(Service serviceModel, String docsPath) {
     curieLinks = buildCurieLinkMap(serviceModel, docsPath);
     linkRelationTitles = buildLinkRelationTitlesMap(serviceModel);
-
-    curieAugmenter = new HalCuriAugmenter();
-    Streams.of(curieLinks.entrySet())
-    .map(entry -> HalResourceFactory.createLink(entry.getValue()).setName(entry.getKey()).setTitle("Documentation link"))
-    .forEach(curieAugmenter::register);
   }
 
   private static Map<String, String> buildCurieLinkMap(Service serviceModel, String docsPath) {
     Map<String, String> map = new HashMap<>();
-    for (LinkRelation rel : serviceModel.getLinkRelations()) {
-      if (StringUtils.contains(rel.getRel(), ":")) {
-        String curie = StringUtils.substringBefore(rel.getRel(), ":");
-        map.put(curie, docsPath + "/" + curie + ":{rel}");
-      }
-    }
+
+    Streams.of(serviceModel.getLinkRelations())
+    .map(rel -> CurieUtil.getCurieName(rel.getRel()))
+    .filter(StringUtils::isNotEmpty)
+    .forEach(curie -> map.put(curie, CurieUtil.toDocTemplate(docsPath, curie)));
+
     return ImmutableMap.copyOf(map);
   }
 
   private static Map<String, String> buildLinkRelationTitlesMap(Service serviceModel) {
     Map<String, String> map = new HashMap<>();
+
     for (LinkRelation rel : serviceModel.getLinkRelations()) {
       String title = buildLinkRelationTitle(rel.getDescriptionMarkup());
       if (title != null) {
         map.put(rel.getRel(), title);
       }
     }
+
     return ImmutableMap.copyOf(map);
   }
 
@@ -101,19 +94,12 @@ public class HalServiceInfoImpl implements HalServiceInfo {
     }
   }
 
-  @Override
-  public Map<String, String> getCurieLinks() {
-    return curieLinks;
+  public String getCurieLink(String curie) {
+    return curieLinks.get(curie);
   }
 
-  @Override
   public String getLinkRelationTitle(String rel) {
     return linkRelationTitles.get(rel);
-  }
-
-  @Override
-  public HalCuriAugmenter getCurieAugmenter() {
-    return curieAugmenter;
   }
 
 }

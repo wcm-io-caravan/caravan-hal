@@ -17,12 +17,13 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.docs.impl.serviceinfo;
+package io.wcm.caravan.hal.docs.impl.augmenter;
 
-import io.wcm.caravan.hal.docs.HalServiceInfo;
-import io.wcm.caravan.hal.docs.HalServiceInfoProvider;
+import io.wcm.caravan.hal.docs.HalDocsAugmenter;
+import io.wcm.caravan.hal.docs.HalDocsAugmenterFactory;
 import io.wcm.caravan.hal.docs.impl.DocsPath;
 import io.wcm.caravan.hal.docs.impl.reader.ServiceModelReader;
+import io.wcm.caravan.hal.resource.HalResource;
 
 import org.apache.felix.scr.annotations.Component;
 import org.apache.felix.scr.annotations.Service;
@@ -32,19 +33,28 @@ import org.osgi.framework.Bundle;
  * Reads service information from model metadata stored in bundle with hal-docs-maven-plugin.
  */
 @Component
-@Service(value = HalServiceInfoProvider.class, serviceFactory = true)
-public class HalServiceInfoProviderImpl implements HalServiceInfoProvider {
+@Service(value = HalDocsAugmenterFactory.class, serviceFactory = true)
+public class HalDocsAugmenterFactoryImpl implements HalDocsAugmenterFactory {
+
+  private static final HalDocsAugmenter NOOP_AUGMENTER = new HalDocsAugmenter() {
+    @Override
+    public void augment(HalResource resource) {
+      // do nothing
+    }
+  };
 
   @Override
-  public HalServiceInfo get(Bundle bundle) {
-    String docsPath = DocsPath.get(bundle);
-    if (docsPath != null) {
-      io.wcm.caravan.hal.docs.impl.model.Service serviceModel = ServiceModelReader.read(bundle);
-      if (serviceModel != null) {
-        return new HalServiceInfoImpl(serviceModel, docsPath);
+  public HalDocsAugmenter create(Bundle bundle) {
+    if (bundle != null) {
+      String docsPath = DocsPath.get(bundle);
+      if (docsPath != null) {
+        io.wcm.caravan.hal.docs.impl.model.Service serviceModel = ServiceModelReader.read(bundle);
+        if (serviceModel != null) {
+          return new HalDocsAugmenterImpl(serviceModel, docsPath);
+        }
       }
     }
-    return null;
+    return NOOP_AUGMENTER;
   }
 
 }

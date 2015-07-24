@@ -40,7 +40,9 @@ import com.google.common.collect.Sets;
 /**
  * Augments a HAL resource by CURI documentation links for links in the main and embedded resources. Pre-defined CURIES
  * in the HAL resource will remain and not overwritten.
+ * @deprecated This is replaced by HalDocsAugmenter from the io.wcm.caravan.hal.docs bundle.
  */
+@Deprecated
 @ProviderType
 public final class HalCuriAugmenter {
 
