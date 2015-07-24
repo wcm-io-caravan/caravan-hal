@@ -21,24 +21,35 @@ package io.wcm.caravan.maven.plugins.haldocs;
 
 import io.wcm.caravan.hal.docs.annotations.LinkRelationDoc;
 import io.wcm.caravan.hal.docs.annotations.ServiceDoc;
+import io.wcm.caravan.hal.docs.impl.JsonSchemaBundleTracker;
 import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
 import io.wcm.caravan.hal.docs.impl.model.Service;
 import io.wcm.caravan.hal.docs.impl.reader.ServiceJson;
 import io.wcm.caravan.hal.docs.impl.reader.ServiceModelReader;
+import io.wcm.caravan.jaxrs.publisher.ApplicationPath;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.net.URLClassLoader;
 import java.util.Arrays;
+import java.util.jar.Manifest;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.maven.model.Plugin;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaAnnotatedElement;
@@ -48,7 +59,8 @@ import com.thoughtworks.qdox.model.JavaField;
 /**
  * Generates HAL documentation JSON files for service.
  */
-@Mojo(name = "generate-hal-docs-json", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresProject = true, threadSafe = true)
+@Mojo(name = "generate-hal-docs-json", defaultPhase = LifecyclePhase.PROCESS_CLASSES,
+requiresProject = true, threadSafe = true, requiresDependencyResolution = ResolutionScope.COMPILE)
 public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
 
   /**
@@ -58,9 +70,11 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
   private String source;
 
   /**
-   * Service ID
+   * Service ID. If not given it is tried to detect it automatically from <code>maven-bundle-plugin</code>
+   * configuration, instruction <code>Caravan-JaxRs-ApplicationPath</code>. If no Servce ID is found no documentation
+   * files are generated.
    */
-  @Parameter(required = true)
+  @Parameter
   private String serviceId;
 
   /**
@@ -72,8 +86,25 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
   @Parameter(defaultValue = "generated-hal-docs-resources")
   private String generatedResourcesDirectory;
 
+  private static final String MAVEN_BUNDLE_PLUGIN_ID = Plugin.constructKey("org.apache.felix", "maven-bundle-plugin");
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
+
+    // if nor service id given try to detect from maven-bundle-plugin config
+    if (StringUtils.isEmpty(serviceId)) {
+      serviceId = getServiceIdFromMavenBundlePlugin();
+    }
+
+    // if nor service id detected skip further processing
+    if (StringUtils.isEmpty(serviceId)) {
+      getLog().info("No service ID detected, skip HAL documentation file generation.");
+      return;
+    }
+    else {
+      getLog().info("Generate HAL documentation files for service: " + serviceId);
+    }
+
     try {
       // get classloader for all "compile" dependencies
       ClassLoader compileClassLoader = URLClassLoader.newInstance(getCompileClasspathElementURLs(), getClass().getClassLoader());
@@ -83,6 +114,7 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
 
       // generate JSON for service info
       File jsonFile = new File(getGeneratedResourcesDirectory(), ServiceModelReader.SERVICE_DOC_FILE);
+      getLog().info("Write " + jsonFile.getCanonicalPath());
       try (OutputStream os = new FileOutputStream(jsonFile)) {
         new ServiceJson().write(service, os);
       }
@@ -93,6 +125,29 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
     catch (Throwable ex) {
       throw new MojoExecutionException("Generating HAL documentation failed: " + ex.getMessage(), ex);
     }
+  }
+
+  /**
+   * Tries to detect the service id automatically from maven bundle plugin definition in same POM.
+   * @return Service id or null
+   */
+  private String getServiceIdFromMavenBundlePlugin() {
+    Plugin bundlePlugin = project.getBuildPlugins().stream()
+        .filter(plugin -> StringUtils.equals(plugin.getKey(), MAVEN_BUNDLE_PLUGIN_ID))
+        .findFirst().orElse(null);
+    if (bundlePlugin != null) {
+      Xpp3Dom configuration = (Xpp3Dom)bundlePlugin.getConfiguration();
+      if (configuration != null) {
+        Xpp3Dom instructions = configuration.getChild("instructions");
+        if (instructions != null) {
+          Xpp3Dom applicationPath = instructions.getChild(ApplicationPath.HEADER_APPLICATON_PATH);
+          if (applicationPath != null) {
+            return applicationPath.getValue();
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -148,7 +203,77 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
     rel.setJsonSchemaRef(relDoc.jsonSchema());
     Arrays.stream(relDoc.nested()).forEach(nested -> rel.addNestedLinkRelation(nested.value(), nested.description()));
 
+    // if not explicit json schema reference given try to detect it from the model
+    if (StringUtils.isEmpty(rel.getJsonSchemaRef()) && relDoc.model() != void.class) {
+      rel.setJsonSchemaRef(buildJsonSchemaRefForModel(relDoc.model()));
+    }
+
     return rel;
+  }
+
+  /**
+   * Scans all project's dependencies for one with manifest with Caravan-HalDocs-DomainPath bundle header.
+   * If the dependencies JAR files contains a matching JSON schema file generated by this plugin, build a
+   * URL to reference this schema.
+   * @param modelClass Model class
+   * @return JSON schema reference URL, or null if none found
+   */
+  private String buildJsonSchemaRefForModel(Class<?> modelClass) {
+    return project.getDependencyArtifacts().stream()
+        .filter(artifact -> StringUtils.equals("jar", artifact.getType()))
+        .map(artifact -> buildJsonSchemaRefForModel(modelClass, artifact.getFile()))
+        .filter(StringUtils::isNotEmpty)
+        .findFirst()
+        .orElse(null);
+  }
+
+  /**
+   * Check if JAR file has a doc domain path and corresponding schema file and then builds a documenation path for it.
+   * @param modelClass Model calss
+   * @param artifactFile JAR artifact's file
+   * @return JSON schema path or null
+   */
+  private String buildJsonSchemaRefForModel(Class<?> modelClass, File artifactFile) {
+    try {
+      ZipFile zipFile = new ZipFile(artifactFile);
+      String halDocsDomainPath = getHalDocsDomainPath(zipFile);
+      if (halDocsDomainPath != null && hasJsonSchemaFile(zipFile, modelClass)) {
+        return JsonSchemaBundleTracker.SCHEMA_URI_PREFIX + halDocsDomainPath
+            + "/" + modelClass.getName() + ".json";
+      }
+      return null;
+    }
+    catch (IOException ex) {
+      throw new RuntimeException("Unable to read artifact file: " + artifactFile.getAbsolutePath() + "\n" + ex.getMessage(), ex);
+    }
+  }
+
+  /**
+   * Gets bundle header/mainfest entry Caravan-HalDocs-DomainPath from given JAR file.
+   * @param jarFile JAR file
+   * @return Header value or null
+   * @throws IOException
+   */
+  private String getHalDocsDomainPath(ZipFile jarFile) throws IOException {
+    ZipEntry manifestEntry = jarFile.getEntry("META-INF/MANIFEST.MF");
+    if (manifestEntry != null) {
+      try (InputStream is = jarFile.getInputStream(manifestEntry)) {
+        Manifest manifest = new Manifest(is);
+        return manifest.getMainAttributes().getValue(JsonSchemaBundleTracker.HEADER_DOMAIN_PATH);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Gets bundle header/mainfest entry Caravan-HalDocs-DomainPath from given JAR file.
+   * @param jarFile JAR file
+   * @return Header value or null
+   * @throws IOException
+   */
+  private boolean hasJsonSchemaFile(ZipFile jarFile, Class<?> modelClass) throws IOException {
+    String path = JsonSchemaBundleTracker.SCHEMA_CLASSPATH_PREFIX + "/" + modelClass.getName() + ".json";
+    return jarFile.getEntry(path) != null;
   }
 
   /**

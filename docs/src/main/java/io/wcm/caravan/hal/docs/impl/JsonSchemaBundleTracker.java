@@ -42,9 +42,20 @@ import org.slf4j.LoggerFactory;
 @Component(immediate = true)
 public class JsonSchemaBundleTracker implements BundleTrackerCustomizer<String> {
 
-  static final String HEADER_DOMAIN_PATH = "Caravan-HalDocs-DomainPath";
-  static final String SCHEMA_URI_PREFIX = "/docs/json-schema";
-  static final String SCHEMA_CLASSPATH_PREFIX = "JSON-SCHEMA-INF";
+  /**
+   * Header name that contains the documentation path for the json schema files.
+   */
+  public static final String HEADER_DOMAIN_PATH = "Caravan-HalDocs-DomainPath";
+
+  /**
+   * prefix for json schema document URLs.
+   */
+  public static final String SCHEMA_URI_PREFIX = "/docs/json-schema";
+
+  /**
+   * Classpath prefix where JSON schema files are located.
+   */
+  public static final String SCHEMA_CLASSPATH_PREFIX = "JSON-SCHEMA-INF";
 
   private static final Logger log = LoggerFactory.getLogger(JsonSchemaBundleTracker.class);
 

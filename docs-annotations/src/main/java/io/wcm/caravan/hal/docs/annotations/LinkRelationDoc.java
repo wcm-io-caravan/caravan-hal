@@ -32,12 +32,17 @@ import java.lang.annotation.Target;
 public @interface LinkRelationDoc {
 
   /**
-   * Reference to JSON schema.
+   * Reference/URL to JSON schema.
    */
   String jsonSchema() default "";
 
   /**
-   * Link relations that may be returned in the reponse of this relation.
+   * Reference to domain object model which should be used to detect the corresponding JSON schema.
+   */
+  Class<?> model() default void.class;
+
+  /**
+   * Link relations that may be returned in the response of this relation.
    */
   LinkRelationRef[] nested() default {};
 
