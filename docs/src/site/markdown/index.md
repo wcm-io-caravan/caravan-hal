@@ -9,7 +9,7 @@ Runtime support for interface documentation of HAL-based JAX-RS services.
 <dependency>
   <groupId>io.wcm.caravan</groupId>
   <artifactId>io.wcm.caravan.hal.docs</artifactId>
-  <version>1.0.0</version>
+  <version>0.5.0</version>
 </dependency>
 ```
 
