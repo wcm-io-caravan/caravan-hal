@@ -27,7 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 public class LinkRelationRef implements Comparable<LinkRelationRef> {
 
   private String rel;
-  private String descriptionMarkup;
+  private String shortDescription;
 
   public String getRel() {
     return this.rel;
@@ -37,12 +37,12 @@ public class LinkRelationRef implements Comparable<LinkRelationRef> {
     this.rel = rel;
   }
 
-  public String getDescriptionMarkup() {
-    return this.descriptionMarkup;
+  public String getShortDescription() {
+    return this.shortDescription;
   }
 
-  public void setDescriptionMarkup(String descriptionMarkup) {
-    this.descriptionMarkup = descriptionMarkup;
+  public void setShortDescription(String shortDescription) {
+    this.shortDescription = shortDescription;
   }
 
   @Override

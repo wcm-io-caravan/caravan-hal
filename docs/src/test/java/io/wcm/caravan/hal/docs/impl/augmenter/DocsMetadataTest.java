@@ -39,27 +39,17 @@ public class DocsMetadataTest {
 
     LinkRelation rel1 = new LinkRelation();
     rel1.setRel("simple");
-    rel1.setDescriptionMarkup("Simple description");
+    rel1.setShortDescription("Simple description");
     service.addLinkRelation(rel1);
 
     LinkRelation rel2 = new LinkRelation();
     rel2.setRel("ns1:rel2");
-    rel2.setDescriptionMarkup("<p>Description for rel 2.</p>");
+    rel2.setShortDescription("Description for rel 2");
     service.addLinkRelation(rel2);
 
     LinkRelation rel3 = new LinkRelation();
-    rel3.setRel("ns1:rel3");
-    rel3.setDescriptionMarkup("<p>Description for rel 3. There is even more text here.</p>");
+    rel3.setRel("ns2:rel3");
     service.addLinkRelation(rel3);
-
-    LinkRelation rel4 = new LinkRelation();
-    rel4.setRel("ns2:rel4");
-    rel4.setDescriptionMarkup("<p>Description contains < invalid markup &. Will it still work?");
-    service.addLinkRelation(rel4);
-
-    LinkRelation rel5 = new LinkRelation();
-    rel5.setRel("ns2:rel5");
-    service.addLinkRelation(rel5);
 
     underTest = new DocsMetadata(service, DOCS_PATH);
   }
@@ -73,10 +63,8 @@ public class DocsMetadataTest {
   @Test
   public void testGetLinkRelationTitle() {
     assertEquals("Simple description", underTest.getLinkRelationTitle("simple"));
-    assertEquals("Description for rel 2.", underTest.getLinkRelationTitle("ns1:rel2"));
-    assertEquals("Description for rel 3.", underTest.getLinkRelationTitle("ns1:rel3"));
-    assertEquals("Description contains < invalid markup &.", underTest.getLinkRelationTitle("ns2:rel4"));
-    assertNull(underTest.getLinkRelationTitle("ns2:rel5"));
+    assertEquals("Description for rel 2", underTest.getLinkRelationTitle("ns1:rel2"));
+    assertNull(underTest.getLinkRelationTitle("ns2:rel3"));
   }
 
 }

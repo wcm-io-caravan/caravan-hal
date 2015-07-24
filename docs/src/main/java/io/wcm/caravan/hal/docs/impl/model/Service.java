@@ -98,8 +98,8 @@ public class Service {
         refs.remove();
       }
       else {
-        if (StringUtils.isBlank(ref.getDescriptionMarkup())) {
-          ref.setDescriptionMarkup(referencedRel.getDescriptionMarkup());
+        if (StringUtils.isBlank(ref.getShortDescription())) {
+          ref.setShortDescription(referencedRel.getShortDescription());
         }
       }
     }

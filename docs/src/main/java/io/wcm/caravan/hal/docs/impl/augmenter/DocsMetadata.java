@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -63,35 +62,13 @@ class DocsMetadata {
     Map<String, String> map = new HashMap<>();
 
     for (LinkRelation rel : serviceModel.getLinkRelations()) {
-      String title = buildLinkRelationTitle(rel.getDescriptionMarkup());
+      String title = rel.getShortDescription();
       if (title != null) {
         map.put(rel.getRel(), title);
       }
     }
 
     return ImmutableMap.copyOf(map);
-  }
-
-  /**
-   * Get relation link title anlogous to javadoc method tile: Strip out all HTML tags and use only
-   * the first sentence from the description.
-   * @param descriptionMarkup Description markup.
-   * @return Title or null if none defined
-   */
-  private static String buildLinkRelationTitle(String descriptionMarkup) {
-    if (StringUtils.isBlank(descriptionMarkup)) {
-      return null;
-    }
-    String text = Jsoup.parse(descriptionMarkup).text();
-    if (StringUtils.isBlank(text)) {
-      return null;
-    }
-    if (StringUtils.contains(text, ".")) {
-      return StringUtils.substringBefore(text, ".") + ".";
-    }
-    else {
-      return StringUtils.trim(text);
-    }
   }
 
   public String getCurieLink(String curie) {

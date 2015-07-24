@@ -31,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 public class LinkRelation implements Comparable<LinkRelation> {
 
   private String rel;
+  private String shortDescription;
   private String descriptionMarkup;
   private String jsonSchemaRef;
   private SortedSet<LinkRelationRef> nestedRels = new TreeSet<>();
@@ -41,6 +42,14 @@ public class LinkRelation implements Comparable<LinkRelation> {
 
   public void setRel(String rel) {
     this.rel = rel;
+  }
+
+  public String getShortDescription() {
+    return this.shortDescription;
+  }
+
+  public void setShortDescription(String shortDescription) {
+    this.shortDescription = shortDescription;
   }
 
   public String getDescriptionMarkup() {
@@ -73,7 +82,7 @@ public class LinkRelation implements Comparable<LinkRelation> {
   public void addNestedLinkRelation(String nestedRel, String nestedDescription) {
     LinkRelationRef ref = new LinkRelationRef();
     ref.setRel(nestedRel);
-    ref.setDescriptionMarkup(nestedDescription);
+    ref.setShortDescription(nestedDescription);
     this.nestedRels.add(ref);
   }
 

@@ -50,6 +50,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.jsoup.Jsoup;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaAnnotatedElement;
@@ -195,6 +196,7 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
   private LinkRelation toLinkRelation(JavaClass javaClazz, JavaField javaField, ClassLoader compileClassLoader) {
     LinkRelation rel = new LinkRelation();
 
+    rel.setShortDescription(buildShortDescription(javaField.getComment()));
     rel.setDescriptionMarkup(javaField.getComment());
 
     rel.setRel(getStaticFieldValue(javaClazz, javaField, compileClassLoader, String.class));
@@ -209,6 +211,28 @@ public class GenerateHalDocsJsonMojo extends AbstractBaseMojo {
     }
 
     return rel;
+  }
+
+  /**
+   * Get short description anlogous to javadoc method tile: Strip out all HTML tags and use only
+   * the first sentence from the description.
+   * @param descriptionMarkup Description markup.
+   * @return Title or null if none defined
+   */
+  private static String buildShortDescription(String descriptionMarkup) {
+    if (StringUtils.isBlank(descriptionMarkup)) {
+      return null;
+    }
+    String text = Jsoup.parse(descriptionMarkup).text();
+    if (StringUtils.isBlank(text)) {
+      return null;
+    }
+    if (StringUtils.contains(text, ".")) {
+      return StringUtils.substringBefore(text, ".") + ".";
+    }
+    else {
+      return StringUtils.trim(text);
+    }
   }
 
   /**

@@ -49,17 +49,17 @@ public class HalDocsAugmenterImplTest {
     Service service = new Service();
     LinkRelation rel1 = new LinkRelation();
     rel1.setRel("ex:external-link");
-    rel1.setDescriptionMarkup("rel1-title");
+    rel1.setShortDescription("rel1-title");
     service.addLinkRelation(rel1);
 
     LinkRelation rel2 = new LinkRelation();
     rel2.setRel("in:children");
-    rel2.setDescriptionMarkup("rel2-title");
+    rel2.setShortDescription("rel2-title");
     service.addLinkRelation(rel2);
 
     LinkRelation rel3 = new LinkRelation();
     rel3.setRel("cust:rel3");
-    rel3.setDescriptionMarkup("rel3-title");
+    rel3.setShortDescription("rel3-title");
     service.addLinkRelation(rel3);
 
     underTest = new HalDocsAugmenterImpl(service, DOCS_PATH);
