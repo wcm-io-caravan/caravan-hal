@@ -19,8 +19,6 @@
  */
 package io.wcm.caravan.hal.docs.impl;
 
-import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
@@ -38,6 +36,8 @@ import com.github.jknack.handlebars.io.AbstractTemplateLoader;
 import com.github.jknack.handlebars.io.TemplateSource;
 import com.github.jknack.handlebars.io.URLTemplateSource;
 import com.google.common.collect.ImmutableMap;
+
+import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
 
 /**
  * Renders HTML views for HAL documentation.
@@ -103,7 +103,7 @@ public class TemplateRenderer {
             .put("baseUrl", DocsPath.get(service.getServiceId()) + "/")
             .put("resourcesPath", HalDocsBundleTracker.DOCS_RESOURCES_URI_PREFIX)
             .build())
-            .build();
+        .build();
     return template.apply(mergedModel);
   }
 
@@ -114,7 +114,7 @@ public class TemplateRenderer {
 
     private final Bundle bundle;
 
-    public BundleTemplateLoader(Bundle bundle) {
+    BundleTemplateLoader(Bundle bundle) {
       this.bundle = bundle;
     }
 

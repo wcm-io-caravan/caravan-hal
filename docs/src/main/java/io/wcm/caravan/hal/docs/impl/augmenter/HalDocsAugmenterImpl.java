@@ -31,7 +31,7 @@ class HalDocsAugmenterImpl implements HalDocsAugmenter {
   private final CurieAugmenter curieAugmenter;
   private final LinkRelationTitleAugmenter linkRelationTitleAugmenter;
 
-  public HalDocsAugmenterImpl(Service serviceModel, String docsPath) {
+  HalDocsAugmenterImpl(Service serviceModel, String docsPath) {
     DocsMetadata metadata = new DocsMetadata(serviceModel, docsPath);
     curieAugmenter = new CurieAugmenter(metadata);
     linkRelationTitleAugmenter = new LinkRelationTitleAugmenter(metadata);

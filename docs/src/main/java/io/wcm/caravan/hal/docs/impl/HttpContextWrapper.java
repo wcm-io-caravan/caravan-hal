@@ -52,7 +52,7 @@ class HttpContextWrapper implements HttpContext {
   private final HttpContext delegate;
   private final Bundle bundle;
 
-  public HttpContextWrapper(HttpContext httpContext, Bundle bundle) {
+  HttpContextWrapper(HttpContext httpContext, Bundle bundle) {
     this.delegate = httpContext;
     this.bundle = bundle;
   }
