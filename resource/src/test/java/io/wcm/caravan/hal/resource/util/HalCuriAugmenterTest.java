@@ -24,7 +24,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import io.wcm.caravan.commons.stream.Streams;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.HalResourceFactory;
 import io.wcm.caravan.hal.resource.Link;
@@ -96,7 +95,7 @@ public class HalCuriAugmenterTest {
   @Test
   public void augment_shouldNotAddCuriForMissingCurieName() {
     augmenter.augment(hal);
-    Streams.of(hal.getLinks("curies"))
+    hal.getLinks("curies").stream()
     .map(link -> link.getName())
     .filter(name -> StringUtils.equals(name, "cust"))
     .forEach(name -> fail("cust is no CURI for this HAL"));

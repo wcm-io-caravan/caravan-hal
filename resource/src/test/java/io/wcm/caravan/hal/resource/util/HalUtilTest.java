@@ -22,14 +22,13 @@ package io.wcm.caravan.hal.resource.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import io.wcm.caravan.commons.stream.Collectors;
-import io.wcm.caravan.commons.stream.Streams;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.HalResourceFactory;
 import io.wcm.caravan.hal.resource.Link;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -62,7 +61,7 @@ public class HalUtilTest {
   }
 
   private Set<String> getUris(Collection<Link> links) {
-    return Streams.of(links).map(Link::getHref).collect(Collectors.toSet());
+    return links.stream().map(Link::getHref).collect(Collectors.toSet());
   }
 
   @Test

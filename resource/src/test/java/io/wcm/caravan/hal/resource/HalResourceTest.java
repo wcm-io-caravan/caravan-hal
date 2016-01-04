@@ -239,6 +239,25 @@ public class HalResourceTest {
   }
 
   @Test
+  public void collectLinks_shouldReturnEmptyListForMissingRelation() {
+    List<Link> links = hal.collectLinks("unknown");
+    assertTrue(links.isEmpty());
+  }
+
+  @Test
+  public void collectEmbedded_shouldReturnAllEmbeddedResources() {
+    List<HalResource> embeddedResources = hal.collectEmbedded("multiple");
+    assertEquals(2, embeddedResources.size());
+    assertEquals("/multiple1", embeddedResources.get(0).getLink().getHref());
+  }
+
+  @Test
+  public void collectEmbedded_shouldReturnEmptyListForMissingRelation() {
+    List<HalResource> links = hal.collectEmbedded("unknown");
+    assertTrue(links.isEmpty());
+  }
+
+  @Test
   public void getEmbeddedResource_shouldReturnOneEmbeddedResource() {
     HalResource embedded = hal.getEmbeddedResource("multiple");
     assertEquals("/multiple1", embedded.getLink().getHref());

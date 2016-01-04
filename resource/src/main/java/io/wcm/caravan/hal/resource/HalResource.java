@@ -19,29 +19,23 @@
  */
 package io.wcm.caravan.hal.resource;
 
-import io.wcm.caravan.commons.stream.Collectors;
-import io.wcm.caravan.commons.stream.Streams;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import org.osgi.annotation.versioning.ProviderType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableListMultimap.Builder;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.UnmodifiableIterator;
 
 /**
  * Bean representation of a HAL resource.
@@ -122,8 +116,9 @@ public final class HalResource implements HalObject {
       return ImmutableListMultimap.of();
     }
     Builder<String, X> resources = ImmutableListMultimap.builder();
-    Iterable<String> iterable = Lists.newArrayList(model.get(type.toString()).fieldNames());
-    Streams.of(iterable).forEach(field -> resources.putAll(field, getResources(clazz, type, field)));
+    model.get(type.toString())
+    .fieldNames()
+    .forEachRemaining(field -> resources.putAll(field, getResources(clazz, type, field)));
     return resources.build();
   }
 
@@ -149,12 +144,15 @@ public final class HalResource implements HalObject {
    * @return a list of all links
    */
   public List<Link> collectLinks(String rel) {
-    List<Link> links = Lists.newArrayList(getLinks(rel));
-    List<Link> embeddedLinks = Streams.of(getEmbedded().values())
-        .flatMap(embedded -> Streams.of(embedded.collectLinks(rel)))
-        .collect(Collectors.toList());
-    links.addAll(embeddedLinks);
-    return ImmutableList.copyOf(links);
+    return collectResources(Link.class, HalResourceType.LINKS, rel);
+  }
+
+  private <X extends HalObject> List<X> collectResources(Class<X> clazz, HalResourceType type, String relation) {
+    ImmutableList.Builder<X> builder = ImmutableList.<X>builder().addAll(getResources(clazz, type, relation));
+    getEmbedded().values().stream()
+    .map(embedded -> embedded.collectResources(clazz, type, relation))
+    .forEach(embeddedResources -> builder.addAll(embeddedResources));
+    return builder.build();
   }
 
   /**
@@ -179,12 +177,7 @@ public final class HalResource implements HalObject {
    * @return a list of all embedded resources
    */
   public List<HalResource> collectEmbedded(String rel) {
-    List<HalResource> embeddedHere = Lists.newArrayList(getEmbedded(rel));
-    List<HalResource> embeddedWithinOtherEmbedded = Streams.of(getEmbedded().values())
-        .flatMap(embedded -> Streams.of(embedded.collectEmbedded(rel)))
-        .collect(Collectors.toList());
-    embeddedHere.addAll(embeddedWithinOtherEmbedded);
-    return ImmutableList.copyOf(embeddedHere);
+    return collectResources(HalResource.class, HalResourceType.EMBEDDED, rel);
   }
 
   private <X extends HalObject> List<X> getResources(Class<X> clazz, HalResourceType type, String relation) {
@@ -299,7 +292,7 @@ public final class HalResource implements HalObject {
 
     if (asArray) {
       ArrayNode container = getArrayNodeContainer(type, relation, resources);
-      Streams.of(newResources).forEach(link -> container.add(link.getModel()));
+      Arrays.stream(newResources).forEach(link -> container.add(link.getModel()));
     }
     else {
       resources.set(relation, newResources[0].getModel());
@@ -438,8 +431,7 @@ public final class HalResource implements HalObject {
    * @return HAL resource
    */
   public HalResource addState(ObjectNode state) {
-    Iterable<Entry<String, JsonNode>> iterable = Lists.newArrayList(state.fields());
-    Streams.of(iterable).forEach(entry -> model.set(entry.getKey(), entry.getValue()));
+    state.fields().forEachRemaining(entry -> model.set(entry.getKey(), entry.getValue()));
     return this;
   }
 
@@ -447,14 +439,10 @@ public final class HalResource implements HalObject {
    * @return JSON field names for the state object
    */
   public List<String> getStateFieldNames() {
-    UnmodifiableIterator<String> filtered = Iterators.filter(model.fieldNames(), new Predicate<String>() {
-
-      @Override
-      public boolean apply(String input) {
-        return !"_links".equals(input) && !"_embedded".equals(input);
-      }
-    });
-    return Lists.newArrayList(filtered);
+    Iterable<String> iterable = () -> model.fieldNames();
+    return StreamSupport.stream(iterable.spliterator(), false)
+        .filter(field -> !"_links".equals(field) && !"_embedded".equals(field))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -462,9 +450,8 @@ public final class HalResource implements HalObject {
    * @return HAL resource
    */
   public HalResource removeState() {
-    Streams.of(getStateFieldNames()).forEach(field -> model.remove(field));
+    getStateFieldNames().forEach(field -> model.remove(field));
     return this;
   }
-
 
 }
