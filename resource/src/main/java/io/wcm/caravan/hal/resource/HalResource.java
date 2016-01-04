@@ -412,12 +412,11 @@ public final class HalResource implements HalObject {
    * Changes the rel of embedded resources
    * @param relToRename the rel that you want to change
    * @param newRel the new rel for all embedded items
+   * @return HAL resource
    */
-  public void renameEmbedded(String relToRename, String newRel) {
-    List<HalResource> resourcesToRename = new ArrayList<>();
-    resourcesToRename.addAll(getEmbedded(relToRename));
-    removeEmbedded(relToRename);
-    addEmbedded(newRel, resourcesToRename);
+  public HalResource renameEmbedded(String relToRename, String newRel) {
+    List<HalResource> resources = getEmbedded(relToRename);
+    return removeEmbedded(relToRename).addEmbedded(newRel, resources);
   }
 
   private HalResource removeResources(HalResourceType type) {
