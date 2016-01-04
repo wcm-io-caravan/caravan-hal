@@ -55,6 +55,11 @@ public class HalResourceTest {
     hal = new HalResource(model);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void constructor_shouldThrowIllegalArgumentExceptionForArrayNodeModel() {
+    new HalResource(OBJECT_MAPPER.createArrayNode());
+  }
+
   @Test
   public void hasLink_shouldReturnTrueForRelation() {
     assertTrue(hal.hasLink("self"));

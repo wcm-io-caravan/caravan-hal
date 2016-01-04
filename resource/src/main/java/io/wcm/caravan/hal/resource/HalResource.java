@@ -31,6 +31,7 @@ import org.osgi.annotation.versioning.ProviderType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableListMultimap.Builder;
@@ -52,9 +53,21 @@ public final class HalResource implements HalObject {
 
   /**
    * @param model JSON model
+   * @deprecated Use {@link HalResource#HalResource(JsonNode)} instead
    */
+  @Deprecated
   public HalResource(ObjectNode model) {
     this.model = model;
+  }
+
+  /**
+   * Helping constructor checking if the {@code model} is an {@link ObjectNode}. Throws an
+   * {@link IllegalArgumentException} if not.
+   * @param model JSON model
+   */
+  public HalResource(JsonNode model) {
+    Preconditions.checkArgument(model instanceof ObjectNode, "Model is not an ObjectNode");
+    this.model = (ObjectNode)model;
   }
 
   @Override

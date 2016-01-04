@@ -24,6 +24,7 @@ import java.util.regex.Pattern;
 import org.osgi.annotation.versioning.ProviderType;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -96,8 +97,26 @@ public final class HalResourceFactory {
    * @param model The state of the resource
    * @param href The self link for the resource
    * @return New HAL resource
+   * @deprecated Use {@link HalResourceFactory#createResource(JsonNode, String)} instead
    */
+  @Deprecated
   public static HalResource createResource(ObjectNode model, String href) {
+    HalResource resource = new HalResource(model);
+
+    if (href != null) {
+      resource.setLink(createLink(href));
+    }
+
+    return resource;
+  }
+
+  /**
+   * Creates a HAL resource with state and a self link.
+   * @param model The state of the resource
+   * @param href The self link for the resource
+   * @return New HAL resource
+   */
+  public static HalResource createResource(JsonNode model, String href) {
     HalResource resource = new HalResource(model);
 
     if (href != null) {

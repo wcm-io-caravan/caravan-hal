@@ -25,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -88,6 +89,14 @@ public class HalResourceFactoryTest {
   @Test
   public void createResourceObjectNodeString_shouldSetStateAndHrefForSelfLink() {
     ObjectNode model = OBJECT_MAPPER.createObjectNode().put("att", "value");
+    HalResource hal = HalResourceFactory.createResource(model, "/");
+    assertEquals("value", hal.getModel().get("att").asText(null));
+    assertEquals("/", hal.getLink().getHref());
+  }
+
+  @Test
+  public void createResourcejsonNodeString_shouldSetStateAndHrefForSelfLink() {
+    JsonNode model = OBJECT_MAPPER.createObjectNode().put("att", "value");
     HalResource hal = HalResourceFactory.createResource(model, "/");
     assertEquals("value", hal.getModel().get("att").asText(null));
     assertEquals("/", hal.getLink().getHref());

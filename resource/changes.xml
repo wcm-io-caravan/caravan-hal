@@ -30,6 +30,9 @@
       <action type="update" dev="cnagel">
         Change to Java 8 Streams.
       </action>
+      <action type="add" dev="cnagel">
+        Add JsonNode Constructor to HalResource and deprecate ObjectNode Constructor.
+      </action>
     </release>
 
     <release version="1.0.2" date="2015-07-25">

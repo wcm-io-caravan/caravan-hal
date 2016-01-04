@@ -29,8 +29,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Short named helper for HAL resources.
+ * @deprecated Will get removed
  */
 @ProviderType
+@Deprecated
 public final class HalBuilder {
 
   private final HalResource instance;
@@ -65,7 +67,7 @@ public final class HalBuilder {
   }
 
   /**
-   * @see HalResourceFactory#createResource(ObjectNode, String)
+   * @see HalResourceFactory#createResource(Object, String)
    * @param state Resource state
    * @param href Link HREF
    */
