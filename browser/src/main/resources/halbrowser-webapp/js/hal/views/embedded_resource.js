@@ -30,7 +30,6 @@ HAL.Views.EmbeddedResource = Backbone.View.extend({
     this.vent.trigger('show-docs', {
       url: $(e.currentTarget).data('href')
     });
-    return false;
   },
 
   render: function() {
@@ -46,12 +45,6 @@ HAL.Views.EmbeddedResource = Backbone.View.extend({
     var $inner = $('<div class="accordion-inner"></div>');
     $inner.append(this.propertiesView.el);
     $inner.append(this.linksView.el);
-
-    if (this.resource.embeddedResources) {
-      var embeddedResourcesView = new HAL.Views.EmbeddedResources({ vent: this.vent });
-      embeddedResourcesView.render(this.resource.embeddedResources);
-      $inner.append(embeddedResourcesView.el);
-    }
 
     this.$accordionBody = $('<div class="accordion-body collapse"></div>');
     this.$accordionBody.append($inner)
