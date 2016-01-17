@@ -30,6 +30,7 @@ import org.osgi.annotation.versioning.ProviderType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
@@ -58,6 +59,22 @@ public final class HalResource implements HalObject {
   @Deprecated
   public HalResource(ObjectNode model) {
     this.model = model;
+  }
+
+  /**
+   * Create an empty HAL resource, with no object state or links
+   */
+  public HalResource() {
+    this(JsonNodeFactory.instance.objectNode());
+  }
+
+  /**
+   * Create a HAL resource with empty state that only contains a self link with the given URI
+   * @param uri the URI under which this resource can be retrieved
+   */
+  public HalResource(String uri) {
+    this();
+    setLink(HalResourceFactory.createLink(uri));
   }
 
   /**

@@ -33,6 +33,9 @@
       <action type="add" dev="cnagel">
         Add JsonNode Constructor to HalResource and deprecate ObjectNode Constructor.
       </action>
+      <action type="add" dev="ssauder">
+        Added HalResource() and HalResource(String uri) constructors (so you don't have to use HalResourceFactory to create empty resources)
+      </action>
     </release>
 
     <release version="1.0.2" date="2015-07-25">
