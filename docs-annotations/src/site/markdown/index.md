@@ -2,16 +2,8 @@
 
 Annotates service information classes for HAL documentation.
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.docs-annotations/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.docs-annotations)
 
-### Maven Dependency
-
-```xml
-<dependency>
-  <groupId>io.wcm.caravan</groupId>
-  <artifactId>io.wcm.caravan.hal.docs-annotations</artifactId>
-  <version>0.5.0</version>
-</dependency>
-```
 
 ### Documentation
 
