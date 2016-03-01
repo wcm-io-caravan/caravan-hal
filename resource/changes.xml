@@ -36,6 +36,9 @@
       <action type="add" dev="ssauder">
         Added HalResource() and HalResource(String uri) constructors (so you don't have to use HalResourceFactory to create empty resources)
       </action>
+      <action type="add" dev="ssauder">
+        Added Link#remove() method for convenient removal of a link from its context resource.
+      </action>
     </release>
 
     <release version="1.0.2" date="2015-07-25">

@@ -216,10 +216,12 @@ public final class HalResource implements HalObject {
       return ImmutableList.of();
     }
     JsonNode resources = model.at("/" + type + "/" + relation);
+
+    List<X> halObjects;
     try {
       Constructor<X> constructor = clazz.getConstructor(ObjectNode.class);
       if (resources instanceof ObjectNode) {
-        return ImmutableList.of(constructor.newInstance(resources));
+        halObjects = ImmutableList.of(constructor.newInstance(resources));
       }
       else {
         ImmutableList.Builder<X> result = ImmutableList.builder();
@@ -228,8 +230,12 @@ public final class HalResource implements HalObject {
             result.add(constructor.newInstance(resource));
           }
         }
-        return result.build();
+        halObjects = result.build();
       }
+
+      updateContextResource(halObjects);
+
+      return halObjects;
     }
     catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
       throw new RuntimeException(ex);
@@ -328,7 +334,19 @@ public final class HalResource implements HalObject {
     else {
       resources.set(relation, newResources[0].getModel());
     }
+
+    updateContextResource(Arrays.asList(newResources));
+
     return this;
+  }
+
+  private <X extends HalObject> void updateContextResource(Iterable<X> halObjects) {
+
+    for (X halObject : halObjects) {
+      if (halObject instanceof Link) {
+        ((Link)halObject).setContext(this);
+      }
+    }
   }
 
   private ArrayNode getArrayNodeContainer(HalResourceType type, String relation, ObjectNode resources) {

@@ -19,11 +19,14 @@
  */
 package io.wcm.caravan.hal.resource;
 
+import java.util.List;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.osgi.annotation.versioning.ProviderType;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ListMultimap;
 
 /**
  * Bean representation of a HAL link.
@@ -32,6 +35,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public final class Link implements HalObject {
 
   private final ObjectNode model;
+
+  private HalResource context;
 
   /**
    * @param model JSON model
@@ -173,6 +178,41 @@ public final class Link implements HalObject {
     return this;
   }
 
+  /**
+   * Removes this link from its context resource's JSON representation
+   * @throws IllegalStateException if this link was never added to a resource, or has already been removed
+   */
+  public void remove() {
+
+    if (context == null) {
+      throw new IllegalStateException("link with href=" + getHref() + " can not be removed, because it's not part of a HAL resource tree");
+    }
+
+    // iterate over all links grouped by relation (because for removal we need to know the relation)
+    ListMultimap<String, Link> allLinks = context.getLinks();
+    for (String relation : allLinks.keySet()) {
+      List<Link> links = allLinks.get(relation);
+
+      // use an indexed for-loop, because we need to know the index to properly remove the link
+      for (int i = 0; i < links.size(); i++) {
+        if (links.get(i).getModel() == model) {
+          context.removeLink(relation, i);
+          context = null;
+          return;
+        }
+      }
+    }
+
+    throw new IllegalStateException("the last known context resource of link with href=" + getHref() + " no longer contains this link");
+  }
+
+  /**
+   * @param contextResource the HAL resource that contains this link
+   */
+  void setContext(HalResource contextResource) {
+    context = contextResource;
+  }
+
   @Override
   public int hashCode() {
     return HashCodeBuilder.reflectionHashCode(this, false);
@@ -182,5 +222,6 @@ public final class Link implements HalObject {
   public boolean equals(Object obj) {
     return EqualsBuilder.reflectionEquals(this, obj);
   }
+
 
 }
