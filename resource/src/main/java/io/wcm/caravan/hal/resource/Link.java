@@ -21,8 +21,6 @@ package io.wcm.caravan.hal.resource;
 
 import java.util.List;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.osgi.annotation.versioning.ProviderType;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -215,12 +213,17 @@ public final class Link implements HalObject {
 
   @Override
   public int hashCode() {
-    return HashCodeBuilder.reflectionHashCode(this, false);
+    return model.toString().hashCode();
   }
 
   @Override
   public boolean equals(Object obj) {
-    return EqualsBuilder.reflectionEquals(this, obj);
+    if (!(obj instanceof Link)) {
+      return false;
+    }
+    else {
+      return model.toString().equals(((Link)obj).model.toString());
+    }
   }
 
 
