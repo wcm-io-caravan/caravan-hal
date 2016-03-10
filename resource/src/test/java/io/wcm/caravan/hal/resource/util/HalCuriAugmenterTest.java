@@ -47,9 +47,9 @@ public class HalCuriAugmenterTest {
     .register("in", "https://example.com/doc/in/{rel}")
     .register("cust", "https://example.com/doc/cust/{rel}");
     hal = HalResourceFactory.createResource("/resource")
-        .setLink("ex:external-link", HalResourceFactory.createLink("/external-link"))
-        .addLinks("in:children", HalResourceFactory.createLink("/child-1"), HalResourceFactory.createLink("/child-2"))
-        .addLinks("no-curie", HalResourceFactory.createLink("/no-curi-1"));
+        .setLink("ex:external-link", new Link("/external-link"))
+        .addLinks("in:children", new Link("/child-1"), new Link("/child-2"))
+        .addLinks("no-curie", new Link("/no-curi-1"));
   }
 
   @Test
@@ -103,7 +103,7 @@ public class HalCuriAugmenterTest {
 
   @Test
   public void augment_shouldNotOverrideExistingCuri() {
-    hal.addLinks("curies", HalResourceFactory.createLink("https://example.com/doc/other/{rel}").setName("ex"));
+    hal.addLinks("curies", new Link("https://example.com/doc/other/{rel}").setName("ex"));
     augmenter.augment(hal);
     List<Link> curies = hal.getLinks("curies");
     assertEquals("https://example.com/doc/other/{rel}", curies.get(0).getHref());
@@ -111,7 +111,7 @@ public class HalCuriAugmenterTest {
 
   @Test
   public void augment_shouldOnlyAddCuriLinkOnce() {
-    hal.addLinks("ex:external-link2", HalResourceFactory.createLink("/external-link2"));
+    hal.addLinks("ex:external-link2", new Link("/external-link2"));
     augmenter.augment(hal);
     List<Link> curies = hal.getLinks("curies");
     assertEquals(2, curies.size());
@@ -120,7 +120,7 @@ public class HalCuriAugmenterTest {
   @Test
   public void augment_shouldAddCuriForLinksInEmbeddedResource() {
     HalResource item = HalResourceFactory.createResource("/item")
-        .addLinks("cust:item", HalResourceFactory.createLink("/item-link"));
+        .addLinks("cust:item", new Link("/item-link"));
     hal.addEmbedded("item", item);
 
     augmenter.augment(hal);

@@ -64,7 +64,7 @@ public final class HalCuriAugmenter {
    * @return This augmenter
    */
   public HalCuriAugmenter register(String name, String href) {
-    Link link = HalResourceFactory.createLink(href).setName(name);
+    Link link = new Link(href).setName(name);
     return register(link);
   }
 

@@ -21,7 +21,6 @@ package io.wcm.caravan.hal.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -50,19 +49,6 @@ public class HalResourceFactoryTest {
     state.property2 = "value2";
     ObjectNode json = HalResourceFactory.convert(state);
     assertEquals("value1", json.get("property1").asText(null));
-  }
-
-  @Test
-  public void createLink_shouldSetHref() {
-    Link link = HalResourceFactory.createLink("/");
-    assertEquals("/", link.getHref());
-    assertFalse(link.isTemplated());
-  }
-
-  @Test
-  public void createLink_shouldSetTemplatedFlag() {
-    Link link = HalResourceFactory.createLink("/path{?query}");
-    assertTrue(link.isTemplated());
   }
 
   @Test

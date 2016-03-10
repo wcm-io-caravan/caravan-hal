@@ -46,10 +46,10 @@ public class HalUtilTest {
   public void setUp() {
 
     payload = HalResourceFactory.createResource("/resource")
-        .addLinks("curies", HalResourceFactory.createLink("/doc#{rel}").setName("topic"))
-        .addLinks("section", HalResourceFactory.createLink("/link-1"), HalResourceFactory.createLink("/link-2"))
+        .addLinks("curies", new Link("/doc#{rel}").setName("topic"))
+        .addLinks("section", new Link("/link-1"), new Link("/link-2"))
         .addEmbedded("item", HalResourceFactory.createResource("/embedded-1")
-            .addLinks("item", HalResourceFactory.createLink("/embedded-1-link-1"), HalResourceFactory.createLink("/embedded-1-link-2")));
+            .addLinks("item", new Link("/embedded-1-link-1"), new Link("/embedded-1-link-2")));
 
   }
 
