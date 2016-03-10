@@ -24,15 +24,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.HalResourceFactory;
-import io.wcm.caravan.hal.resource.Link;
 
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.hal.resource.Link;
 
 @SuppressWarnings("deprecation")
 public class HalCuriAugmenterTest {
@@ -43,9 +43,9 @@ public class HalCuriAugmenterTest {
   @Before
   public void setUp() {
     augmenter = new HalCuriAugmenter()
-    .register("ex", "https://example.com/doc/ex/{rel}")
-    .register("in", "https://example.com/doc/in/{rel}")
-    .register("cust", "https://example.com/doc/cust/{rel}");
+        .register("ex", "https://example.com/doc/ex/{rel}")
+        .register("in", "https://example.com/doc/in/{rel}")
+        .register("cust", "https://example.com/doc/cust/{rel}");
     hal = new HalResource("/resource")
         .setLink("ex:external-link", new Link("/external-link"))
         .addLinks("in:children", new Link("/child-1"), new Link("/child-2"))

@@ -19,10 +19,6 @@
  */
 package io.wcm.caravan.hal.resource.util;
 
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.HalResourceFactory;
-import io.wcm.caravan.hal.resource.Link;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +31,9 @@ import org.osgi.annotation.versioning.ProviderType;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.hal.resource.Link;
 
 /**
  * Augments a HAL resource by CURI documentation links for links in the main and embedded resources. Pre-defined CURIES

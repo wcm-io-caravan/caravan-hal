@@ -37,7 +37,7 @@ public class HalResourceFactoryTest {
   public void getStateAsObject_shouldConvertJsonToAnyObject() throws Exception {
     ObjectNode model = OBJECT_MAPPER.readValue(getClass().getResourceAsStream("/jackson_hal_resource_model.json"), ObjectNode.class);
     HalResource hal = new HalResource(model);
-    TestObject state = HalResourceFactory.getStateAsObject(hal, TestObject.class);
+    TestObject state = hal.adaptTo(TestObject.class);
     assertEquals("value1", state.property1);
     assertEquals("value2", state.property2);
   }
@@ -47,7 +47,7 @@ public class HalResourceFactoryTest {
     TestObject state = new TestObject();
     state.property1 = "value1";
     state.property2 = "value2";
-    ObjectNode json = HalResourceFactory.convert(state);
+    ObjectNode json = new HalResource(state).getModel();
     assertEquals("value1", json.get("property1").asText(null));
   }
 

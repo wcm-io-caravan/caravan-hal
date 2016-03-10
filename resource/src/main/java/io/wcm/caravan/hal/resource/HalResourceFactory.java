@@ -21,7 +21,6 @@ package io.wcm.caravan.hal.resource;
 
 import org.osgi.annotation.versioning.ProviderType;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -33,12 +32,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @ProviderType
 public final class HalResourceFactory {
 
-  /**
-   * JSON object mapper
-   */
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-
   private HalResourceFactory() {
     // nothing to do
   }
@@ -47,9 +40,11 @@ public final class HalResourceFactory {
    * Converts any object into a JSON {@link ObjectNode}.
    * @param input Any object
    * @return JSON object node
+   * @deprecated use a Jackson {@link ObjectMapper} instead
    */
+  @Deprecated
   public static ObjectNode convert(Object input) {
-    return OBJECT_MAPPER.convertValue(input, ObjectNode.class);
+    return new HalResource(input).getModel();
   }
 
   /**
@@ -83,7 +78,7 @@ public final class HalResourceFactory {
    */
   @Deprecated
   public static HalResource createResource(Object model, String href) {
-    return new HalResource(convert(model), href);
+    return new HalResource(new HalResource(model).getModel(), href);
   }
 
   /**
@@ -104,9 +99,11 @@ public final class HalResourceFactory {
    * @param type Type of the requested object
    * @param <T> Output type
    * @return State as object
+   * @deprecated use {@link HalResource#adaptTo(Class)}
    */
+  @Deprecated
   public static <T> T getStateAsObject(HalResource halResource, Class<T> type) {
-    return HalResourceFactory.OBJECT_MAPPER.convertValue(halResource.getModel(), type);
+    return halResource.adaptTo(type);
   }
 
 }
