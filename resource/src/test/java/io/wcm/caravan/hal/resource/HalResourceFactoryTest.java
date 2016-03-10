@@ -75,7 +75,7 @@ public class HalResourceFactoryTest {
   @Test
   public void createResourceObjectNodeString_shouldSetStateAndHrefForSelfLink() {
     ObjectNode model = OBJECT_MAPPER.createObjectNode().put("att", "value");
-    HalResource hal = HalResourceFactory.createResource(model, "/");
+    HalResource hal = new HalResource(model, "/");
     assertEquals("value", hal.getModel().get("att").asText(null));
     assertEquals("/", hal.getLink().getHref());
   }

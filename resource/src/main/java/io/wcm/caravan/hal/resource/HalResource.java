@@ -86,12 +86,34 @@ public final class HalResource implements HalObject {
   }
 
   /**
+   * Create a new HalResource with the state from the given POJO
+   * @param pojo a simple java object that will be mapped by a standard jackson {@link ObjectMapper}
+   * @throws IllegalArgumentException if the object can not be converted to a Jackson JSON object
+   */
+  public HalResource(Object pojo) {
+    this.model = OBJECT_MAPPER.convertValue(pojo, ObjectNode.class);
+  }
+
+  /**
    * Create a new HalResource with the state from the given JSON object
    * @param model JSON model - must be an ObjectNode
    * @throws IllegalArgumentException if model is not an object node
    */
   public HalResource(JsonNode model, String uri) {
     this(model);
+    if (uri != null) {
+      setLink(new Link(uri));
+    }
+  }
+
+  /**
+   * Create a new HalResource with the state from the given POJO
+   * @param pojo a simple java object that will be mapped by a standard jackson {@link ObjectMapper}
+   * @param uri the URI under which this resource can be retrieved
+   * @throws IllegalArgumentException if the object can not be converted to a Jackson JSON object
+   */
+  public HalResource(Object pojo, String uri) {
+    this.model = OBJECT_MAPPER.convertValue(pojo, ObjectNode.class);
     if (uri != null) {
       setLink(new Link(uri));
     }

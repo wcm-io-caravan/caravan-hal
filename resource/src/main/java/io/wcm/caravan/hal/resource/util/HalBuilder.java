@@ -81,7 +81,7 @@ public final class HalBuilder {
    * @param href Link HREF
    */
   public HalBuilder(ObjectNode state, String href) {
-    instance = HalResourceFactory.createResource(state, href);
+    instance = new HalResource(state, href);
   }
 
   /**

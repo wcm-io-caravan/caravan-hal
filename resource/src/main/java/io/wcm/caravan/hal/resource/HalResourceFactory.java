@@ -39,7 +39,6 @@ public final class HalResourceFactory {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-
   private HalResourceFactory() {
     // nothing to do
   }
@@ -84,7 +83,7 @@ public final class HalResourceFactory {
    */
   @Deprecated
   public static HalResource createResource(Object model, String href) {
-    return createResource(convert(model), href);
+    return new HalResource(convert(model), href);
   }
 
   /**
