@@ -53,15 +53,6 @@ public final class HalResource implements HalObject {
   private final ObjectNode model;
 
   /**
-   * @param model JSON model
-   * @deprecated Use {@link HalResource#HalResource(JsonNode)} instead
-   */
-  @Deprecated
-  public HalResource(ObjectNode model) {
-    this.model = model;
-  }
-
-  /**
    * Create an empty HAL resource, with no object state or links
    */
   public HalResource() {
@@ -219,7 +210,7 @@ public final class HalResource implements HalObject {
 
     List<X> halObjects;
     try {
-      Constructor<X> constructor = clazz.getConstructor(ObjectNode.class);
+      Constructor<X> constructor = clazz.getConstructor(JsonNode.class);
       if (resources instanceof ObjectNode) {
         halObjects = ImmutableList.of(constructor.newInstance(resources));
       }
