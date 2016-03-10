@@ -20,9 +20,12 @@
 package io.wcm.caravan.hal.resource;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.osgi.annotation.versioning.ProviderType;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ListMultimap;
 
@@ -32,6 +35,11 @@ import com.google.common.collect.ListMultimap;
 @ProviderType
 public final class Link implements HalObject {
 
+  /**
+   * Pattern that will hit an RFC 6570 URI template.
+   */
+  private static final Pattern URI_TEMPLATE_PATTERN = Pattern.compile("\\{.+\\}");
+
   private final ObjectNode model;
 
   private HalResource context;
@@ -39,8 +47,21 @@ public final class Link implements HalObject {
   /**
    * @param model JSON model
    */
-  public Link(ObjectNode model) {
-    this.model = model;
+  public Link(JsonNode model) {
+    if (!(model instanceof ObjectNode)) {
+      throw new IllegalArgumentException("the given model must be of type ObjectNode");
+    }
+    this.model = (ObjectNode)model;
+  }
+
+  /**
+   * Creates a link with a new model that only contains the given URI
+   * @param href the URI to put in the "href" property
+   */
+  public Link(String href) {
+    this.model = JsonNodeFactory.instance.objectNode();
+
+    this.setHref(href);
   }
 
   @Override
@@ -156,7 +177,13 @@ public final class Link implements HalObject {
    * @return Link
    */
   public Link setHref(String href) {
+
     model.put("href", href);
+
+    if (href != null && URI_TEMPLATE_PATTERN.matcher(href).find()) {
+      setTemplated(true);
+    }
+
     return this;
   }
 

@@ -19,6 +19,10 @@
  */
 package io.wcm.caravan.hal.resource;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -43,6 +47,20 @@ public class LinkTest {
   public void setUp() throws JsonParseException, JsonMappingException, IOException {
     model = OBJECT_MAPPER.readValue(getClass().getResourceAsStream("/jackson_hal_resource_model.json"), ObjectNode.class);
     hal = new HalResource(model);
+  }
+
+
+  @Test
+  public void createLink_shouldSetHref() {
+    Link link = new Link("/");
+    assertEquals("/", link.getHref());
+    assertFalse(link.isTemplated());
+  }
+
+  @Test
+  public void createLink_shouldSetTemplatedFlag() {
+    Link link = new Link("/path{?query}");
+    assertTrue(link.isTemplated());
   }
 
   @Test
@@ -85,7 +103,7 @@ public class LinkTest {
 
   @Test(expected = IllegalStateException.class)
   public void remove_failsForDetachedLinks() {
-    Link linkToRemove = HalResourceFactory.createLink("/some/uri");
+    Link linkToRemove = new Link("/some/uri");
     linkToRemove.remove();
   }
 

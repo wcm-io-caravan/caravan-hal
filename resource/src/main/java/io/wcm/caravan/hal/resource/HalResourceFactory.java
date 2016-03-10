@@ -24,13 +24,14 @@ import java.util.regex.Pattern;
 import org.osgi.annotation.versioning.ProviderType;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Factory for HAL {@link HalResource}s.
+ * @deprecated just create {@link HalResource} and {@link Link} instances using the new constructors
  */
+@Deprecated
 @ProviderType
 public final class HalResourceFactory {
 
@@ -62,24 +63,22 @@ public final class HalResourceFactory {
    * Creates a HAL link with the given HREF.
    * @param href Link HREF
    * @return Link
+   * @deprecated use the constructor {@link Link#Link(String) instead}
    */
+  @Deprecated
   public static Link createLink(String href) {
-    Link link = new Link(OBJECT_MAPPER.createObjectNode()).setHref(href);
-
-    if (href != null && URI_TEMPLATE_PATTERN.matcher(href).find()) {
-      link.setTemplated(true);
-    }
-
-    return link;
+    return new Link(href);
   }
 
   /**
    * Creates a HAL resource with empty state but a self link. Mostly needed for index resources.
    * @param href The self HREF for the resource
    * @return New HAL resource
+   * @deprecated just create {@link HalResource} and {@link Link} instances using the new constructors
    */
+  @Deprecated
   public static HalResource createResource(String href) {
-    return createResource(OBJECT_MAPPER.createObjectNode(), href);
+    return new HalResource(href);
   }
 
   /**
@@ -87,7 +86,9 @@ public final class HalResourceFactory {
    * @param model The state of the resource
    * @param href The self link for the resource
    * @return New HAL resource
+   * @deprecated just create {@link HalResource} and {@link Link} instances using the new constructors
    */
+  @Deprecated
   public static HalResource createResource(Object model, String href) {
     return createResource(convert(model), href);
   }
@@ -97,33 +98,11 @@ public final class HalResourceFactory {
    * @param model The state of the resource
    * @param href The self link for the resource
    * @return New HAL resource
-   * @deprecated Use {@link HalResourceFactory#createResource(JsonNode, String)} instead
+   * @deprecated just create {@link HalResource} and {@link Link} instances using the new constructors
    */
   @Deprecated
   public static HalResource createResource(ObjectNode model, String href) {
-    HalResource resource = new HalResource(model);
-
-    if (href != null) {
-      resource.setLink(createLink(href));
-    }
-
-    return resource;
-  }
-
-  /**
-   * Creates a HAL resource with state and a self link.
-   * @param model The state of the resource
-   * @param href The self link for the resource
-   * @return New HAL resource
-   */
-  public static HalResource createResource(JsonNode model, String href) {
-    HalResource resource = new HalResource(model);
-
-    if (href != null) {
-      resource.setLink(createLink(href));
-    }
-
-    return resource;
+    return new HalResource(model, href);
   }
 
   /**

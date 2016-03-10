@@ -24,6 +24,9 @@
   <body>
 
     <release version="1.1.0" date="not released">
+      <action type="update" dev="ssauder">
+        Deprecated HalResourceFactory (use the new constructors for HalResource & Link classes instead)
+      </action>
       <action type="update" dev="sseifert">
         Switch to Java 8.
       </action>

@@ -65,17 +65,29 @@ public final class HalResource implements HalObject {
    */
   public HalResource(String uri) {
     this();
-    setLink(HalResourceFactory.createLink(uri));
+    setLink(new Link(uri));
   }
 
   /**
-   * Helping constructor checking if the {@code model} is an {@link ObjectNode}. Throws an
-   * {@link IllegalArgumentException} if not.
-   * @param model JSON model
+   * Create a new HalResource with the state from the given JSON object
+   * @param model JSON model - must be an ObjectNode
+   * @throws IllegalArgumentException if model is not an object node
    */
   public HalResource(JsonNode model) {
     Preconditions.checkArgument(model instanceof ObjectNode, "Model is not an ObjectNode");
     this.model = (ObjectNode)model;
+  }
+
+  /**
+   * Create a new HalResource with the state from the given JSON object
+   * @param model JSON model - must be an ObjectNode
+   * @throws IllegalArgumentException if model is not an object node
+   */
+  public HalResource(JsonNode model, String uri) {
+    this(model);
+    if (uri != null) {
+      setLink(new Link(uri));
+    }
   }
 
   @Override
@@ -228,7 +240,8 @@ public final class HalResource implements HalObject {
 
       return halObjects;
     }
-    catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+    catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException
+        | InvocationTargetException ex) {
       throw new RuntimeException(ex);
     }
   }
