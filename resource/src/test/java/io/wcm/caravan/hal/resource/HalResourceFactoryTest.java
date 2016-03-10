@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-
+@SuppressWarnings("deprecation")
 public class HalResourceFactoryTest {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();

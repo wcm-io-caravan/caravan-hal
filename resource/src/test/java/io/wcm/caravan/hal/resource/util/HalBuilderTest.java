@@ -20,15 +20,16 @@
 package io.wcm.caravan.hal.resource.util;
 
 import static org.junit.Assert.assertEquals;
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.Link;
 
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.hal.resource.Link;
 
+@SuppressWarnings("deprecation")
 public class HalBuilderTest {
 
   private static final String HAL_URI = "/resource";
@@ -76,17 +77,17 @@ public class HalBuilderTest {
   @Test
   public void linkStringString_shouldSetLinkWithHref() throws Exception {
     HalResource hal = new HalBuilder(HAL_URI)
-    .link("next", "/next")
-    .build();
+        .link("next", "/next")
+        .build();
     assertEquals("/next", hal.getLink("next").getHref());
   }
 
   @Test
   public void linkStringStringString_shouldSetLinkWithHrefAndTitle() throws Exception {
     Link link = new HalBuilder(HAL_URI)
-    .link("next", "/next", "nextTitle")
-    .build()
-    .getLink("next");
+        .link("next", "/next", "nextTitle")
+        .build()
+        .getLink("next");
     assertEquals("/next", link.getHref());
     assertEquals("nextTitle", link.getTitle());
   }
@@ -94,9 +95,9 @@ public class HalBuilderTest {
   @Test
   public void linkStringStringStringString_shouldSetLinkWithHrefAndTitleAndName() throws Exception {
     Link link = new HalBuilder(HAL_URI)
-    .link("next", "/next", "nextTitle", "nextName")
-    .build()
-    .getLink("next");
+        .link("next", "/next", "nextTitle", "nextName")
+        .build()
+        .getLink("next");
     assertEquals("/next", link.getHref());
     assertEquals("nextTitle", link.getTitle());
     assertEquals("nextName", link.getName());

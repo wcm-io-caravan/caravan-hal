@@ -46,7 +46,7 @@ public class HalCuriAugmenterTest {
     .register("ex", "https://example.com/doc/ex/{rel}")
     .register("in", "https://example.com/doc/in/{rel}")
     .register("cust", "https://example.com/doc/cust/{rel}");
-    hal = HalResourceFactory.createResource("/resource")
+    hal = new HalResource("/resource")
         .setLink("ex:external-link", new Link("/external-link"))
         .addLinks("in:children", new Link("/child-1"), new Link("/child-2"))
         .addLinks("no-curie", new Link("/no-curi-1"));
@@ -119,7 +119,7 @@ public class HalCuriAugmenterTest {
 
   @Test
   public void augment_shouldAddCuriForLinksInEmbeddedResource() {
-    HalResource item = HalResourceFactory.createResource("/item")
+    HalResource item = new HalResource("/item")
         .addLinks("cust:item", new Link("/item-link"));
     hal.addEmbedded("item", item);
 

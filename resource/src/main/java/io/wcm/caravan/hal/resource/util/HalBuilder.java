@@ -42,7 +42,7 @@ public final class HalBuilder {
    * @param href Link HREF
    */
   public HalBuilder(String href) {
-    instance = HalResourceFactory.createResource(href);
+    instance = new HalResource(href);
   }
 
   /**

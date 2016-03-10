@@ -28,7 +28,9 @@ import java.util.stream.StreamSupport;
 
 import org.osgi.annotation.versioning.ProviderType;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -49,6 +51,11 @@ public final class HalResource implements HalObject {
    * The mime content type
    */
   public static final String CONTENT_TYPE = "application/hal+json";
+  /**
+   * JSON object mapper
+   */
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
   private final ObjectNode model;
 
@@ -101,7 +108,7 @@ public final class HalResource implements HalObject {
    * @return a new instance of the given class, populated with the properties of this resource's model
    */
   public <T> T adaptTo(Class<T> type) {
-    return HalResourceFactory.getStateAsObject(this, type);
+    return OBJECT_MAPPER.convertValue(model, type);
   }
 
   /**

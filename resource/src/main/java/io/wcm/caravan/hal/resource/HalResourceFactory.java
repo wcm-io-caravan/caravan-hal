@@ -19,8 +19,6 @@
  */
 package io.wcm.caravan.hal.resource;
 
-import java.util.regex.Pattern;
-
 import org.osgi.annotation.versioning.ProviderType;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -41,10 +39,6 @@ public final class HalResourceFactory {
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-  /**
-   * Pattern that will hit an RFC 6570 URI template.
-   */
-  private static final Pattern URI_TEMPLATE_PATTERN = Pattern.compile("\\{.+\\}");
 
   private HalResourceFactory() {
     // nothing to do
