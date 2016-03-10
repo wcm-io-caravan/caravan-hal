@@ -26,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
 
-import io.wcm.caravan.commons.stream.Streams;
 import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
 import io.wcm.caravan.hal.docs.impl.model.Service;
 
@@ -50,10 +49,10 @@ class DocsMetadata {
   private static Map<String, String> buildCurieLinkMap(Service serviceModel, String docsPath) {
     Map<String, String> map = new HashMap<>();
 
-    Streams.of(serviceModel.getLinkRelations())
-    .map(rel -> CurieUtil.getCurieName(rel.getRel()))
-    .filter(StringUtils::isNotEmpty)
-    .forEach(curie -> map.put(curie, CurieUtil.toDocTemplate(docsPath, curie)));
+    serviceModel.getLinkRelations().stream()
+        .map(rel -> CurieUtil.getCurieName(rel.getRel()))
+        .filter(StringUtils::isNotEmpty)
+        .forEach(curie -> map.put(curie, CurieUtil.toDocTemplate(docsPath, curie)));
 
     return ImmutableMap.copyOf(map);
   }

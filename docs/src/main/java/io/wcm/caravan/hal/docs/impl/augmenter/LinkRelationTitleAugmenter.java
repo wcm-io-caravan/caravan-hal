@@ -21,7 +21,6 @@ package io.wcm.caravan.hal.docs.impl.augmenter;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.wcm.caravan.commons.stream.Streams;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -38,8 +37,8 @@ class LinkRelationTitleAugmenter {
   }
 
   public void augment(HalResource resource) {
-    Streams.of(resource.getLinks().entries())
-    .forEach(entry -> augmentLink(entry.getKey(), entry.getValue()));
+    resource.getLinks().entries().stream()
+        .forEach(entry -> augmentLink(entry.getKey(), entry.getValue()));
   }
 
   public void augmentLink(String rel, Link link) {

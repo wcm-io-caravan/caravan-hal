@@ -19,10 +19,6 @@
  */
 package io.wcm.caravan.hal.docs.impl;
 
-import io.wcm.caravan.commons.stream.Streams;
-import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
-import io.wcm.caravan.hal.docs.impl.reader.ServiceModelReader;
-
 import java.io.IOException;
 
 import javax.servlet.Servlet;
@@ -46,12 +42,16 @@ import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
+import io.wcm.caravan.hal.docs.impl.reader.ServiceModelReader;
+
 /**
  * Serves HAL documentation pages generated from JSON service documentation models with handlebars.
  */
 @Component(factory = HalDocsServlet.FACTORY)
 @Service(Servlet.class)
 public class HalDocsServlet extends HttpServlet {
+
   private static final long serialVersionUID = 1L;
 
   static final String FACTORY = "caravan.haldocs.servlet.factory";
@@ -90,7 +90,7 @@ public class HalDocsServlet extends HttpServlet {
         }
         else {
           String rel = StringUtils.substringAfter(uri, "/");
-          LinkRelation linkRelation = Streams.of(serviceModel.getLinkRelations())
+          LinkRelation linkRelation = serviceModel.getLinkRelations().stream()
               .filter(item -> StringUtils.equals(item.getRel(), rel))
               .findFirst().orElse(null);
           if (linkRelation != null) {
