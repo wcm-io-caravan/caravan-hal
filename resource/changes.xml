@@ -34,7 +34,7 @@
         Change to Java 8 Streams.
       </action>
       <action type="add" dev="cnagel">
-        Add JsonNode Constructor to HalResource and deprecate ObjectNode Constructor.
+        Add JsonNode Constructor to HalResource
       </action>
       <action type="add" dev="ssauder">
         Added HalResource() and HalResource(String uri) constructors (so you don't have to use HalResourceFactory to create empty resources)

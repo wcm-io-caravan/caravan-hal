@@ -55,6 +55,13 @@ public final class Link implements HalObject {
   }
 
   /**
+   * @param model JSON model
+   */
+  public Link(ObjectNode model) {
+    this.model = model;
+  }
+
+  /**
    * Creates a link with a new model that only contains the given URI
    * @param href the URI to put in the "href" property
    */
