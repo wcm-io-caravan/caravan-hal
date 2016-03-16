@@ -28,7 +28,7 @@ enum HalResourceType {
 
   private final String value;
 
-  private HalResourceType(String value) {
+  HalResourceType(String value) {
     this.value = value;
   }
 

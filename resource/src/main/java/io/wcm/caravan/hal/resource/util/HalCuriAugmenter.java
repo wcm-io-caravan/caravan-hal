@@ -19,16 +19,11 @@
  */
 package io.wcm.caravan.hal.resource.util;
 
-import io.wcm.caravan.commons.stream.Collectors;
-import io.wcm.caravan.commons.stream.Streams;
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.HalResourceFactory;
-import io.wcm.caravan.hal.resource.Link;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +31,9 @@ import org.osgi.annotation.versioning.ProviderType;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.hal.resource.Link;
 
 /**
  * Augments a HAL resource by CURI documentation links for links in the main and embedded resources. Pre-defined CURIES
@@ -65,7 +63,7 @@ public final class HalCuriAugmenter {
    * @return This augmenter
    */
   public HalCuriAugmenter register(String name, String href) {
-    Link link = HalResourceFactory.createLink(href).setName(name);
+    Link link = new Link(href).setName(name);
     return register(link);
   }
 
@@ -125,9 +123,8 @@ public final class HalCuriAugmenter {
     if (!hal.hasLink(LINK_RELATION_CURIES)) {
       return Collections.emptySet();
     }
-    return Streams.of(hal.getLink(LINK_RELATION_CURIES))
-        .map(link -> link.getName())
-        .collect(Collectors.toSet());
+    Link link = hal.getLink(LINK_RELATION_CURIES);
+    return Collections.singleton(link.getName());
 
   }
 
@@ -142,7 +139,7 @@ public final class HalCuriAugmenter {
 
   private List<Link> getCuriLinksForCurrentHalResource(HalResource hal, Set<String> existingCurieNames) {
 
-    return Streams.of(hal.getLinks().keySet())
+    return hal.getLinks().keySet().stream()
         // get CURI name for relation
         .map(relation -> getCurieName(relation))
         // filter CURIE being empty or exist in HAL resource
@@ -157,8 +154,8 @@ public final class HalCuriAugmenter {
 
   private List<Link> getCuriLinksForEmbeddedResources(HalResource hal, Set<String> existingCurieNames) {
 
-    return Streams.of(hal.getEmbedded().values())
-        .flatMap(embeddedResource -> Streams.of(getCuriLinks(embeddedResource, existingCurieNames)))
+    return hal.getEmbedded().values().stream()
+        .flatMap(embeddedResource -> getCuriLinks(embeddedResource, existingCurieNames).stream())
         .collect(Collectors.toList());
 
   }

@@ -19,12 +19,11 @@
  */
 package io.wcm.caravan.hal.resource.util;
 
-import io.wcm.caravan.commons.stream.Collectors;
-import io.wcm.caravan.commons.stream.Streams;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.osgi.annotation.versioning.ProviderType;
@@ -68,20 +67,20 @@ public final class HalUtil {
 
     Builder<String, Link> builder = ImmutableListMultimap.builder();
     // load links for resource
-    Streams.of(hal.getLinks().keySet())
-    // filter curies
-    .filter(relation -> !"curies".equals(relation))
-    // group relation and links
-    .<Pair<String, Link>>flatMap(relation -> Streams.of(hal.getLinks(relation)).map(link -> Pair.of(relation, link)))
-    // filter by predicate
-    .filter(pair -> predicate == null || predicate.apply(pair))
-    // add to map
-    .forEach(pair -> builder.put("self".equals(pair.getKey()) ? embeddedRelation : pair.getKey(), pair.getValue()));
+    hal.getLinks().keySet().stream()
+        // filter curies
+        .filter(relation -> !"curies".equals(relation))
+        // group relation and links
+        .<Pair<String, Link>>flatMap(relation -> hal.getLinks(relation).stream().map(link -> Pair.of(relation, link)))
+        // filter by predicate
+        .filter(pair -> predicate == null || predicate.apply(pair))
+        // add to map
+        .forEach(pair -> builder.put("self".equals(pair.getKey()) ? embeddedRelation : pair.getKey(), pair.getValue()));
 
     // load links for embedded resources
-    Streams.of(hal.getEmbedded().entries())
-    .map(entry -> getAllLinks(entry.getValue(), entry.getKey(), predicate))
-    .forEach(embeddedLinks -> builder.putAll(embeddedLinks));
+    hal.getEmbedded().entries().stream()
+        .map(entry -> getAllLinks(entry.getValue(), entry.getKey(), predicate))
+        .forEach(embeddedLinks -> builder.putAll(embeddedLinks));
 
     return builder.build();
   }
@@ -95,8 +94,8 @@ public final class HalUtil {
   public static List<Link> getAllLinksForRelation(HalResource hal, String relation) {
 
     List<Link> links = Lists.newArrayList(hal.getLinks(relation));
-    List<Link> embeddedLinks = Streams.of(hal.getEmbedded().values())
-        .flatMap(embedded -> Streams.of(getAllLinksForRelation(embedded, relation)))
+    List<Link> embeddedLinks = hal.getEmbedded().values().stream()
+        .flatMap(embedded -> getAllLinksForRelation(embedded, relation).stream())
         .collect(Collectors.toList());
     links.addAll(embeddedLinks);
     return links;

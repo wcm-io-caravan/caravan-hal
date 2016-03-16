@@ -19,16 +19,15 @@
  */
 package io.wcm.caravan.hal.docs.impl.augmenter;
 
-import io.wcm.caravan.commons.stream.Streams;
-import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
-import io.wcm.caravan.hal.docs.impl.model.Service;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.ImmutableMap;
+
+import io.wcm.caravan.hal.docs.impl.model.LinkRelation;
+import io.wcm.caravan.hal.docs.impl.model.Service;
 
 /**
  * Curie and link relation title metadata extracted from service info metadata.
@@ -42,7 +41,7 @@ class DocsMetadata {
    * @param serviceModel Service model
    * @param docsPath Documenation URI base path
    */
-  public DocsMetadata(Service serviceModel, String docsPath) {
+  DocsMetadata(Service serviceModel, String docsPath) {
     curieLinks = buildCurieLinkMap(serviceModel, docsPath);
     linkRelationTitles = buildLinkRelationTitlesMap(serviceModel);
   }
@@ -50,10 +49,10 @@ class DocsMetadata {
   private static Map<String, String> buildCurieLinkMap(Service serviceModel, String docsPath) {
     Map<String, String> map = new HashMap<>();
 
-    Streams.of(serviceModel.getLinkRelations())
-    .map(rel -> CurieUtil.getCurieName(rel.getRel()))
-    .filter(StringUtils::isNotEmpty)
-    .forEach(curie -> map.put(curie, CurieUtil.toDocTemplate(docsPath, curie)));
+    serviceModel.getLinkRelations().stream()
+        .map(rel -> CurieUtil.getCurieName(rel.getRel()))
+        .filter(StringUtils::isNotEmpty)
+        .forEach(curie -> map.put(curie, CurieUtil.toDocTemplate(docsPath, curie)));
 
     return ImmutableMap.copyOf(map);
   }

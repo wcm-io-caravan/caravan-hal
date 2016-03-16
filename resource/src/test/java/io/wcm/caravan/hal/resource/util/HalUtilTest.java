@@ -22,14 +22,10 @@ package io.wcm.caravan.hal.resource.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import io.wcm.caravan.commons.stream.Collectors;
-import io.wcm.caravan.commons.stream.Streams;
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.HalResourceFactory;
-import io.wcm.caravan.hal.resource.Link;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -39,6 +35,9 @@ import org.junit.Test;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ListMultimap;
 
+import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.hal.resource.Link;
+
 public class HalUtilTest {
 
   private HalResource payload;
@@ -46,11 +45,11 @@ public class HalUtilTest {
   @Before
   public void setUp() {
 
-    payload = HalResourceFactory.createResource("/resource")
-        .addLinks("curies", HalResourceFactory.createLink("/doc#{rel}").setName("topic"))
-        .addLinks("section", HalResourceFactory.createLink("/link-1"), HalResourceFactory.createLink("/link-2"))
-        .addEmbedded("item", HalResourceFactory.createResource("/embedded-1")
-            .addLinks("item", HalResourceFactory.createLink("/embedded-1-link-1"), HalResourceFactory.createLink("/embedded-1-link-2")));
+    payload = new HalResource("/resource")
+        .addLinks("curies", new Link("/doc#{rel}").setName("topic"))
+        .addLinks("section", new Link("/link-1"), new Link("/link-2"))
+        .addEmbedded("item", new HalResource("/embedded-1")
+            .addLinks("item", new Link("/embedded-1-link-1"), new Link("/embedded-1-link-2")));
 
   }
 
@@ -62,7 +61,7 @@ public class HalUtilTest {
   }
 
   private Set<String> getUris(Collection<Link> links) {
-    return Streams.of(links).map(Link::getHref).collect(Collectors.toSet());
+    return links.stream().map(Link::getHref).collect(Collectors.toSet());
   }
 
   @Test

@@ -24,16 +24,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import io.wcm.caravan.commons.stream.Streams;
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.HalResourceFactory;
-import io.wcm.caravan.hal.resource.Link;
 
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+
+import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.hal.resource.Link;
 
 @SuppressWarnings("deprecation")
 public class HalCuriAugmenterTest {
@@ -44,13 +43,13 @@ public class HalCuriAugmenterTest {
   @Before
   public void setUp() {
     augmenter = new HalCuriAugmenter()
-    .register("ex", "https://example.com/doc/ex/{rel}")
-    .register("in", "https://example.com/doc/in/{rel}")
-    .register("cust", "https://example.com/doc/cust/{rel}");
-    hal = HalResourceFactory.createResource("/resource")
-        .setLink("ex:external-link", HalResourceFactory.createLink("/external-link"))
-        .addLinks("in:children", HalResourceFactory.createLink("/child-1"), HalResourceFactory.createLink("/child-2"))
-        .addLinks("no-curie", HalResourceFactory.createLink("/no-curi-1"));
+        .register("ex", "https://example.com/doc/ex/{rel}")
+        .register("in", "https://example.com/doc/in/{rel}")
+        .register("cust", "https://example.com/doc/cust/{rel}");
+    hal = new HalResource("/resource")
+        .setLink("ex:external-link", new Link("/external-link"))
+        .addLinks("in:children", new Link("/child-1"), new Link("/child-2"))
+        .addLinks("no-curie", new Link("/no-curi-1"));
   }
 
   @Test
@@ -96,7 +95,7 @@ public class HalCuriAugmenterTest {
   @Test
   public void augment_shouldNotAddCuriForMissingCurieName() {
     augmenter.augment(hal);
-    Streams.of(hal.getLinks("curies"))
+    hal.getLinks("curies").stream()
     .map(link -> link.getName())
     .filter(name -> StringUtils.equals(name, "cust"))
     .forEach(name -> fail("cust is no CURI for this HAL"));
@@ -104,7 +103,7 @@ public class HalCuriAugmenterTest {
 
   @Test
   public void augment_shouldNotOverrideExistingCuri() {
-    hal.addLinks("curies", HalResourceFactory.createLink("https://example.com/doc/other/{rel}").setName("ex"));
+    hal.addLinks("curies", new Link("https://example.com/doc/other/{rel}").setName("ex"));
     augmenter.augment(hal);
     List<Link> curies = hal.getLinks("curies");
     assertEquals("https://example.com/doc/other/{rel}", curies.get(0).getHref());
@@ -112,7 +111,7 @@ public class HalCuriAugmenterTest {
 
   @Test
   public void augment_shouldOnlyAddCuriLinkOnce() {
-    hal.addLinks("ex:external-link2", HalResourceFactory.createLink("/external-link2"));
+    hal.addLinks("ex:external-link2", new Link("/external-link2"));
     augmenter.augment(hal);
     List<Link> curies = hal.getLinks("curies");
     assertEquals(2, curies.size());
@@ -120,8 +119,8 @@ public class HalCuriAugmenterTest {
 
   @Test
   public void augment_shouldAddCuriForLinksInEmbeddedResource() {
-    HalResource item = HalResourceFactory.createResource("/item")
-        .addLinks("cust:item", HalResourceFactory.createLink("/item-link"));
+    HalResource item = new HalResource("/item")
+        .addLinks("cust:item", new Link("/item-link"));
     hal.addEmbedded("item", item);
 
     augmenter.augment(hal);

@@ -2,16 +2,8 @@
 
 [HAL Browser][hal-browser] packaged in an OSGi bundle.
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.browser/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.browser)
 
-### Maven Dependency
-
-```xml
-<dependency>
-  <groupId>io.wcm.caravan</groupId>
-  <artifactId>io.wcm.caravan.hal.browser</artifactId>
-  <version>1.0.0</version>
-</dependency>
-```
 
 ### Documentation
 

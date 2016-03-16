@@ -19,11 +19,10 @@
  */
 package io.wcm.caravan.hal.docs.impl.augmenter;
 
-import io.wcm.caravan.commons.stream.Streams;
+import org.apache.commons.lang3.StringUtils;
+
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Checks if the HAL resource contains link relations without title.
@@ -33,13 +32,13 @@ class LinkRelationTitleAugmenter {
 
   private final DocsMetadata metadata;
 
-  public LinkRelationTitleAugmenter(DocsMetadata metadata) {
+  LinkRelationTitleAugmenter(DocsMetadata metadata) {
     this.metadata = metadata;
   }
 
   public void augment(HalResource resource) {
-    Streams.of(resource.getLinks().entries())
-    .forEach(entry -> augmentLink(entry.getKey(), entry.getValue()));
+    resource.getLinks().entries().stream()
+        .forEach(entry -> augmentLink(entry.getKey(), entry.getValue()));
   }
 
   public void augmentLink(String rel, Link link) {

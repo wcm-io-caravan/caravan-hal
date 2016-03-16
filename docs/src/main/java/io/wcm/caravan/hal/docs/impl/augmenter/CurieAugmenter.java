@@ -20,19 +20,19 @@
 package io.wcm.caravan.hal.docs.impl.augmenter;
 
 import static io.wcm.caravan.hal.docs.impl.augmenter.CurieUtil.LINK_RELATION_CURIES;
-import io.wcm.caravan.commons.stream.Collectors;
-import io.wcm.caravan.commons.stream.Streams;
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.HalResourceFactory;
-import io.wcm.caravan.hal.resource.Link;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.collect.Sets;
+
+import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.hal.resource.Link;
 
 /**
  * Checks if the HAL resource contains link relations with curies without documentaiton links.
@@ -42,7 +42,7 @@ class CurieAugmenter {
 
   private final DocsMetadata metadata;
 
-  public CurieAugmenter(DocsMetadata metadata) {
+  CurieAugmenter(DocsMetadata metadata) {
     this.metadata = metadata;
   }
 
@@ -56,7 +56,7 @@ class CurieAugmenter {
     if (!hal.hasLink(LINK_RELATION_CURIES)) {
       return Collections.emptySet();
     }
-    return Streams.of(hal.getLink(LINK_RELATION_CURIES))
+    return Stream.of(hal.getLink(LINK_RELATION_CURIES))
         .map(link -> link.getName())
         .collect(Collectors.toSet());
   }
@@ -69,7 +69,7 @@ class CurieAugmenter {
   }
 
   private List<Link> getCurieLinksForCurrentHalResource(HalResource resource, Set<String> existingCurieNames) {
-    return Streams.of(resource.getLinks().keySet())
+    return resource.getLinks().keySet().stream()
         // get CURI name for relation
         .map(CurieUtil::getCurieName)
         // filter CURIE being empty or exist in HAL resource
@@ -82,8 +82,8 @@ class CurieAugmenter {
   }
 
   private List<Link> getCurieLinksForEmbeddedResources(HalResource resource, Set<String> existingCurieNames) {
-    return Streams.of(resource.getEmbedded().values())
-        .flatMap(embeddedResource -> Streams.of(getCurieLinks(embeddedResource, existingCurieNames)))
+    return resource.getEmbedded().values().stream()
+        .flatMap(embeddedResource -> getCurieLinks(embeddedResource, existingCurieNames).stream())
         .collect(Collectors.toList());
   }
 
@@ -93,7 +93,7 @@ class CurieAugmenter {
       return null;
     }
     else {
-      return HalResourceFactory.createLink(docLink).setName(curieName).setTitle("Documentation link");
+      return new Link(docLink).setName(curieName).setTitle("Documentation link");
     }
   }
 

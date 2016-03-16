@@ -2,16 +2,8 @@
 
 Generates API service documenation and JSON Schema files for HAL- and JAX-RS based RESTful services.
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan.maven.plugins/hal-docs-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan.maven.plugins/hal-docs-maven-plugin)
 
-### Maven Dependency
-
-```xml
-<plugin>
-  <groupId>io.wcm.caravan.maven.plugins</groupId>
-  <artifactId>hal-docs-maven-plugin</artifactId>
-  <version>0.5.0</version>
-</plugin>
-```
 
 ### Documentation
 

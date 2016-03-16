@@ -21,14 +21,14 @@ package io.wcm.caravan.hal.resource;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-
+@SuppressWarnings("deprecation")
 public class HalResourceFactoryTest {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -37,7 +37,7 @@ public class HalResourceFactoryTest {
   public void getStateAsObject_shouldConvertJsonToAnyObject() throws Exception {
     ObjectNode model = OBJECT_MAPPER.readValue(getClass().getResourceAsStream("/jackson_hal_resource_model.json"), ObjectNode.class);
     HalResource hal = new HalResource(model);
-    TestObject state = HalResourceFactory.getStateAsObject(hal, TestObject.class);
+    TestObject state = hal.adaptTo(TestObject.class);
     assertEquals("value1", state.property1);
     assertEquals("value2", state.property2);
   }
@@ -47,21 +47,8 @@ public class HalResourceFactoryTest {
     TestObject state = new TestObject();
     state.property1 = "value1";
     state.property2 = "value2";
-    ObjectNode json = HalResourceFactory.convert(state);
+    ObjectNode json = new HalResource(state).getModel();
     assertEquals("value1", json.get("property1").asText(null));
-  }
-
-  @Test
-  public void createLink_shouldSetHref() {
-    Link link = HalResourceFactory.createLink("/");
-    assertEquals("/", link.getHref());
-    assertFalse(link.isTemplated());
-  }
-
-  @Test
-  public void createLink_shouldSetTemplatedFlag() {
-    Link link = HalResourceFactory.createLink("/path{?query}");
-    assertTrue(link.isTemplated());
   }
 
   @Test
@@ -88,6 +75,14 @@ public class HalResourceFactoryTest {
   @Test
   public void createResourceObjectNodeString_shouldSetStateAndHrefForSelfLink() {
     ObjectNode model = OBJECT_MAPPER.createObjectNode().put("att", "value");
+    HalResource hal = new HalResource(model, "/");
+    assertEquals("value", hal.getModel().get("att").asText(null));
+    assertEquals("/", hal.getLink().getHref());
+  }
+
+  @Test
+  public void createResourcejsonNodeString_shouldSetStateAndHrefForSelfLink() {
+    JsonNode model = OBJECT_MAPPER.createObjectNode().put("att", "value");
     HalResource hal = HalResourceFactory.createResource(model, "/");
     assertEquals("value", hal.getModel().get("att").asText(null));
     assertEquals("/", hal.getLink().getHref());

@@ -19,8 +19,6 @@
  */
 package io.wcm.caravan.hal.docs.impl.model;
 
-import io.wcm.caravan.commons.stream.Streams;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.SortedSet;
@@ -79,7 +77,7 @@ public class Service {
    * Resolves all nested link relations.
    */
   public void resolve() {
-    Streams.of(linkRelations).forEach(this::resolve);
+    linkRelations.stream().forEach(this::resolve);
   }
 
   /**
@@ -91,7 +89,7 @@ public class Service {
     Iterator<LinkRelationRef> refs = rel.getLinkRelationRefs().iterator();
     while (refs.hasNext()) {
       LinkRelationRef ref = refs.next();
-      LinkRelation referencedRel = Streams.of(linkRelations)
+      LinkRelation referencedRel = linkRelations.stream()
           .filter(item -> StringUtils.equals(item.getRel(), ref.getRel()))
           .findFirst().orElse(null);
       if (referencedRel == null) {

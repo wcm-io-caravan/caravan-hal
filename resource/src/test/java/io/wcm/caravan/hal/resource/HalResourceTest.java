@@ -55,6 +55,11 @@ public class HalResourceTest {
     hal = new HalResource(model);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void constructor_shouldThrowIllegalArgumentExceptionForArrayNodeModel() {
+    new HalResource(OBJECT_MAPPER.createArrayNode());
+  }
+
   @Test
   public void hasLink_shouldReturnTrueForRelation() {
     assertTrue(hal.hasLink("self"));
@@ -236,6 +241,25 @@ public class HalResourceTest {
     List<Link> links = hal.collectLinks("self");
     assertEquals(4, links.size());
     assertEquals("/", links.get(0).getHref());
+  }
+
+  @Test
+  public void collectLinks_shouldReturnEmptyListForMissingRelation() {
+    List<Link> links = hal.collectLinks("unknown");
+    assertTrue(links.isEmpty());
+  }
+
+  @Test
+  public void collectEmbedded_shouldReturnAllEmbeddedResources() {
+    List<HalResource> embeddedResources = hal.collectEmbedded("multiple");
+    assertEquals(2, embeddedResources.size());
+    assertEquals("/multiple1", embeddedResources.get(0).getLink().getHref());
+  }
+
+  @Test
+  public void collectEmbedded_shouldReturnEmptyListForMissingRelation() {
+    List<HalResource> links = hal.collectEmbedded("unknown");
+    assertTrue(links.isEmpty());
   }
 
   @Test

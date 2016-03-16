@@ -19,30 +19,18 @@
  */
 package io.wcm.caravan.hal.resource;
 
-import java.util.regex.Pattern;
-
 import org.osgi.annotation.versioning.ProviderType;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Factory for HAL {@link HalResource}s.
+ * @deprecated just create {@link HalResource} and {@link Link} instances using the new constructors
  */
+@Deprecated
 @ProviderType
 public final class HalResourceFactory {
-
-  /**
-   * JSON object mapper
-   */
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
-      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-
-  /**
-   * Pattern that will hit an RFC 6570 URI template.
-   */
-  private static final Pattern URI_TEMPLATE_PATTERN = Pattern.compile("\\{.+\\}");
 
   private HalResourceFactory() {
     // nothing to do
@@ -52,33 +40,33 @@ public final class HalResourceFactory {
    * Converts any object into a JSON {@link ObjectNode}.
    * @param input Any object
    * @return JSON object node
+   * @deprecated use a Jackson {@link ObjectMapper} instead
    */
+  @Deprecated
   public static ObjectNode convert(Object input) {
-    return OBJECT_MAPPER.convertValue(input, ObjectNode.class);
+    return new HalResource(input).getModel();
   }
 
   /**
    * Creates a HAL link with the given HREF.
    * @param href Link HREF
    * @return Link
+   * @deprecated use the constructor {@link Link#Link(String) instead}
    */
+  @Deprecated
   public static Link createLink(String href) {
-    Link link = new Link(OBJECT_MAPPER.createObjectNode()).setHref(href);
-
-    if (href != null && URI_TEMPLATE_PATTERN.matcher(href).find()) {
-      link.setTemplated(true);
-    }
-
-    return link;
+    return new Link(href);
   }
 
   /**
    * Creates a HAL resource with empty state but a self link. Mostly needed for index resources.
    * @param href The self HREF for the resource
    * @return New HAL resource
+   * @deprecated just create {@link HalResource} and {@link Link} instances using the new constructors
    */
+  @Deprecated
   public static HalResource createResource(String href) {
-    return createResource(OBJECT_MAPPER.createObjectNode(), href);
+    return new HalResource(href);
   }
 
   /**
@@ -86,9 +74,11 @@ public final class HalResourceFactory {
    * @param model The state of the resource
    * @param href The self link for the resource
    * @return New HAL resource
+   * @deprecated just create {@link HalResource} and {@link Link} instances using the new constructors
    */
+  @Deprecated
   public static HalResource createResource(Object model, String href) {
-    return createResource(convert(model), href);
+    return new HalResource(new HalResource(model).getModel(), href);
   }
 
   /**
@@ -96,15 +86,11 @@ public final class HalResourceFactory {
    * @param model The state of the resource
    * @param href The self link for the resource
    * @return New HAL resource
+   * @deprecated just create {@link HalResource} and {@link Link} instances using the new constructors
    */
+  @Deprecated
   public static HalResource createResource(ObjectNode model, String href) {
-    HalResource resource = new HalResource(model);
-
-    if (href != null) {
-      resource.setLink(createLink(href));
-    }
-
-    return resource;
+    return new HalResource(model, href);
   }
 
   /**
@@ -113,9 +99,11 @@ public final class HalResourceFactory {
    * @param type Type of the requested object
    * @param <T> Output type
    * @return State as object
+   * @deprecated use {@link HalResource#adaptTo(Class)}
    */
+  @Deprecated
   public static <T> T getStateAsObject(HalResource halResource, Class<T> type) {
-    return HalResourceFactory.OBJECT_MAPPER.convertValue(halResource.getModel(), type);
+    return halResource.adaptTo(type);
   }
 
 }

@@ -19,18 +19,20 @@
  */
 package io.wcm.caravan.hal.resource.util;
 
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.HalResourceFactory;
-import io.wcm.caravan.hal.resource.Link;
-
 import org.osgi.annotation.versioning.ProviderType;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.hal.resource.HalResourceFactory;
+import io.wcm.caravan.hal.resource.Link;
+
 /**
  * Short named helper for HAL resources.
+ * @deprecated Will get removed
  */
 @ProviderType
+@Deprecated
 public final class HalBuilder {
 
   private final HalResource instance;
@@ -40,7 +42,7 @@ public final class HalBuilder {
    * @param href Link HREF
    */
   public HalBuilder(String href) {
-    instance = HalResourceFactory.createResource(href);
+    instance = new HalResource(href);
   }
 
   /**
@@ -65,7 +67,7 @@ public final class HalBuilder {
   }
 
   /**
-   * @see HalResourceFactory#createResource(ObjectNode, String)
+   * @see HalResourceFactory#createResource(Object, String)
    * @param state Resource state
    * @param href Link HREF
    */
@@ -79,7 +81,7 @@ public final class HalBuilder {
    * @param href Link HREF
    */
   public HalBuilder(ObjectNode state, String href) {
-    instance = HalResourceFactory.createResource(state, href);
+    instance = new HalResource(state, href);
   }
 
   /**
@@ -89,7 +91,7 @@ public final class HalBuilder {
    * @return Helper
    */
   public HalBuilder link(String relation, String href) {
-    instance.setLink(relation, HalResourceFactory.createLink(href));
+    instance.setLink(relation, new Link(href));
     return this;
   }
 
@@ -101,7 +103,7 @@ public final class HalBuilder {
    * @return Helper
    */
   public HalBuilder link(String relation, String href, String title) {
-    instance.setLink(relation, HalResourceFactory.createLink(href).setTitle(title));
+    instance.setLink(relation, new Link(href).setTitle(title));
     return this;
   }
 
@@ -114,7 +116,7 @@ public final class HalBuilder {
    * @return Helper
    */
   public HalBuilder link(String relation, String href, String title, String name) {
-    instance.setLink(relation, HalResourceFactory.createLink(href).setName(name).setTitle(title));
+    instance.setLink(relation, new Link(href).setName(name).setTitle(title));
     return this;
   }
 
@@ -125,7 +127,7 @@ public final class HalBuilder {
    * @return Helper
    */
   public HalBuilder curi(String href, String name) {
-    instance.addLinks("curies", HalResourceFactory.createLink(href).setName(name));
+    instance.addLinks("curies", new Link(href).setName(name));
     return this;
   }
 
