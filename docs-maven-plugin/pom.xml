@@ -70,13 +70,6 @@
       <scope>compile</scope>
     </dependency>
 
-    <dependency>
-      <groupId>io.wcm.caravan</groupId>
-      <artifactId>io.wcm.caravan.commons.stream</artifactId>
-      <version>1.1.0</version>
-      <scope>provided</scope>
-    </dependency>
-
     <!-- Maven Plugin -->
     <dependency>
       <groupId>org.apache.maven</groupId>
