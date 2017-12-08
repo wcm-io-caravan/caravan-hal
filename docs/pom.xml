@@ -36,6 +36,7 @@
 
   <name>HAL Interface Documentation</name>
   <description>Runtime support for interface documentation of HAL-based JAX-RS services.</description>
+  <url>${site.url}/${site.url.module.prefix}/</url>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>

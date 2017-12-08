@@ -36,6 +36,7 @@
 
   <name>HAL Resource</name>
   <description>Library for building and reading JSON HAL resources.</description>
+  <url>${site.url}/${site.url.module.prefix}/</url>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>

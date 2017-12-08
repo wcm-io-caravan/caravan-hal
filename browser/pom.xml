@@ -36,6 +36,7 @@
 
   <name>HAL Browser</name>
   <description>HAL Browser packaged in an OSGi bundle.</description>
+  <url>${site.url}/${site.url.module.prefix}/</url>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>
