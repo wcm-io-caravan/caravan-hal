@@ -3,7 +3,7 @@
   #%L
   wcm.io
   %%
-  Copyright (C) 2014 wcm.io
+  Copyright (C) 2015 wcm.io
   %%
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -25,29 +25,21 @@
 
   <parent>
     <groupId>io.wcm.caravan</groupId>
-    <artifactId>io.wcm.caravan.hal.parent</artifactId>
+    <artifactId>io.wcm.caravan.jaxrs.parent</artifactId>
     <version>1.1.1-SNAPSHOT</version>
-    <relativePath>parent/pom.xml</relativePath>
+    <relativePath>../parent/pom.xml</relativePath>
   </parent>
 
   <groupId>io.wcm.caravan</groupId>
-  <artifactId>io.wcm.caravan.hal</artifactId>
-  <version>1</version>
+  <artifactId>io.wcm.caravan.hal.integration-test</artifactId>
+  <version>1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Caravan HAL Root</name>
-  <description>Hypertext Application Language (HAL) Support.</description>
+  <name>HAL Integration Test</name>
 
   <modules>
-    <module>parent</module>
-    <module>api-annotations</module>
-    <module>api-client</module>
-    <module>browser</module>
-    <module>docs</module>
-    <module>docs-annotations</module>
-    <module>docs-maven-plugin</module>
-    <module>integration-test</module>
-    <module>resource</module>
+    <module>sample-service</module>
+    <module>launchpad-test</module>
   </modules>
 
   <build>
@@ -72,22 +64,6 @@
       </plugin>
 
     </plugins>
-    <pluginManagement>
-      <plugins>
-
-        <!-- license check -->
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>license-maven-plugin</artifactId>
-          <configuration>
-            <licenseName>apache_v2</licenseName>
-            <addJavaLicenseAfterPackage>false</addJavaLicenseAfterPackage>
-            <projectName>wcm.io</projectName>
-          </configuration>
-        </plugin>
-
-      </plugins>
-    </pluginManagement>
   </build>
 
 </project>
