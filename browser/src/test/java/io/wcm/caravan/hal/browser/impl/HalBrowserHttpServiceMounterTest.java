@@ -19,9 +19,9 @@
  */
 package io.wcm.caravan.hal.browser.impl;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
 import org.apache.sling.testing.mock.osgi.MockOsgi;
@@ -31,8 +31,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.osgi.service.http.HttpContext;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.osgi.service.http.HttpService;
 
 import com.google.common.collect.ImmutableMap;
@@ -56,8 +55,8 @@ public class HalBrowserHttpServiceMounterTest {
     HalBrowserHttpServiceMounter underTest = new HalBrowserHttpServiceMounter();
 
     context.registerInjectActivateService(underTest);
-    verify(httpService).registerResources(eq(HalBrowserHttpServiceMounter.HALBROWSER_URI_PREFIX), anyString(), any(HttpContext.class));
-    verify(httpService).registerResources(eq(HalBrowserHttpServiceMounter.HALBROWSER_URI_PREFIX_LEGACY), anyString(), any(HttpContext.class));
+    verify(httpService).registerResources(eq(HalBrowserHttpServiceMounter.HALBROWSER_URI_PREFIX), anyString(), any());
+    verify(httpService).registerResources(eq(HalBrowserHttpServiceMounter.HALBROWSER_URI_PREFIX_LEGACY), anyString(), any());
 
     MockOsgi.deactivate(underTest, context.bundleContext(), ImmutableMap.<String, Object>of());
     verify(httpService).unregister(eq(HalBrowserHttpServiceMounter.HALBROWSER_URI_PREFIX));
