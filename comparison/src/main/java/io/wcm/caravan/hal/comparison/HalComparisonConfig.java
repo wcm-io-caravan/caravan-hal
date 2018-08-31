@@ -50,7 +50,7 @@ public interface HalComparisonConfig {
     return false;
   }
 
-  // TODO add more configuration options
+  // TODO: add more configuration options
   // - limit the maximum depth of crawling
   // - allow to specify which link templates should be expanded (with which values)
   // - allow to specify for which links/resources can be found in random order
