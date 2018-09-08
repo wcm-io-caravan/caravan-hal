@@ -47,6 +47,7 @@
     <module>docs-annotations</module>
     <module>docs-maven-plugin</module>
     <module>integration-test</module>
+    <module>jaxrs-server</module>
     <module>resource</module>
   </modules>
 
