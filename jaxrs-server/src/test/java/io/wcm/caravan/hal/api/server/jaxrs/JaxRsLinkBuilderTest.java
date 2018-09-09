@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import io.wcm.caravan.hal.api.server.LinkBuilder;
 import io.wcm.caravan.hal.api.server.LinkableResource;
+import io.wcm.caravan.hal.api.server.jaxrs.JaxRsLinkBuilder;
 import io.wcm.caravan.hal.resource.Link;
 
 
