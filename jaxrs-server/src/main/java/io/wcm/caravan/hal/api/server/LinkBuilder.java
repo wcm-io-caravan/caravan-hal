@@ -17,17 +17,15 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.server.jaxrs;
-
-import javax.ws.rs.container.AsyncResponse;
+package io.wcm.caravan.hal.api.server;
 
 import org.osgi.annotation.versioning.ProviderType;
 
-import io.wcm.caravan.hal.api.server.LinkableResource;
+import io.wcm.caravan.hal.resource.Link;
 
 @ProviderType
-public interface AsyncHalResponseHandler {
+public interface LinkBuilder {
 
-  void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse);
+  Link buildLinkTo(LinkableResource resource);
 
 }

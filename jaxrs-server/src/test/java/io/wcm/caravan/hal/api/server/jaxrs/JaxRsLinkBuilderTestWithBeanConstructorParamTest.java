@@ -22,7 +22,7 @@ package io.wcm.caravan.hal.api.server.jaxrs;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Path;
 
-import io.wcm.caravan.hal.api.common.LinkableResource;
+import io.wcm.caravan.hal.api.server.LinkableResource;
 import io.wcm.caravan.hal.api.server.jaxrs.JaxRsLinkBuilderTestWithAnnotatedBeanParamTest.TwoPathParametersBean;
 import io.wcm.caravan.hal.api.server.jaxrs.JaxRsLinkBuilderTestWithAnnotatedBeanParamTest.TwoQueryParametersBean;
 

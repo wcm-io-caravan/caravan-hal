@@ -31,39 +31,40 @@ import com.damnhandy.uri.template.UriTemplate;
 import com.damnhandy.uri.template.UriTemplateBuilder;
 import com.google.common.base.Preconditions;
 
-import io.wcm.caravan.hal.api.common.LinkableResource;
+import io.wcm.caravan.hal.api.server.LinkBuilder;
+import io.wcm.caravan.hal.api.server.LinkableResource;
 import io.wcm.caravan.hal.api.server.impl.reflection.JaxRsReflectionUtils;
 import io.wcm.caravan.hal.resource.Link;
 
-public class JaxRsLinkBuilder {
+public class JaxRsLinkBuilder implements LinkBuilder {
 
   private final String baseUrl;
-  private final LinkableResource resource;
 
   /**
    * @param baseUrl the base path (or full URI) for which the current service bundle is registered
-   * @param targetResource the resource instance for which a link should be generated
    */
-  public JaxRsLinkBuilder(String baseUrl, LinkableResource targetResource) {
+  public JaxRsLinkBuilder(String baseUrl) {
 
-    Preconditions.checkArgument(StringUtils.isNotBlank(baseUrl), "A contextPath must be provided");
-    Preconditions.checkArgument(targetResource != null, "the targetResource must not be null");
+    Preconditions.checkArgument(StringUtils.isNotBlank(baseUrl), "A baseUrl must be provided");
 
     this.baseUrl = baseUrl;
-    this.resource = targetResource;
   }
 
-
-  public Link build() {
+  /**
+   * @param resource the resource instance for which a link should be generated
+   * @return a Link instance where the href property is already set
+   */
+  @Override
+  public Link buildLinkTo(LinkableResource resource) {
 
     // first build the resource path (from the context path and the resource's @Path annotation)
-    String resourcePath = buildResourcePath();
+    String resourcePath = buildResourcePath(resource);
 
     // create a URI template from this path
     UriTemplateBuilder uriTemplateBuilder = UriTemplate.buildFromTemplate(resourcePath);
 
     // get parameter values from resource, and append query parameter names to the URI template
-    Map<String, Object> parametersThatAreSet = collectAndAppendParameters(uriTemplateBuilder);
+    Map<String, Object> parametersThatAreSet = collectAndAppendParameters(uriTemplateBuilder, resource);
 
     // finally build the URI template
     String uriTemplate = uriTemplateBuilder.build().getTemplate();
@@ -79,9 +80,10 @@ public class JaxRsLinkBuilder {
   /**
    * build the resource path template (by concatenating the baseUrl of the service,
    * and the value of the linked resource's @Path annotation (that may contain path parameter variables)
+   * @param resource TODO:
    * @return an absolute path template to the resource
    */
-  private String buildResourcePath() {
+  private String buildResourcePath(LinkableResource resource) {
 
     Path pathAnnotation = resource.getClass().getAnnotation(Path.class);
     Preconditions.checkNotNull(pathAnnotation,
@@ -97,7 +99,7 @@ public class JaxRsLinkBuilder {
     return resourcePath;
   }
 
-  private Map<String, Object> collectAndAppendParameters(UriTemplateBuilder uriTemplateBuilder) {
+  private Map<String, Object> collectAndAppendParameters(UriTemplateBuilder uriTemplateBuilder, LinkableResource resource) {
 
     // use reflection to find the names and values of all fields annotated with JAX-RS @PathParam and @QueryParam annotations
     Map<String, Object> pathParams = JaxRsReflectionUtils.getPathParameterMap(resource);

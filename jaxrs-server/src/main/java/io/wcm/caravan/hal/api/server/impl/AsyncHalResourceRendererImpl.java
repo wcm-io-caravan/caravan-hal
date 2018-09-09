@@ -1,9 +1,29 @@
-/* Copyright (c) pro!vision GmbH. All rights reserved. */
+/*
+ * #%L
+ * wcm.io
+ * %%
+ * Copyright (C) 2017 wcm.io
+ * %%
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * #L%
+ */
 package io.wcm.caravan.hal.api.server.impl;
 
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Objects;
+
+import org.osgi.service.component.annotations.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -11,9 +31,9 @@ import com.google.common.base.Preconditions;
 
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.common.EmbeddableResource;
-import io.wcm.caravan.hal.api.common.LinkableResource;
 import io.wcm.caravan.hal.api.server.AsyncHalResourceRenderer;
+import io.wcm.caravan.hal.api.server.EmbeddableResource;
+import io.wcm.caravan.hal.api.server.LinkableResource;
 import io.wcm.caravan.hal.api.server.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.api.server.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -24,12 +44,17 @@ import rx.Single;
 /**
  * Contains methods to generate a HalResource or JAX-RS response from a given server-side HAL resource implementation
  */
+@Component(service = AsyncHalResourceRenderer.class)
 public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRenderer {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   @Override
-  public Single<HalResource> renderResource(Object resourceImplInstance) {
+  public Single<HalResource> renderResource(LinkableResource resourceImpl) {
+    return renderLinkedOrEmbeddedResource(resourceImpl);
+  }
+
+  Single<HalResource> renderLinkedOrEmbeddedResource(Object resourceImplInstance) {
 
     Preconditions.checkNotNull(resourceImplInstance, "Can not create a HalResource from a null reference");
 
@@ -121,7 +146,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
           .map(r -> (EmbeddableResource)r)
           .filter(r -> r.isEmbedded());
 
-      return rxEmbeddedResourceImpls.concatMap(r -> renderResource(r).toObservable());
+      return rxEmbeddedResourceImpls.concatMap(r -> renderLinkedOrEmbeddedResource(r).toObservable());
     }
 
     return Observable.empty();
@@ -162,7 +187,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
   static HalResource renderResourceBlocking(Object resourceImplInstance) {
     AsyncHalResourceRendererImpl renderer = new AsyncHalResourceRendererImpl();
 
-    Single<HalResource> rxResource = renderer.renderResource(resourceImplInstance);
+    Single<HalResource> rxResource = renderer.renderLinkedOrEmbeddedResource(resourceImplInstance);
 
     return rxResource.toObservable().toBlocking().single();
   }

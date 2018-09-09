@@ -26,7 +26,8 @@ import javax.ws.rs.Path;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Test;
 
-import io.wcm.caravan.hal.api.common.LinkableResource;
+import io.wcm.caravan.hal.api.server.LinkBuilder;
+import io.wcm.caravan.hal.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.Link;
 
 
@@ -52,9 +53,9 @@ public abstract class JaxRsLinkBuilderTest {
 
   protected static Link buildLinkTo(LinkableResource targetResource) {
 
-    JaxRsLinkBuilder linkBuilder = new JaxRsLinkBuilder(CONTEXT_PATH, targetResource);
+    LinkBuilder linkBuilder = new JaxRsLinkBuilder(CONTEXT_PATH);
 
-    return linkBuilder.build();
+    return linkBuilder.buildLinkTo(targetResource);
   }
 
   static class LinkableResourceAdapter implements LinkableResource {

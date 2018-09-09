@@ -24,7 +24,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import io.wcm.caravan.hal.api.common.LinkableResource;
+import io.wcm.caravan.hal.api.server.LinkableResource;
 
 public class JaxRsLinkBuilderTestWithAnnotatedBeanParamTest extends JaxRsLinkBuilderTest {
 

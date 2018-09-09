@@ -19,10 +19,13 @@
  */
 package io.wcm.caravan.hal.api.server;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 import io.wcm.caravan.hal.resource.HalResource;
 import rx.Single;
 
+@ProviderType
 public interface AsyncHalResourceRenderer {
 
-  Single<HalResource> renderResource(Object resourceImplInstance);
+  Single<HalResource> renderResource(LinkableResource resourceImpl);
 }
