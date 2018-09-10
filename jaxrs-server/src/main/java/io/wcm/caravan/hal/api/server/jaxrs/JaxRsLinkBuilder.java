@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.api.server.jaxrs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -30,6 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.damnhandy.uri.template.UriTemplate;
 import com.damnhandy.uri.template.UriTemplateBuilder;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import io.wcm.caravan.hal.api.server.LinkBuilder;
 import io.wcm.caravan.hal.api.server.LinkableResource;
@@ -40,6 +42,8 @@ public class JaxRsLinkBuilder implements LinkBuilder {
 
   private final String baseUrl;
 
+  private Map<String, ? extends Object> additionalParameters = new HashMap<>();
+
   /**
    * @param baseUrl the base path (or full URI) for which the current service bundle is registered
    */
@@ -48,6 +52,12 @@ public class JaxRsLinkBuilder implements LinkBuilder {
     Preconditions.checkArgument(StringUtils.isNotBlank(baseUrl), "A baseUrl must be provided");
 
     this.baseUrl = baseUrl;
+  }
+
+  @Override
+  public LinkBuilder withAdditionalParameters(Map<String, ? extends Object> parameters) {
+    this.additionalParameters = parameters;
+    return this;
   }
 
   /**
@@ -105,6 +115,14 @@ public class JaxRsLinkBuilder implements LinkBuilder {
     Map<String, Object> pathParams = JaxRsReflectionUtils.getPathParameterMap(resource);
     Map<String, Object> queryParams = JaxRsReflectionUtils.getQueryParameterMap(resource);
 
+    // add all parameters specified in #withAdditionalParameters that are not yet included in the template
+    ArrayList<String> pathVariables = Lists.newArrayList(uriTemplateBuilder.build().getVariables());
+    additionalParameters.forEach((name, value) -> {
+      if (!pathVariables.contains(name) && !queryParams.containsKey(name)) {
+        queryParams.put(name, value);
+      }
+    });
+
     // add all available query parameters to the URI template
     String[] queryParamNames = queryParams.keySet().stream().toArray(String[]::new);
     if (queryParamNames.length > 0) {
@@ -113,6 +131,7 @@ public class JaxRsLinkBuilder implements LinkBuilder {
 
     // now merge the template variables from the query and path parameters
     Map<String, Object> parameters = new HashMap<>();
+    parameters.putAll(additionalParameters);
     parameters.putAll(pathParams);
     parameters.putAll(queryParams);
 

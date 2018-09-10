@@ -19,12 +19,16 @@
  */
 package io.wcm.caravan.hal.api.server;
 
+import java.util.Map;
+
 import org.osgi.annotation.versioning.ProviderType;
 
 import io.wcm.caravan.hal.resource.Link;
 
 @ProviderType
 public interface LinkBuilder {
+
+  LinkBuilder withAdditionalParameters(Map<String, ? extends Object> parameters);
 
   Link buildLinkTo(LinkableResource resource);
 
