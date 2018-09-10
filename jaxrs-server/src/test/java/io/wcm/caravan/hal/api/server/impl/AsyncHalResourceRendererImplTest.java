@@ -30,7 +30,6 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.api.server.LinkableResource;
-import io.wcm.caravan.hal.api.server.impl.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 import rx.Observable;
@@ -39,6 +38,14 @@ import rx.Single;
 
 public class AsyncHalResourceRendererImplTest {
 
+
+  static HalResource render(Object resourceImplInstance) {
+
+    AsyncHalResourceRendererImpl renderer = new AsyncHalResourceRendererImpl();
+    Single<HalResource> rxResource = renderer.renderLinkedOrEmbeddedResource(resourceImplInstance);
+
+    return rxResource.toObservable().toBlocking().single();
+  }
 
   static class TestRelations {
 
@@ -119,7 +126,7 @@ public class AsyncHalResourceRendererImplTest {
 
     };
 
-    HalResource hal = AsyncHalResourceRendererImpl.renderResourceBlocking(resourceImpl);
+    HalResource hal = render(resourceImpl);
 
     TestState actualState = hal.adaptTo(TestState.class);
     assertEquals(state.string, actualState.string);
@@ -140,7 +147,7 @@ public class AsyncHalResourceRendererImplTest {
 
     };
 
-    HalResource hal = AsyncHalResourceRendererImpl.renderResourceBlocking(resourceImpl);
+    HalResource hal = render(resourceImpl);
 
     TestState actualState = hal.adaptTo(TestState.class);
     assertEquals(state.string, actualState.string);
@@ -167,7 +174,7 @@ public class AsyncHalResourceRendererImplTest {
 
     };
 
-    HalResource hal = AsyncHalResourceRendererImpl.renderResourceBlocking(resourceImpl);
+    HalResource hal = render(resourceImpl);
     assertEquals("there should be no embedded resources", 0, hal.getEmbedded(TestRelations.EMBEDDED).size());
     assertEquals("there should be exactly one link", 1, hal.getLinks(TestRelations.LINKED).size());
 
@@ -198,7 +205,7 @@ public class AsyncHalResourceRendererImplTest {
 
     };
 
-    HalResource hal = AsyncHalResourceRendererImpl.renderResourceBlocking(resourceImpl);
+    HalResource hal = render(resourceImpl);
     assertEquals("there should be no embedded resources", 0, hal.getEmbedded(TestRelations.EMBEDDED).size());
     assertEquals("there should be exactly ten links", 10, hal.getLinks(TestRelations.LINKED).size());
 
@@ -234,7 +241,7 @@ public class AsyncHalResourceRendererImplTest {
       }
     };
 
-    HalResource hal = AsyncHalResourceRendererImpl.renderResourceBlocking(resourceImpl);
+    HalResource hal = render(resourceImpl);
     assertEquals("there should be no linked resources", 0, hal.getLinks(TestRelations.LINKED).size());
     assertEquals("there should be exactly ten embedded resources", 10, hal.getEmbedded(TestRelations.EMBEDDED).size());
 
@@ -270,7 +277,7 @@ public class AsyncHalResourceRendererImplTest {
       }
     };
 
-    HalResource hal = AsyncHalResourceRendererImpl.renderResourceBlocking(resourceImpl);
+    HalResource hal = render(resourceImpl);
     assertEquals("there should be no embedded resources", 0, hal.getEmbedded(TestRelations.EMBEDDED).size());
     assertEquals("there should be exactly ten links", 10, hal.getLinks(TestRelations.EMBEDDED).size());
 

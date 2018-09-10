@@ -85,6 +85,12 @@ public final class HalApiReflectionUtils {
     return interfaces;
   }
 
+  /**
+   * Checks which of the interfaces implemented by the given implementation instance is the one which is annotated with
+   * {@link HalApiInterface}
+   * @param resourceImplInstance an instance of a class implementing a HAL API interface
+   * @return the interface that is annotated with {@link HalApiInterface}
+   */
   public static Class<?> findHalApiInterface(Object resourceImplInstance) {
 
     return collectInterfaces(resourceImplInstance.getClass()).stream()
