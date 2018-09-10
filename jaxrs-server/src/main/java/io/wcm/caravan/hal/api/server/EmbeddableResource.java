@@ -22,15 +22,13 @@ package io.wcm.caravan.hal.api.server;
 
 import org.osgi.annotation.versioning.ConsumerType;
 
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-
 /**
  * An interface that server-side resources should implement if it's reasonable to embed their HAL representation into
  * their context resource.
  * For each related resource that implements this interface, {@link #isEmbedded()} will be called (when the resource
  * is rendered server-side) to determine whether to embed the resource. It's up to the resource implementation
  * to either decide this on it's own (e.g. depending on the amount of content), or also provide a setter so that other
- * resources can decide this in the implementation of the method that is annotated with {@link RelatedResource}
+ * resources can decide this after creating a resource instance to which they are linking to.
  */
 @ConsumerType
 public interface EmbeddableResource {
