@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.server.impl;
+package io.wcm.caravan.hal.api.server.impl.renderer;
 
 import static org.junit.Assert.assertEquals;
 
@@ -30,6 +30,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.api.server.LinkableResource;
+import io.wcm.caravan.hal.api.server.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 import rx.Observable;

@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.server.impl;
+package io.wcm.caravan.hal.api.server.impl.renderer;
 
 import static io.wcm.caravan.hal.api.server.impl.reflection.HalApiReflectionUtils.getSortedRelatedResourceMethods;
 import static io.wcm.caravan.hal.api.server.impl.reflection.RxJavaReflectionUtils.invokeMethodAndReturnObservable;
@@ -38,34 +38,34 @@ import io.wcm.caravan.hal.resource.Link;
 import rx.Observable;
 import rx.Single;
 
-class RelatedContentRendererImpl {
+class RelatedResourcesRendererImpl {
 
   private final Function<Object, Single<HalResource>> renderFunction;
 
   /**
    * @param recursiveRenderFunc the function to call to render an embedded resource
    */
-  RelatedContentRendererImpl(Function<Object, Single<HalResource>> recursiveRenderFunc) {
+  RelatedResourcesRendererImpl(Function<Object, Single<HalResource>> recursiveRenderFunc) {
     this.renderFunction = recursiveRenderFunc;
   }
 
   /**
-   * @param resourceInterface an interface annotated with {@link HalApiInterface}
-   * @param resourceImplInstance the resource for which the related
-   * @return a {@link Single} that emits a list with one {@link RelatedContent} instance for each method annotated with
+   * @param apiInterface an interface annotated with {@link HalApiInterface}
+   * @param resourceImplInstance the context resource for which the related resources should be discovered and rendered
+   * @return a {@link Single} that emits a list with one {@link RelationRenderResult} instance for each method annotated with
    *         {@link RelatedResource}
    */
-  Single<List<RelatedContent>> render(Class<?> resourceInterface, Object resourceImplInstance) {
+  Single<List<RelationRenderResult>> render(Class<?> apiInterface, Object resourceImplInstance) {
 
     // find all methods annotated with @RelatedResource
-    return getSortedRelatedResourceMethods(resourceInterface)
+    return getSortedRelatedResourceMethods(apiInterface)
         // create a RelatedContent instance with the links and embedded resources returned by each method
         .concatMap(method -> createRelatedContentForMethod(resourceImplInstance, method).toObservable())
         // and collect the results for each method in a single list
         .toList().toSingle();
   }
 
-  private Single<RelatedContent> createRelatedContentForMethod(Object resourceImplInstance, Method method) {
+  private Single<RelationRenderResult> createRelatedContentForMethod(Object resourceImplInstance, Method method) {
 
     verifyReturnType(resourceImplInstance, method);
     String relation = method.getAnnotation(RelatedResource.class).relation();
@@ -81,7 +81,7 @@ class RelatedContentRendererImpl {
 
     // wait for all this to be complete before creating a RelatedResourceInfo for this method
     return Single.zip(rxLinks, rxEmbeddedHalResources, (links, embeddedResources) -> {
-      return new RelatedContent(relation, links, embeddedResources);
+      return new RelationRenderResult(relation, links, embeddedResources);
     });
   }
 
@@ -137,13 +137,13 @@ class RelatedContentRendererImpl {
   /**
    * A result class that combines all links and embedded resources for a given relation.
    */
-  static class RelatedContent {
+  static class RelationRenderResult {
 
     private final String relation;
     private final List<Link> links;
     private final List<HalResource> embedded;
 
-    private RelatedContent(String relation, List<Link> links, List<HalResource> embedded) {
+    private RelationRenderResult(String relation, List<Link> links, List<HalResource> embedded) {
       this.relation = relation;
       this.links = links;
       this.embedded = embedded;

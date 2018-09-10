@@ -101,10 +101,10 @@ public final class HalApiReflectionUtils {
                 + HalApiInterface.class.getSimpleName() + " annotation"));
   }
 
-  public static Single<?> getResourceStateObservable(Class<?> resourceInterface, Object instance) {
+  public static Single<?> getResourceStateObservable(Class<?> apiInterface, Object instance) {
 
     // find the first method annotated with @ResourceState
-    Observable<Object> rxResourceState = Observable.from(resourceInterface.getMethods())
+    Observable<Object> rxResourceState = Observable.from(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(ResourceState.class) != null)
         .limit(1)
         // invoke the method to get the state object and re-throw any exceptions that might be thrown
@@ -117,9 +117,9 @@ public final class HalApiReflectionUtils {
         .toSingle();
   }
 
-  public static Observable<Method> getSortedRelatedResourceMethods(Class<?> resourceInterface) {
+  public static Observable<Method> getSortedRelatedResourceMethods(Class<?> apiInterface) {
 
-    return Observable.from(resourceInterface.getMethods())
+    return Observable.from(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(RelatedResource.class) != null)
         .toSortedList((m1, m2) -> HalApiReflectionUtils.methodRelationComparator.compare(m1, m2))
         .flatMapIterable(l -> l);
