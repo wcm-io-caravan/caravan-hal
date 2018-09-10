@@ -56,7 +56,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
 
   Single<HalResource> renderLinkedOrEmbeddedResource(Object resourceImplInstance) {
 
-    Preconditions.checkNotNull(resourceImplInstance, "Can not create a HalResource from a null reference");
+    Preconditions.checkNotNull(resourceImplInstance, "Cannot create a HalResource from a null reference");
 
     // check which of the interface implemented by the given implementation class is the one annotated with @HalApiInterface
     Class<?> resourceInterface = HalApiReflectionUtils.findHalApiInterface(resourceImplInstance);
@@ -65,7 +65,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     Single<ObjectNode> rxState = getResourceState(resourceInterface, resourceImplInstance);
 
     // also collect the linked or embedded resources for each method annotated with @RelatedResource
-    Observable<RelatedResourceInfo> rxRelated = findRelatedResources(resourceInterface, resourceImplInstance);
+    Observable<RelatedContent> rxRelated = findRelatedResources(resourceInterface, resourceImplInstance);
 
     // wait until all this is available
     return Observable.zip(rxState.toObservable(), rxRelated.toList(), (stateNode, listOfRelated) -> {
@@ -81,15 +81,15 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
   }
 
 
-  private Observable<RelatedResourceInfo> findRelatedResources(Class<?> resourceInterface, Object resourceImplInstance) {
+  private Observable<RelatedContent> findRelatedResources(Class<?> resourceInterface, Object resourceImplInstance) {
 
     // find all methods annotated with @RelatedResource and sort them alphabetically
     return HalApiReflectionUtils.getSortedRelatedResourceMethods(resourceInterface)
-        // create a RelatedResourceInfo with the links and embedded resources returned by each method
-        .concatMap(method -> createRelatedResourceInfo(resourceImplInstance, method));
+        // create a RelatedContent instance with the links and embedded resources returned by each method
+        .concatMap(method -> createRelatedContent(resourceImplInstance, method));
   }
 
-  private Observable<RelatedResourceInfo> createRelatedResourceInfo(Object resourceImplInstance, Method method) {
+  private Observable<RelatedContent> createRelatedContent(Object resourceImplInstance, Method method) {
 
     verifyReturnType(resourceImplInstance, method);
 
@@ -99,13 +99,13 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     // create links for those resources that implement LinkableResource
     Observable<Link> rxLinks = createLinksTo(rxRelatedResources);
 
-    // and completely render those resources that should be embeded (asynchronously)
+    // and  (asynchronously) render those resources that should be embedded
     Observable<HalResource> rxEmbeddedHalResources = renderEmbeddedResources(method, rxRelatedResources);
 
-    // wait for all this to be complete before creating a RelatedReseourceInfo with all thisdata
+    // wait for all this to be complete before creating a RelatedResourceInfo with all this data
     String relation = method.getAnnotation(RelatedResource.class).relation();
     return Observable.zip(rxLinks.toList(), rxEmbeddedHalResources.toList(), (links, embeddedResources) -> {
-      return new RelatedResourceInfo(relation, links, embeddedResources);
+      return new RelatedContent(relation, links, embeddedResources);
     });
   }
 
@@ -137,7 +137,6 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
   private Observable<HalResource> renderEmbeddedResources(Method method, Observable<?> rxRelatedResources) {
 
     if (method.getParameterCount() == 0) {
-
       // this is a method without any parameters, so we can assume the link is not a template, and it might
       // also be possible to embed the resource
 
@@ -152,13 +151,13 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     return Observable.empty();
   }
 
-  private static class RelatedResourceInfo {
+  private static class RelatedContent {
 
     final String relation;
     final List<Link> links;
     final List<HalResource> embedded;
 
-    private RelatedResourceInfo(String relation, List<Link> links, List<HalResource> embedded) {
+    private RelatedContent(String relation, List<Link> links, List<HalResource> embedded) {
 
       this.relation = relation;
       this.links = links;
@@ -166,7 +165,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     }
   }
 
-  private HalResource createHalResource(Object resourceImplInstance, ObjectNode stateNode, List<RelatedResourceInfo> listOfRelated) {
+  private HalResource createHalResource(Object resourceImplInstance, ObjectNode stateNode, List<RelatedContent> listOfRelated) {
     HalResource hal = new HalResource(stateNode);
 
     if (resourceImplInstance instanceof LinkableResource) {
@@ -176,7 +175,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
       }
     }
 
-    for (RelatedResourceInfo related : listOfRelated) {
+    for (RelatedContent related : listOfRelated) {
       hal.addLinks(related.relation, related.links);
       hal.addEmbedded(related.relation, related.embedded);
     }
