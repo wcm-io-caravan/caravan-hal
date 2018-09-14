@@ -22,8 +22,8 @@ package io.wcm.caravan.hal.comparison.impl;
 import org.osgi.service.component.annotations.Component;
 
 import io.wcm.caravan.hal.comparison.HalComparison;
-import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalComparisonSource;
+import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.context.HalPathImpl;
@@ -51,18 +51,18 @@ public class HalComparisonImpl implements HalComparison {
   @Override
   public Observable<HalDifference> compare(HalComparisonSource expected, HalComparisonSource actual, HalComparisonStrategy strategy) {
 
-    HalComparisonRecursionImpl recursion = wireImplementationClasses(expected, actual);
+    HalComparisonRecursionImpl recursion = wireImplementationClasses(expected, actual, strategy);
 
     HalComparisonContextImpl context = createContextForEntryPoint(expected, actual, strategy);
 
     return loadEntryPointsAndStartRecursion(recursion, context, expected, actual);
   }
 
-  private HalComparisonRecursionImpl wireImplementationClasses(HalComparisonSource expected, HalComparisonSource actual) {
+  private HalComparisonRecursionImpl wireImplementationClasses(HalComparisonSource expected, HalComparisonSource actual, HalComparisonStrategy strategy) {
 
     PropertyProcessing propertyProcessing = new PropertyDiffDetector();
-    EmbeddedProcessing embeddedProcessing = new EmbeddedProcessingImpl();
-    LinkProcessing linkProcessing = new LinkProcessingImpl();
+    EmbeddedProcessing embeddedProcessing = new EmbeddedProcessingImpl(strategy);
+    LinkProcessing linkProcessing = new LinkProcessingImpl(strategy);
 
     return new HalComparisonRecursionImpl(expected, actual, propertyProcessing, embeddedProcessing, linkProcessing);
   }
@@ -72,7 +72,7 @@ public class HalComparisonImpl implements HalComparison {
     String expectedUrl = expected.getEntryPointUrl();
     String actualUrl = actual.getEntryPointUrl();
 
-    return new HalComparisonContextImpl(strategy, new HalPathImpl(), expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(new HalPathImpl(), expectedUrl, actualUrl);
   }
 
   private Observable<HalDifference> loadEntryPointsAndStartRecursion(HalComparisonRecursionImpl recursion, HalComparisonContextImpl context,

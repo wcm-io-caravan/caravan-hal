@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 
+import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
 import io.wcm.caravan.hal.comparison.impl.ProcessingResult;
@@ -49,9 +50,9 @@ public class LinkProcessingImpl implements LinkProcessing {
   /**
    * Default constructor that defines the order of processing steps to be executed
    */
-  public LinkProcessingImpl() {
+  public LinkProcessingImpl(HalComparisonStrategy strategy) {
     this.processingSteps = ImmutableList.of(
-        new LinkRelationBlackList(),
+        new LinkRelationBlackList(strategy),
         new LinkCountMismatchDetector(),
         new AdditionalOrMissingNamedLinkDetector(),
         new LinkTemplateProcessor());

@@ -21,16 +21,15 @@ package io.wcm.caravan.hal.comparison.impl;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.HalDifference;
 
 /**
  * An immutable implementation of the {@link HalDifference} interface
  */
 public class HalDifferenceImpl implements HalDifference {
 
-  private final HalComparisonContextImpl context;
+  private final HalComparisonContext context;
 
   private final String description;
 
@@ -43,7 +42,7 @@ public class HalDifferenceImpl implements HalDifference {
    * @param actualJson the actually value found in the resource tree to be compared
    * @param description a human-readable explanation of the difference
    */
-  public HalDifferenceImpl(HalComparisonContextImpl context, String expectedJson, String actualJson, String description) {
+  public HalDifferenceImpl(HalComparisonContext context, String expectedJson, String actualJson, String description) {
     this.context = context;
     this.expectedJson = expectedJson;
     this.actualJson = actualJson;

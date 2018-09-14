@@ -22,23 +22,32 @@ package io.wcm.caravan.hal.comparison.impl.links.steps;
 import java.util.Collections;
 import java.util.List;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.resource.Link;
 
 
 /**
  * Ignore specific linked resources as configured in
- * {@link HalComparisonStrategy#ignoreLinkTo(io.wcm.caravan.hal.comparison.HalResourceContext)}
+ * {@link HalComparisonStrategy#ignoreLinkTo(HalComparisonContext)}
  */
 public class LinkRelationBlackList implements LinkProcessingStep {
 
-  @Override
-  public List<HalDifference> apply(HalComparisonContextImpl context, String relation, List<Link> expected, List<Link> actual) {
+  private final HalComparisonStrategy strategy;
 
-    boolean blackListed = context.getStrategy().ignoreLinkTo(context);
+  /**
+   * @param strategy that defines which relations should be ignored
+   */
+  public LinkRelationBlackList(HalComparisonStrategy strategy) {
+    this.strategy = strategy;
+  }
+
+  @Override
+  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expected, List<Link> actual) {
+
+    boolean blackListed = strategy.ignoreLinkTo(context);
     if (blackListed) {
       expected.clear();
       actual.clear();

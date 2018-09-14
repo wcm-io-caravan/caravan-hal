@@ -26,7 +26,7 @@ import io.wcm.caravan.hal.comparison.impl.context.HalPathImpl;
 public class TestHalComparisonContext extends HalComparisonContextImpl {
 
   public TestHalComparisonContext() {
-    super(new TestHalComparisonStrategy(), new HalPathImpl(), "/", "/");
+    super(new HalPathImpl(), "/", "/");
   }
 
 }

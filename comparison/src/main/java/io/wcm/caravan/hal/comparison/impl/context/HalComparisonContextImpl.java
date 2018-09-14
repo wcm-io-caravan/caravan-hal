@@ -24,7 +24,6 @@ import java.util.List;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
-import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -34,8 +33,6 @@ import io.wcm.caravan.hal.resource.Link;
  */
 public class HalComparisonContextImpl implements HalComparisonContext {
 
-  private final HalComparisonStrategy strategy;
-
   private final HalPathImpl halPath;
 
   private final String expectedUrl;
@@ -44,20 +41,14 @@ public class HalComparisonContextImpl implements HalComparisonContext {
   /**
    * This constructor shouldn't be used except for creating the initial context for the entry point. From then on, use
    * the #withXyz methods to build a new context
-   * @param strategy
    * @param halPath
    * @param expectedUrl
    * @param actualUrl
    */
-  public HalComparisonContextImpl(HalComparisonStrategy strategy, HalPathImpl halPath, String expectedUrl, String actualUrl) {
-    this.strategy = strategy;
+  public HalComparisonContextImpl(HalPathImpl halPath, String expectedUrl, String actualUrl) {
     this.halPath = halPath;
     this.expectedUrl = expectedUrl;
     this.actualUrl = actualUrl;
-  }
-
-  public HalComparisonStrategy getStrategy() {
-    return this.strategy;
   }
 
   @Override
@@ -77,7 +68,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
   public HalComparisonContextImpl withAppendedHalPath(String relation) {
 
     HalPathImpl newHalPath = halPath.append(relation, null, null);
-    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
   }
 
   /**
@@ -96,7 +87,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
     }
 
     HalPathImpl newHalPath = halPath.append(relation, originalIndex, null);
-    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
   }
 
   private Integer findOriginalIndex(PairWithRelation<HalResource> pair, List<HalResource> originalEmbedded) {
@@ -127,7 +118,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
     }
 
     HalPathImpl newHalPath = halPath.append(relation, originalIndex, name);
-    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
   }
 
   /**
@@ -136,7 +127,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    */
   public HalComparisonContextImpl withAppendedJsonPath(String fieldName) {
     HalPathImpl newHalPath = halPath.appendJsonPath(fieldName);
-    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
   }
 
   /**
@@ -145,7 +136,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    */
   public HalComparisonContextImpl withJsonPathIndex(int indexInArray) {
     HalPathImpl newHalPath = halPath.replaceJsonPathIndex(indexInArray);
-    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
   }
 
   /**
@@ -153,7 +144,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    * @return a new instance with an updated {@link #getExpectedUrl()} value
    */
   public HalComparisonContextImpl withNewExpectedUrl(String newUrl) {
-    return new HalComparisonContextImpl(strategy, halPath, newUrl, actualUrl);
+    return new HalComparisonContextImpl(halPath, newUrl, actualUrl);
   }
 
   /**
@@ -161,7 +152,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    * @return a new instance with an updated {@link #getActualUrl()} value
    */
   public HalComparisonContextImpl withNewActualUrl(String newUrl) {
-    return new HalComparisonContextImpl(strategy, halPath, expectedUrl, newUrl);
+    return new HalComparisonContextImpl(halPath, expectedUrl, newUrl);
   }
 
   @Override

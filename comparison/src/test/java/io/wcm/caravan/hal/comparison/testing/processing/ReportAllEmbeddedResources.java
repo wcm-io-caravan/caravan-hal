@@ -23,9 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
-import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -34,7 +34,7 @@ public final class ReportAllEmbeddedResources implements EmbeddedProcessingStep 
   private List<HalDifference> diffsForAllRelations = new ArrayList<>();
 
   @Override
-  public List<HalDifference> apply(HalComparisonContextImpl context, String relation, List<HalResource> e, List<HalResource> a) {
+  public List<HalDifference> apply(HalComparisonContext context, String relation, List<HalResource> e, List<HalResource> a) {
 
     List<HalDifference> diffsForThisRelation = e.stream()
         .map(r -> new HalDifferenceImpl(context, null, null, null))

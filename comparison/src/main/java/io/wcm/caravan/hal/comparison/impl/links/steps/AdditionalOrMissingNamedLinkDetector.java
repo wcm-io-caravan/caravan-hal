@@ -28,9 +28,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
-import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -41,7 +41,7 @@ import io.wcm.caravan.hal.resource.Link;
 public class AdditionalOrMissingNamedLinkDetector implements LinkProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContextImpl context, String relation, List<Link> expected, List<Link> actual) {
+  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expected, List<Link> actual) {
 
     boolean thereAreLinksWithoutNames = Stream.concat(expected.stream(), actual.stream())
         .anyMatch(link -> link.getName() == null);

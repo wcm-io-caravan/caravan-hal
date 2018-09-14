@@ -22,22 +22,31 @@ package io.wcm.caravan.hal.comparison.impl.embedded.steps;
 import java.util.Collections;
 import java.util.List;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.resource.HalResource;
 
 /**
  * Ignore specific embedded resources as configured in
- * {@link HalComparisonStrategy#ignoreEmbeddedAt(io.wcm.caravan.hal.comparison.HalResourceContext)}
+ * {@link HalComparisonStrategy#ignoreEmbeddedAt(HalComparisonContext)}
  */
 public class EmbeddedRelationBlackList implements EmbeddedProcessingStep {
 
-  @Override
-  public List<HalDifference> apply(HalComparisonContextImpl context, String relation, List<HalResource> expected, List<HalResource> actual) {
+  private final HalComparisonStrategy strategy;
 
-    boolean blackListed = context.getStrategy().ignoreEmbeddedAt(context);
+  /**
+   * @param strategy that defines which relations should be ignored
+   */
+  public EmbeddedRelationBlackList(HalComparisonStrategy strategy) {
+    this.strategy = strategy;
+  }
+
+  @Override
+  public List<HalDifference> apply(HalComparisonContext context, String relation, List<HalResource> expected, List<HalResource> actual) {
+
+    boolean blackListed = strategy.ignoreEmbeddedAt(context);
     if (blackListed) {
       expected.clear();
       actual.clear();

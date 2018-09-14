@@ -121,14 +121,14 @@ public class HalComparisonRecursionImplTest {
     String expectedUrl = expected.getEntryPointUrl();
     String actualUrl = actual.getEntryPointUrl();
 
-    HalComparisonContextImpl context = new HalComparisonContextImpl(strategy, new HalPathImpl(), expectedUrl, actualUrl);
+    HalComparisonContextImpl context = new HalComparisonContextImpl(new HalPathImpl(), expectedUrl, actualUrl);
 
     if (embeddedProcessing == null) {
-      embeddedProcessing = new EmbeddedProcessingImpl();
+      embeddedProcessing = new EmbeddedProcessingImpl(strategy);
     }
 
     if (linkProcessing == null) {
-      linkProcessing = new LinkProcessingImpl();
+      linkProcessing = new LinkProcessingImpl(strategy);
     }
 
     impl = new HalComparisonRecursionImpl(expected, actual, propertyProcessor, embeddedProcessing, linkProcessing);

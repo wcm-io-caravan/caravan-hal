@@ -26,9 +26,9 @@ import java.util.List;
 
 import com.google.common.collect.ImmutableList;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
-import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -38,7 +38,7 @@ import io.wcm.caravan.hal.resource.HalResource;
 public class EmbeddedCountMismatchDetector implements EmbeddedProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContextImpl context, String relation, List<HalResource> expected,
+  public List<HalDifference> apply(HalComparisonContext context, String relation, List<HalResource> expected,
       List<HalResource> actual) {
 
     if (expected.size() == actual.size()) {
