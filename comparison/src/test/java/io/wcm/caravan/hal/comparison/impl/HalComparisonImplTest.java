@@ -30,9 +30,9 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.wcm.caravan.hal.comparison.HalComparisonConfig;
+import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.testing.TestHalComparisonConfig;
+import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResource;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResourceTree;
 import rx.Observable;
@@ -43,7 +43,7 @@ public class HalComparisonImplTest {
   private TestResourceTree expected;
   private TestResourceTree actual;
 
-  private HalComparisonConfig config;
+  private HalComparisonStrategy strategy;
   private HalComparisonImpl comparison;
 
   @Before
@@ -57,13 +57,13 @@ public class HalComparisonImplTest {
 
   private List<HalDifference> findDifferences() {
 
-    // use the default config unless a test case has created a config instance
-    if (config == null) {
-      config = new HalComparisonConfig() {
+    // use the default config unless a test case has created a specific strategy instance
+    if (strategy == null) {
+      strategy = new HalComparisonStrategy() {
         // only use the default implementations from the interface
       };
     }
-    Observable<HalDifference> diffs = comparison.compare(expected, actual, config);
+    Observable<HalDifference> diffs = comparison.compare(expected, actual, strategy);
 
     return diffs.toList().toBlocking().single();
   }
@@ -263,7 +263,7 @@ public class HalComparisonImplTest {
         .createEmbedded(SECTION).setNumber(456)
         .createEmbedded(ITEM).setText("bar");
 
-    config = new TestHalComparisonConfig().addEmbeddedRelationToIgnore(ITEM);
+    strategy = new TestHalComparisonStrategy().addEmbeddedRelationToIgnore(ITEM);
 
     List<HalDifference> diff = findDifferences();
 
@@ -283,7 +283,7 @@ public class HalComparisonImplTest {
         .createLinked(SECTION).setNumber(456)
         .createLinked(ITEM).setText("bar");
 
-    config = new TestHalComparisonConfig().addLinkRelationToIgnore(ITEM);
+    strategy = new TestHalComparisonStrategy().addLinkRelationToIgnore(ITEM);
 
     List<HalDifference> diff = findDifferences();
 

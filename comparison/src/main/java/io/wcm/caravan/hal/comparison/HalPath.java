@@ -36,7 +36,7 @@ public interface HalPath {
   String getLastRelation();
 
   // TODO: add more methods to access other HAL relations and JSON path parts to allow more fine-grained
-  // rules in the HalComparisonConfig
+  // rules in the HalComparisonStrategy
 
   /**
    * @return a string representation of the full HAL path (e.g. <code>/section[1]/item[0]</code> for the first item in

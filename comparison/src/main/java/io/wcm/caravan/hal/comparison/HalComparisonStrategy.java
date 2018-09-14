@@ -22,7 +22,7 @@ package io.wcm.caravan.hal.comparison;
 import org.osgi.annotation.versioning.ConsumerType;
 
 /**
- * A user-defined configuration for the {@link HalComparison} service that can be implemented dynamically and
+ * A user-defined configuration strategy for the {@link HalComparison} service that can be implemented dynamically and
  * context-aware.
  * <p>
  * With the default implementations in this interface, the comparison will run as long as the crawler finds
@@ -32,7 +32,7 @@ import org.osgi.annotation.versioning.ConsumerType;
  * </p>
  */
 @ConsumerType
-public interface HalComparisonConfig {
+public interface HalComparisonStrategy {
 
   /**
    * @param halPath the relational location of the embedded resource to be compared

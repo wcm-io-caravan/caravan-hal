@@ -22,7 +22,7 @@ package io.wcm.caravan.hal.comparison.impl;
 import org.osgi.service.component.annotations.Component;
 
 import io.wcm.caravan.hal.comparison.HalComparison;
-import io.wcm.caravan.hal.comparison.HalComparisonConfig;
+import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalComparisonSource;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessing;
@@ -48,11 +48,11 @@ import rx.Single;
 public class HalComparisonImpl implements HalComparison {
 
   @Override
-  public Observable<HalDifference> compare(HalComparisonSource expected, HalComparisonSource actual, HalComparisonConfig config) {
+  public Observable<HalDifference> compare(HalComparisonSource expected, HalComparisonSource actual, HalComparisonStrategy strategy) {
 
     HalComparisonRecursionImpl recursion = wireImplementationClasses(expected, actual);
 
-    HalComparisonContext context = createContextForEntryPoint(expected, actual, config);
+    HalComparisonContext context = createContextForEntryPoint(expected, actual, strategy);
 
     return loadEntryPointsAndStartRecursion(recursion, context, expected, actual);
   }
@@ -66,12 +66,12 @@ public class HalComparisonImpl implements HalComparison {
     return new HalComparisonRecursionImpl(expected, actual, propertyProcessing, embeddedProcessing, linkProcessing);
   }
 
-  private HalComparisonContext createContextForEntryPoint(HalComparisonSource expected, HalComparisonSource actual, HalComparisonConfig config) {
+  private HalComparisonContext createContextForEntryPoint(HalComparisonSource expected, HalComparisonSource actual, HalComparisonStrategy strategy) {
 
     String expectedUrl = expected.getEntryPointUrl();
     String actualUrl = actual.getEntryPointUrl();
 
-    return new HalComparisonContext(config, new HalPathImpl(), expectedUrl, actualUrl);
+    return new HalComparisonContext(strategy, new HalPathImpl(), expectedUrl, actualUrl);
   }
 
   private Observable<HalDifference> loadEntryPointsAndStartRecursion(HalComparisonRecursionImpl recursion, HalComparisonContext context,

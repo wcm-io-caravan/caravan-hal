@@ -22,21 +22,21 @@ package io.wcm.caravan.hal.comparison.testing;
 import java.util.HashSet;
 import java.util.Set;
 
-import io.wcm.caravan.hal.comparison.HalComparisonConfig;
+import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalPath;
 
-public class TestHalComparisonConfig implements HalComparisonConfig {
+public class TestHalComparisonStrategy implements HalComparisonStrategy {
 
   private final Set<String> embeddedRelationsToIgnore = new HashSet<>();
 
   private final Set<String> linkRelationsToIgnore = new HashSet<>();
 
-  public HalComparisonConfig addEmbeddedRelationToIgnore(String relation) {
+  public HalComparisonStrategy addEmbeddedRelationToIgnore(String relation) {
     embeddedRelationsToIgnore.add(relation);
     return this;
   }
 
-  public HalComparisonConfig addLinkRelationToIgnore(String relation) {
+  public HalComparisonStrategy addLinkRelationToIgnore(String relation) {
     linkRelationsToIgnore.add(relation);
     return this;
   }

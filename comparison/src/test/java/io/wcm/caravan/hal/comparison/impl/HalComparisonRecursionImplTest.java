@@ -48,7 +48,7 @@ import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.ImmutableList;
 
-import io.wcm.caravan.hal.comparison.HalComparisonConfig;
+import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessing;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingImpl;
@@ -58,7 +58,7 @@ import io.wcm.caravan.hal.comparison.impl.links.LinkProcessing;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.comparison.impl.properties.PropertyProcessing;
-import io.wcm.caravan.hal.comparison.testing.TestHalComparisonConfig;
+import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.testing.processing.IgnoreAllEmbeddedResources;
 import io.wcm.caravan.hal.comparison.testing.processing.IgnoreAllLinkedResources;
 import io.wcm.caravan.hal.comparison.testing.processing.ReportAllEmbeddedResources;
@@ -80,7 +80,7 @@ public class HalComparisonRecursionImplTest {
   private EmbeddedProcessing embeddedProcessing;
   private LinkProcessing linkProcessing;
 
-  private HalComparisonConfig config;
+  private HalComparisonStrategy strategy;
   private HalComparisonRecursionImpl impl;
 
   @Before
@@ -88,7 +88,7 @@ public class HalComparisonRecursionImplTest {
     expected = new TestResourceTree();
     actual = new TestResourceTree();
 
-    config = new TestHalComparisonConfig();
+    strategy = new TestHalComparisonStrategy();
   }
 
   private void mockLinkProcessing(LinkProcessingStep processor) {
@@ -120,7 +120,7 @@ public class HalComparisonRecursionImplTest {
     String expectedUrl = expected.getEntryPointUrl();
     String actualUrl = actual.getEntryPointUrl();
 
-    HalComparisonContext context = new HalComparisonContext(config, new HalPathImpl(), expectedUrl, actualUrl);
+    HalComparisonContext context = new HalComparisonContext(strategy, new HalPathImpl(), expectedUrl, actualUrl);
 
     if (embeddedProcessing == null) {
       embeddedProcessing = new EmbeddedProcessingImpl();

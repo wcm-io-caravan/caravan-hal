@@ -35,8 +35,8 @@ public interface HalComparison {
    * @param expected a {@link HalComparisonSource} that provides the ground truth for the comparison
    * @param actual a {@link HalComparisonSource} that provides the resources that should be compared with the expected
    *          resources
-   * @param config can be implemented to limit the crawling and comparison depth (e.g. ignore specific link relations)
+   * @param strategy can be implemented to limit the crawling and comparison depth (e.g. ignore specific link relations)
    * @return an {@link Observable} that emits one {@link HalDifference} object for each difference that was detected
    */
-  Observable<HalDifference> compare(HalComparisonSource expected, HalComparisonSource actual, HalComparisonConfig config);
+  Observable<HalDifference> compare(HalComparisonSource expected, HalComparisonSource actual, HalComparisonStrategy strategy);
 }

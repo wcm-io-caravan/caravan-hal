@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.wcm.caravan.hal.comparison.impl.halpath.HalPathImpl;
-import io.wcm.caravan.hal.comparison.testing.TestHalComparisonConfig;
+import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
 
 
 public class HalDifferenceImplTest {
@@ -38,7 +38,7 @@ public class HalDifferenceImplTest {
   @Before
   public void setUp() {
     halPath = new HalPathImpl().append(ITEM, null, null);
-    context = new HalComparisonContext(new TestHalComparisonConfig(), halPath, "/", "/");
+    context = new HalComparisonContext(new TestHalComparisonStrategy(), halPath, "/", "/");
   }
 
   @Test
