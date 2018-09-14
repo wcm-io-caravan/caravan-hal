@@ -84,6 +84,7 @@ public class PropertyDiffDetectorTest {
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(1));
     assertEquals("/", diffs.get(0).getHalContext().toString());
+    assertEquals("", diffs.get(0).getHalContext().getLastRelation());
     assertEquals(asString(expected), diffs.get(0).getExpectedJson());
     assertEquals(asString(actual), diffs.get(0).getActualJson());
   }
