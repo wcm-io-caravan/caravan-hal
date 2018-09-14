@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.comparison.impl.halpath;
+package io.wcm.caravan.hal.comparison.impl.context;
 
 import java.util.ArrayList;
 import java.util.List;

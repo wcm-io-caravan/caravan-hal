@@ -19,8 +19,8 @@
  */
 package io.wcm.caravan.hal.comparison.impl.embedded;
 
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.ProcessingResult;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 
 /**

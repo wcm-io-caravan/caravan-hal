@@ -28,9 +28,9 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
 import io.wcm.caravan.hal.comparison.impl.ProcessingResult;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.steps.EmbeddedCountMismatchDetector;
 import io.wcm.caravan.hal.comparison.impl.embedded.steps.EmbeddedRelationBlackList;
 import io.wcm.caravan.hal.resource.HalResource;

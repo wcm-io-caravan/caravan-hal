@@ -34,8 +34,8 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
-import io.wcm.caravan.hal.comparison.impl.TestHalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
+import io.wcm.caravan.hal.comparison.testing.TestHalComparisonContext;
 import io.wcm.caravan.hal.resource.HalResource;
 
 

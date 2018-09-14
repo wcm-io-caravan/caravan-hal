@@ -17,10 +17,10 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.comparison.impl;
+package io.wcm.caravan.hal.comparison.testing;
 
-import io.wcm.caravan.hal.comparison.impl.halpath.HalPathImpl;
-import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
+import io.wcm.caravan.hal.comparison.impl.context.HalPathImpl;
 
 
 public class TestHalComparisonContext extends HalComparisonContextImpl {

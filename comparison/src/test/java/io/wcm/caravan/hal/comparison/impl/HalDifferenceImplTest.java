@@ -26,7 +26,8 @@ import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.wcm.caravan.hal.comparison.impl.halpath.HalPathImpl;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
+import io.wcm.caravan.hal.comparison.impl.context.HalPathImpl;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
 
 

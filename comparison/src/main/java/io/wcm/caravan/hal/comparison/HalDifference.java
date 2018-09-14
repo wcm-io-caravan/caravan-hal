@@ -41,7 +41,8 @@ public interface HalDifference {
 
   /**
    * Describes the "relational" location of the resource (or property) that was reported to be different.
-   * @return a {@link HalComparisonContext} that can be used to group or filter the results based on their relations and context
+   * @return a {@link HalComparisonContext} that can be used to group or filter the results based on their relations and
+   *         context
    */
   HalComparisonContext getHalContext();
 

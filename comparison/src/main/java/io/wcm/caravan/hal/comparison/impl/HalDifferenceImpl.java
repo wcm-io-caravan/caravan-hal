@@ -22,6 +22,7 @@ package io.wcm.caravan.hal.comparison.impl;
 import org.apache.commons.lang3.StringUtils;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 
 /**

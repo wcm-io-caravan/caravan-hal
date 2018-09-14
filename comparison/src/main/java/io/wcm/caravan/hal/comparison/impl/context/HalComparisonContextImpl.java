@@ -17,15 +17,15 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.comparison.impl;
+package io.wcm.caravan.hal.comparison.impl.context;
 
 import java.util.List;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
-import io.wcm.caravan.hal.comparison.impl.halpath.HalPathImpl;
+import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
+import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -41,7 +41,15 @@ public class HalComparisonContextImpl implements HalComparisonContext {
   private final String expectedUrl;
   private final String actualUrl;
 
-  protected HalComparisonContextImpl(HalComparisonStrategy strategy, HalPathImpl halPath, String expectedUrl, String actualUrl) {
+  /**
+   * This constructor shouldn't be used except for creating the initial context for the entry point. From then on, use
+   * the #withXyz methods to build a new context
+   * @param strategy
+   * @param halPath
+   * @param expectedUrl
+   * @param actualUrl
+   */
+  public HalComparisonContextImpl(HalComparisonStrategy strategy, HalPathImpl halPath, String expectedUrl, String actualUrl) {
     this.strategy = strategy;
     this.halPath = halPath;
     this.expectedUrl = expectedUrl;

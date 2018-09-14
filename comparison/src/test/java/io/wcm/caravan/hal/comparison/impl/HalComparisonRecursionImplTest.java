@@ -50,10 +50,11 @@ import com.google.common.collect.ImmutableList;
 
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
+import io.wcm.caravan.hal.comparison.impl.context.HalPathImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessing;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
-import io.wcm.caravan.hal.comparison.impl.halpath.HalPathImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessing;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
