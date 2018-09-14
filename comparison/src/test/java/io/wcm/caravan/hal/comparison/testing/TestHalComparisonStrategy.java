@@ -23,7 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
-import io.wcm.caravan.hal.comparison.HalPath;
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 
 public class TestHalComparisonStrategy implements HalComparisonStrategy {
 
@@ -42,13 +42,13 @@ public class TestHalComparisonStrategy implements HalComparisonStrategy {
   }
 
   @Override
-  public boolean ignoreEmbeddedAt(HalPath halPath) {
-    return embeddedRelationsToIgnore.contains(halPath.getLastRelation());
+  public boolean ignoreEmbeddedAt(HalComparisonContext halContext) {
+    return embeddedRelationsToIgnore.contains(halContext.getLastRelation());
   }
 
   @Override
-  public boolean ignoreLinkTo(HalPath halPath) {
-    return linkRelationsToIgnore.contains(halPath.getLastRelation());
+  public boolean ignoreLinkTo(HalComparisonContext halContext) {
+    return linkRelationsToIgnore.contains(halContext.getLastRelation());
   }
 
 }

@@ -100,14 +100,14 @@ public class HalComparisonRecursionImplTest {
   }
 
   private void mockPropertyComparisonError(TestResource expectedResource, TestResource actualResource) {
-    ArgumentCaptor<HalComparisonContext> contextCaptor = ArgumentCaptor.forClass(HalComparisonContext.class);
+    ArgumentCaptor<HalComparisonContextImpl> contextCaptor = ArgumentCaptor.forClass(HalComparisonContextImpl.class);
 
     when(propertyProcessor.process(contextCaptor.capture(), sameHal(expectedResource.asHalResource()), sameHal(actualResource.asHalResource())))
         .thenAnswer(new Answer<List<HalDifference>>() {
 
           @Override
           public List<HalDifference> answer(InvocationOnMock invocation) throws Throwable {
-            HalComparisonContext context = contextCaptor.getValue();
+            HalComparisonContextImpl context = contextCaptor.getValue();
             HalDifferenceImpl result = new HalDifferenceImpl(context, null, null, "mocked comparison error");
             return ImmutableList.of(result);
           }
@@ -120,7 +120,7 @@ public class HalComparisonRecursionImplTest {
     String expectedUrl = expected.getEntryPointUrl();
     String actualUrl = actual.getEntryPointUrl();
 
-    HalComparisonContext context = new HalComparisonContext(strategy, new HalPathImpl(), expectedUrl, actualUrl);
+    HalComparisonContextImpl context = new HalComparisonContextImpl(strategy, new HalPathImpl(), expectedUrl, actualUrl);
 
     if (embeddedProcessing == null) {
       embeddedProcessing = new EmbeddedProcessingImpl();
@@ -277,7 +277,7 @@ public class HalComparisonRecursionImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item[1]", diff.get(0).getHalPath().toString());
+    assertEquals("/item[1]", diff.get(0).getHalContext().toString());
 
     verify(propertyProcessor).process(any(), sameHal(expectedEntryPoint), sameHal(actualEntryPoint));
     verify(propertyProcessor).process(any(), sameHal(expectedItem1), sameHal(actualItem1));
@@ -304,7 +304,7 @@ public class HalComparisonRecursionImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item[1]", diff.get(0).getHalPath().toString());
+    assertEquals("/item[1]", diff.get(0).getHalContext().toString());
 
     verify(propertyProcessor).process(any(), sameHal(expectedEntryPoint), sameHal(actualEntryPoint));
     verify(propertyProcessor).process(any(), sameHal(expectedItem1), sameHal(actualItem1));
@@ -368,7 +368,7 @@ public class HalComparisonRecursionImplTest {
 
     // there would be more than on error if the "related" link that points back to the section was followed
     assertThat(diff, hasSize(1));
-    assertEquals("/section", diff.get(0).getHalPath().toString());
+    assertEquals("/section", diff.get(0).getHalContext().toString());
   }
 
 
@@ -389,7 +389,7 @@ public class HalComparisonRecursionImplTest {
       fail("expected observable to fail with an " + HalComparisonException.class.getSimpleName());
     }
     catch (HalComparisonException ex) {
-      assertEquals("/section/item", ex.getHalPath().toString());
+      assertEquals("/section/item", ex.getHalContext().toString());
       assertEquals(expectedSection.getUrl(), ex.getResourceUrl());
     }
 

@@ -28,7 +28,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
 import io.wcm.caravan.hal.comparison.impl.ProcessingResult;
 import io.wcm.caravan.hal.comparison.impl.links.steps.AdditionalOrMissingNamedLinkDetector;
@@ -66,7 +66,7 @@ public class LinkProcessingImpl implements LinkProcessing {
   }
 
   @Override
-  public ProcessingResult<Link> process(HalComparisonContext context, HalResource expected, HalResource actual) {
+  public ProcessingResult<Link> process(HalComparisonContextImpl context, HalResource expected, HalResource actual) {
 
     List<PairWithRelation<Link>> pairsToCompare = new ArrayList<>();
     List<HalDifference> diffs = new ArrayList<>();
@@ -78,7 +78,7 @@ public class LinkProcessingImpl implements LinkProcessing {
 
     for (String relation : allRelations) {
 
-      HalComparisonContext newContext = context.withAppendedHalPath(relation);
+      HalComparisonContextImpl newContext = context.withAppendedHalPath(relation);
 
       List<Link> remainingExpectedLinks = new ArrayList<>(allExpectedLinks.get(relation));
       List<Link> remainingActualLinks = new ArrayList<>(allActualLinks.get(relation));

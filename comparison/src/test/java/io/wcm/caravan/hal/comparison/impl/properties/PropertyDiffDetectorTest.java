@@ -34,7 +34,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.TestHalComparisonContext;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -42,7 +42,7 @@ import io.wcm.caravan.hal.resource.HalResource;
 public class PropertyDiffDetectorTest {
 
   private PropertyDiffDetector processor;
-  private HalComparisonContext context;
+  private HalComparisonContextImpl context;
 
   @Before
   public void setUp() {
@@ -83,7 +83,7 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(1));
-    assertEquals("/", diffs.get(0).getHalPath().toString());
+    assertEquals("/", diffs.get(0).getHalContext().toString());
     assertEquals(asString(expected), diffs.get(0).getExpectedJson());
     assertEquals(asString(actual), diffs.get(0).getActualJson());
   }
@@ -96,7 +96,7 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(1));
-    assertEquals("/$.name", diffs.get(0).getHalPath().toString());
+    assertEquals("/$.name", diffs.get(0).getHalContext().toString());
     assertEquals(expected.getModel().path("name").toString(), diffs.get(0).getExpectedJson());
     assertEquals(actual.getModel().path("name").toString(), diffs.get(0).getActualJson());
   }
@@ -121,7 +121,7 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(1));
-    assertEquals("/$.array[1]", diffs.get(0).getHalPath().toString());
+    assertEquals("/$.array[1]", diffs.get(0).getHalContext().toString());
   }
 
   @Test
@@ -132,8 +132,8 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(2));
-    assertEquals("/$.array[1]", diffs.get(0).getHalPath().toString());
-    assertEquals("/$.array[2]", diffs.get(1).getHalPath().toString());
+    assertEquals("/$.array[1]", diffs.get(0).getHalContext().toString());
+    assertEquals("/$.array[2]", diffs.get(1).getHalContext().toString());
   }
 
   @Test
@@ -144,7 +144,7 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(1));
-    assertEquals("/$.array", diffs.get(0).getHalPath().toString());
+    assertEquals("/$.array", diffs.get(0).getHalContext().toString());
   }
 
   @Test
@@ -155,7 +155,7 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(1));
-    assertEquals("/$.array", diffs.get(0).getHalPath().toString());
+    assertEquals("/$.array", diffs.get(0).getHalContext().toString());
   }
 
   @Test
@@ -166,8 +166,8 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(2));
-    assertEquals("/$.array", diffs.get(0).getHalPath().toString());
-    assertEquals("/$.array[1]", diffs.get(1).getHalPath().toString());
+    assertEquals("/$.array", diffs.get(0).getHalContext().toString());
+    assertEquals("/$.array[1]", diffs.get(1).getHalContext().toString());
   }
 
   @Test
@@ -181,7 +181,7 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(1));
-    assertEquals("/$.name", diffs.get(0).getHalPath().toString());
+    assertEquals("/$.name", diffs.get(0).getHalContext().toString());
   }
 
   @Test
@@ -196,7 +196,7 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = processor.process(context, expected, actual);
     assertThat(diffs, hasSize(1));
-    assertEquals("/$.name", diffs.get(0).getHalPath().toString());
+    assertEquals("/$.name", diffs.get(0).getHalContext().toString());
   }
 
   public static class TestPojo {

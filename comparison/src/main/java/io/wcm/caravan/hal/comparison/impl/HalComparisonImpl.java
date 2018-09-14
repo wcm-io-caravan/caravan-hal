@@ -52,7 +52,7 @@ public class HalComparisonImpl implements HalComparison {
 
     HalComparisonRecursionImpl recursion = wireImplementationClasses(expected, actual);
 
-    HalComparisonContext context = createContextForEntryPoint(expected, actual, strategy);
+    HalComparisonContextImpl context = createContextForEntryPoint(expected, actual, strategy);
 
     return loadEntryPointsAndStartRecursion(recursion, context, expected, actual);
   }
@@ -66,15 +66,15 @@ public class HalComparisonImpl implements HalComparison {
     return new HalComparisonRecursionImpl(expected, actual, propertyProcessing, embeddedProcessing, linkProcessing);
   }
 
-  private HalComparisonContext createContextForEntryPoint(HalComparisonSource expected, HalComparisonSource actual, HalComparisonStrategy strategy) {
+  private HalComparisonContextImpl createContextForEntryPoint(HalComparisonSource expected, HalComparisonSource actual, HalComparisonStrategy strategy) {
 
     String expectedUrl = expected.getEntryPointUrl();
     String actualUrl = actual.getEntryPointUrl();
 
-    return new HalComparisonContext(strategy, new HalPathImpl(), expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(strategy, new HalPathImpl(), expectedUrl, actualUrl);
   }
 
-  private Observable<HalDifference> loadEntryPointsAndStartRecursion(HalComparisonRecursionImpl recursion, HalComparisonContext context,
+  private Observable<HalDifference> loadEntryPointsAndStartRecursion(HalComparisonRecursionImpl recursion, HalComparisonContextImpl context,
       HalComparisonSource expected, HalComparisonSource actual) {
 
     Single<HalResource> expectedEntryPoint = expected.resolveLink(context.getExpectedUrl());

@@ -41,9 +41,9 @@ public interface HalDifference {
 
   /**
    * Describes the "relational" location of the resource (or property) that was reported to be different.
-   * @return a {@link HalPath} that can be used to group or filter the results based on their relations and context
+   * @return a {@link HalComparisonContext} that can be used to group or filter the results based on their relations and context
    */
-  HalPath getHalPath();
+  HalComparisonContext getHalContext();
 
   /**
    * @return a text that describes why the difference was reported
@@ -52,16 +52,6 @@ public interface HalDifference {
 
   // TODO: add getters for the "change type" (add/remove/update/reorder) and "object type" (property, resource, link)
   // that allow easy filtering of the results depending on the use case
-
-  /**
-   * @return the URL where the resource that contains the expected value can be loaded from
-   */
-  String getExpectedUrl();
-
-  /**
-   * @return the URL where the resource that contains the actual value can be loaded from
-   */
-  String getActualUrl();
 
   /**
    * @return a formatted JSON string of the resource, link, property or state object that was expected (or an empty

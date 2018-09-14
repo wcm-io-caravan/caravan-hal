@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -42,7 +42,7 @@ import io.wcm.caravan.hal.resource.HalResource;
 public class PropertyDiffDetector implements PropertyProcessing {
 
   @Override
-  public List<HalDifference> process(HalComparisonContext context, HalResource expected, HalResource actual) {
+  public List<HalDifference> process(HalComparisonContextImpl context, HalResource expected, HalResource actual) {
 
     ObjectNode expectedJson = cloneAndStripHalProperties(expected.getModel());
     ObjectNode actualJson = cloneAndStripHalProperties(actual.getModel());
@@ -69,7 +69,7 @@ public class PropertyDiffDetector implements PropertyProcessing {
     return clone;
   }
 
-  private List<HalDifference> compareObjects(HalComparisonContext context, ObjectNode expectedJson, ObjectNode actualJson, AtomicInteger nodeCounter) {
+  private List<HalDifference> compareObjects(HalComparisonContextImpl context, ObjectNode expectedJson, ObjectNode actualJson, AtomicInteger nodeCounter) {
 
     List<HalDifference> diffs = new ArrayList<>();
 
@@ -77,7 +77,7 @@ public class PropertyDiffDetector implements PropertyProcessing {
     while (fieldNameIt.hasNext()) {
       String fieldName = fieldNameIt.next();
 
-      HalComparisonContext newContext = context.withAppendedJsonPath(fieldName);
+      HalComparisonContextImpl newContext = context.withAppendedJsonPath(fieldName);
       JsonNode expectedValue = expectedJson.path(fieldName);
       JsonNode actualValue = actualJson.path(fieldName);
 
@@ -87,7 +87,7 @@ public class PropertyDiffDetector implements PropertyProcessing {
     return diffs;
   }
 
-  private List<HalDifference> compareValues(HalComparisonContext context, JsonNode expectedValue, JsonNode actualValue, AtomicInteger nodeCounter) {
+  private List<HalDifference> compareValues(HalComparisonContextImpl context, JsonNode expectedValue, JsonNode actualValue, AtomicInteger nodeCounter) {
 
     nodeCounter.incrementAndGet();
 
@@ -111,7 +111,7 @@ public class PropertyDiffDetector implements PropertyProcessing {
             "Expected array with " + numExpected + " elements, but found " + numActual));
       }
       for (int i = 0; i < numExpected && i < numActual; i++) {
-        HalComparisonContext newContext = context.withJsonPathIndex(i);
+        HalComparisonContextImpl newContext = context.withJsonPathIndex(i);
         results.addAll(compareValues(newContext, expectedValue.get(i), actualValue.get(i), nodeCounter));
       }
     }

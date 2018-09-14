@@ -28,25 +28,25 @@ import org.osgi.annotation.versioning.ConsumerType;
  * With the default implementations in this interface, the comparison will run as long as the crawler finds
  * more links that haven't been processed yet, and will compare all embedded relations.
  * Depending on your data structures, it is essential to restrict crawling to specific relations by implementing
- * the {@link #ignoreLinkTo(HalPath)} method.
+ * the {@link #ignoreLinkTo(HalComparisonContext)} method.
  * </p>
  */
 @ConsumerType
 public interface HalComparisonStrategy {
 
   /**
-   * @param halPath the relational location of the embedded resource to be compared
+   * @param halContext the relational location of the embedded resource to be compared
    * @return true if that resource (and everything below) should not be compared
    */
-  default boolean ignoreEmbeddedAt(HalPath halPath) {
+  default boolean ignoreEmbeddedAt(HalComparisonContext halContext) {
     return false;
   }
 
   /**
-   * @param halPath the relational location of a linked resource to be followed
+   * @param halContext the relational location of a linked resource to be followed
    * @return true if that resource (and everything below) should not be followed &amp; compared
    */
-  default boolean ignoreLinkTo(HalPath halPath) {
+  default boolean ignoreLinkTo(HalComparisonContext halContext) {
     return false;
   }
 

@@ -26,7 +26,7 @@ import java.util.Set;
 
 import io.wcm.caravan.hal.comparison.HalComparisonSource;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.HalPath;
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessing;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessing;
 import io.wcm.caravan.hal.comparison.impl.properties.PropertyProcessing;
@@ -72,7 +72,7 @@ public class HalComparisonRecursionImpl {
    * @return an {@link Observable} that emits one {@link HalDifference} object for each difference that was detected in
    *         the given resources (and its linked/embedded resources)
    */
-  public Observable<HalDifference> compareRecursively(HalComparisonContext context, HalResource expected, HalResource actual) {
+  public Observable<HalDifference> compareRecursively(HalComparisonContextImpl context, HalResource expected, HalResource actual) {
 
     // don't follow links to any resources later that are already embedded (and have a self link) in the current resource
     expected.collectLinks("self").stream()
@@ -84,14 +84,14 @@ public class HalComparisonRecursionImpl {
         .concatWith(collectLinkedDifferences(context, expected, actual));
   }
 
-  Observable<HalDifference> collectLocalDifferences(HalComparisonContext context, HalResource expected, HalResource actual) {
+  Observable<HalDifference> collectLocalDifferences(HalComparisonContextImpl context, HalResource expected, HalResource actual) {
 
     List<HalDifference> diffs = propertyProcessing.process(context, expected, actual);
 
     return Observable.from(diffs);
   }
 
-  Observable<HalDifference> collectEmbeddedDifferences(HalComparisonContext context, HalResource expected, HalResource actual) {
+  Observable<HalDifference> collectEmbeddedDifferences(HalComparisonContextImpl context, HalResource expected, HalResource actual) {
 
     ProcessingResult<HalResource> processingResult = embeddedProcessing.process(context, expected, actual);
 
@@ -101,14 +101,15 @@ public class HalComparisonRecursionImpl {
     return processingResult.getDifferences().concatWith(diffsFromRecursion);
   }
 
-  private Observable<HalDifference> recurseWithEmbeddedResourcePair(HalComparisonContext context, HalResource expected, PairWithRelation<HalResource> pair) {
+  private Observable<HalDifference> recurseWithEmbeddedResourcePair(HalComparisonContextImpl context, HalResource expected,
+      PairWithRelation<HalResource> pair) {
 
-    HalComparisonContext newContext = context.withHalPathOfEmbeddedResource(pair, expected);
+    HalComparisonContextImpl newContext = context.withHalPathOfEmbeddedResource(pair, expected);
 
     return compareRecursively(newContext, pair.getExpected(), pair.getActual());
   }
 
-  Observable<HalDifference> collectLinkedDifferences(HalComparisonContext context, HalResource expected, HalResource actual) {
+  Observable<HalDifference> collectLinkedDifferences(HalComparisonContextImpl context, HalResource expected, HalResource actual) {
 
     ProcessingResult<Link> processingResult = linkProcessing.process(context, expected, actual);
 
@@ -119,23 +120,23 @@ public class HalComparisonRecursionImpl {
     return processingResult.getDifferences().concatWith(diffsFromRecursion);
   }
 
-  private Observable<HalDifference> recurseWithLinkedResourcePair(HalComparisonContext context, HalResource parentOfExpected, PairWithRelation<Link> pair) {
+  private Observable<HalDifference> recurseWithLinkedResourcePair(HalComparisonContextImpl context, HalResource parentOfExpected, PairWithRelation<Link> pair) {
 
     String expectedUrl = pair.getExpected().getHref();
     String actualUrl = pair.getActual().getHref();
 
     expectedUrlsToIgnore.add(expectedUrl);
 
-    HalComparisonContext newContext = context
+    HalComparisonContextImpl newContext = context
         .withHalPathOfLinkedResource(pair, parentOfExpected)
         .withNewExpectedUrl(expectedUrl)
         .withNewActualUrl(actualUrl);
 
     Observable<HalResource> expectedObs = resolveLinkAndAddContextToErrors(
-        expectedSource, expectedUrl, context.getExpectedUrl(), newContext.getHalPath());
+        expectedSource, expectedUrl, context.getExpectedUrl(), newContext);
 
     Observable<HalResource> actualObs = resolveLinkAndAddContextToErrors(
-        actualSource, actualUrl, context.getActualUrl(), newContext.getHalPath());
+        actualSource, actualUrl, context.getActualUrl(), newContext);
 
     return expectedObs
         // wait for both resources to be retrieved before they can be compared
@@ -145,7 +146,8 @@ public class HalComparisonRecursionImpl {
 
   }
 
-  private Observable<HalResource> resolveLinkAndAddContextToErrors(HalComparisonSource source, String resourceUrl, String contextUrl, HalPath halPath) {
+  private Observable<HalResource> resolveLinkAndAddContextToErrors(HalComparisonSource source, String resourceUrl, String contextUrl,
+      HalComparisonContext halContext) {
     return source.resolveLink(resourceUrl)
         // we want to wrap any exceptions thrown when resolving this link and add more context information
         // (e.g. where the link that could not be resolved can be found)
@@ -154,7 +156,7 @@ public class HalComparisonRecursionImpl {
         // that makes it a lot harder to understand the causal chain)
         .toObservable()
         .onErrorResumeNext(ex -> {
-          throw new HalComparisonException(halPath, contextUrl, ex);
+          throw new HalComparisonException(halContext, contextUrl, ex);
         });
   }
 

@@ -28,12 +28,22 @@ import io.wcm.caravan.hal.resource.HalResource;
  * by concatenating the relations and JSON properties to follow from the API entry point.
  */
 @ProviderType
-public interface HalPath {
+public interface HalComparisonContext {
 
   /**
    * @return the name of the last HAL relation in the path
    */
   String getLastRelation();
+
+  /**
+   * @return the URL where the resource that contains the expected value can be loaded from
+   */
+  String getExpectedUrl();
+
+  /**
+   * @return the URL where the resource that contains the actual value can be loaded from
+   */
+  String getActualUrl();
 
   // TODO: add more methods to access other HAL relations and JSON path parts to allow more fine-grained
   // rules in the HalComparisonStrategy

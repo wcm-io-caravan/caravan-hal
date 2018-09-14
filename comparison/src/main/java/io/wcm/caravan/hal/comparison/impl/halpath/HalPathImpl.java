@@ -26,12 +26,12 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 
-import io.wcm.caravan.hal.comparison.HalPath;
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 
 /**
- * Immutable implementation of {@link HalPath} interface
+ * Immutable implementation of {@link HalComparisonContext} interface
  */
-public class HalPathImpl implements HalPath {
+public class HalPathImpl {
 
   private final List<Token> halTokens;
   private final List<Token> jsonTokens;
@@ -82,7 +82,9 @@ public class HalPathImpl implements HalPath {
     return new HalPathImpl(halTokens, newTokens);
   }
 
-  @Override
+  /**
+   * @return the last relation that was followed
+   */
   public String getLastRelation() {
     if (halTokens.isEmpty()) {
       return "";

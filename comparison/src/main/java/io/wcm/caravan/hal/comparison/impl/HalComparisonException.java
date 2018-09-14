@@ -19,7 +19,7 @@
  */
 package io.wcm.caravan.hal.comparison.impl;
 
-import io.wcm.caravan.hal.comparison.HalPath;
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 
 /**
  * Adds context information to any exception that occurs when loading external resources.
@@ -28,22 +28,22 @@ public class HalComparisonException extends RuntimeException {
 
   private static final long serialVersionUID = 1L;
 
-  private final HalPath halPath;
+  private final HalComparisonContext halContext;
   private final String resourceUrl;
 
   /**
-   * @param halPath of the resource that fails to load
+   * @param halContext of the resource that fails to load
    * @param resourceUrl of the resource that contains the link to this resource
    * @param cause the original exception
    */
-  public HalComparisonException(HalPath halPath, String resourceUrl, Throwable cause) {
-    super("Failed to load resource with HAL path " + halPath + " that was linked from " + resourceUrl, cause);
-    this.halPath = halPath;
+  public HalComparisonException(HalComparisonContext halContext, String resourceUrl, Throwable cause) {
+    super("Failed to load resource with HAL path " + halContext + " that was linked from " + resourceUrl, cause);
+    this.halContext = halContext;
     this.resourceUrl = resourceUrl;
   }
 
-  public HalPath getHalPath() {
-    return this.halPath;
+  public HalComparisonContext getHalContext() {
+    return this.halContext;
   }
 
   public String getResourceUrl() {

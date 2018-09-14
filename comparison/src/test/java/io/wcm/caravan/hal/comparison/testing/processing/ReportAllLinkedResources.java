@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.resource.Link;
@@ -37,7 +37,7 @@ public final class ReportAllLinkedResources implements LinkProcessingStep {
   private List<HalDifference> diffsForAllRelations = new ArrayList<>();
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> e, List<Link> a) {
+  public List<HalDifference> apply(HalComparisonContextImpl context, String relation, List<Link> e, List<Link> a) {
 
     if (SELF.equals(relation)) {
       return Collections.emptyList();

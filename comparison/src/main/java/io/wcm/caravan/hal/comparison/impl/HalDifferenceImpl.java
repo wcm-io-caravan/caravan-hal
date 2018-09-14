@@ -22,14 +22,14 @@ package io.wcm.caravan.hal.comparison.impl;
 import org.apache.commons.lang3.StringUtils;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.HalPath;
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 
 /**
  * An immutable implementation of the {@link HalDifference} interface
  */
 public class HalDifferenceImpl implements HalDifference {
 
-  private final HalComparisonContext context;
+  private final HalComparisonContextImpl context;
 
   private final String description;
 
@@ -42,7 +42,7 @@ public class HalDifferenceImpl implements HalDifference {
    * @param actualJson the actually value found in the resource tree to be compared
    * @param description a human-readable explanation of the difference
    */
-  public HalDifferenceImpl(HalComparisonContext context, String expectedJson, String actualJson, String description) {
+  public HalDifferenceImpl(HalComparisonContextImpl context, String expectedJson, String actualJson, String description) {
     this.context = context;
     this.expectedJson = expectedJson;
     this.actualJson = actualJson;
@@ -50,18 +50,8 @@ public class HalDifferenceImpl implements HalDifference {
   }
 
   @Override
-  public HalPath getHalPath() {
-    return this.context.getHalPath();
-  }
-
-  @Override
-  public String getExpectedUrl() {
-    return this.context.getExpectedUrl();
-  }
-
-  @Override
-  public String getActualUrl() {
-    return this.context.getActualUrl();
+  public HalComparisonContext getHalContext() {
+    return this.context;
   }
 
   @Override
@@ -84,7 +74,7 @@ public class HalDifferenceImpl implements HalDifference {
    */
   @Override
   public String toString() {
-    return StringUtils.defaultIfEmpty(getDescription(), "") + " @ " + getHalPath().toString();
+    return StringUtils.defaultIfEmpty(getDescription(), "") + " @ " + getHalContext().toString();
   }
 
 }

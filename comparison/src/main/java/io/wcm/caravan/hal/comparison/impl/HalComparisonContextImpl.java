@@ -24,6 +24,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.impl.halpath.HalPathImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -31,7 +32,7 @@ import io.wcm.caravan.hal.resource.Link;
 /**
  * An immutable object that specifies in which part of the tree the comparison is currently being executed.
  */
-public class HalComparisonContext {
+public class HalComparisonContextImpl implements HalComparisonContext {
 
   private final HalComparisonStrategy strategy;
 
@@ -40,7 +41,7 @@ public class HalComparisonContext {
   private final String expectedUrl;
   private final String actualUrl;
 
-  protected HalComparisonContext(HalComparisonStrategy strategy, HalPathImpl halPath, String expectedUrl, String actualUrl) {
+  protected HalComparisonContextImpl(HalComparisonStrategy strategy, HalPathImpl halPath, String expectedUrl, String actualUrl) {
     this.strategy = strategy;
     this.halPath = halPath;
     this.expectedUrl = expectedUrl;
@@ -51,14 +52,12 @@ public class HalComparisonContext {
     return this.strategy;
   }
 
-  public HalPathImpl getHalPath() {
-    return this.halPath;
-  }
-
+  @Override
   public String getExpectedUrl() {
     return this.expectedUrl;
   }
 
+  @Override
   public String getActualUrl() {
     return this.actualUrl;
   }
@@ -67,10 +66,10 @@ public class HalComparisonContext {
    * @param relation of the linked or embedded resource that is about to be processed
    * @return a new instance with an updated {@link HalPathImpl}
    */
-  public HalComparisonContext withAppendedHalPath(String relation) {
+  public HalComparisonContextImpl withAppendedHalPath(String relation) {
 
     HalPathImpl newHalPath = halPath.append(relation, null, null);
-    return new HalComparisonContext(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
   }
 
   /**
@@ -78,7 +77,7 @@ public class HalComparisonContext {
    * @param contextResource the resource from the expected tree that embeds the resource to be compared
    * @return a new instance with an updated {@link HalPathImpl} that adds array indices if required
    */
-  public HalComparisonContext withHalPathOfEmbeddedResource(PairWithRelation<HalResource> pair, HalResource contextResource) {
+  public HalComparisonContextImpl withHalPathOfEmbeddedResource(PairWithRelation<HalResource> pair, HalResource contextResource) {
 
     String relation = pair.getRelation();
     List<HalResource> originalEmbedded = contextResource.getEmbedded(relation);
@@ -89,7 +88,7 @@ public class HalComparisonContext {
     }
 
     HalPathImpl newHalPath = halPath.append(relation, originalIndex, null);
-    return new HalComparisonContext(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
   }
 
   private Integer findOriginalIndex(PairWithRelation<HalResource> pair, List<HalResource> originalEmbedded) {
@@ -107,7 +106,7 @@ public class HalComparisonContext {
    * @param contextResource the resource from the expected tree that contains the links
    * @return a new instance with an updated {@link HalPathImpl} that adds array indices if required
    */
-  public HalComparisonContext withHalPathOfLinkedResource(PairWithRelation<Link> pair, HalResource contextResource) {
+  public HalComparisonContextImpl withHalPathOfLinkedResource(PairWithRelation<Link> pair, HalResource contextResource) {
 
     String relation = pair.getRelation();
     List<Link> originalLinks = contextResource.getLinks(relation);
@@ -120,40 +119,50 @@ public class HalComparisonContext {
     }
 
     HalPathImpl newHalPath = halPath.append(relation, originalIndex, name);
-    return new HalComparisonContext(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
   }
 
   /**
    * @param fieldName the name of the JSON property to be compared
    * @return a new instance with an updated {@link HalPathImpl}
    */
-  public HalComparisonContext withAppendedJsonPath(String fieldName) {
+  public HalComparisonContextImpl withAppendedJsonPath(String fieldName) {
     HalPathImpl newHalPath = halPath.appendJsonPath(fieldName);
-    return new HalComparisonContext(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
   }
 
   /**
    * @param indexInArray the index of the next array entry to be compared
    * @return a new instance with an updated {@link HalPathImpl} that contains array indices
    */
-  public HalComparisonContext withJsonPathIndex(int indexInArray) {
+  public HalComparisonContextImpl withJsonPathIndex(int indexInArray) {
     HalPathImpl newHalPath = halPath.replaceJsonPathIndex(indexInArray);
-    return new HalComparisonContext(strategy, newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(strategy, newHalPath, expectedUrl, actualUrl);
   }
 
   /**
    * @param newUrl of the expected resource that is about to be loaded
    * @return a new instance with an updated {@link #getExpectedUrl()} value
    */
-  public HalComparisonContext withNewExpectedUrl(String newUrl) {
-    return new HalComparisonContext(strategy, halPath, newUrl, actualUrl);
+  public HalComparisonContextImpl withNewExpectedUrl(String newUrl) {
+    return new HalComparisonContextImpl(strategy, halPath, newUrl, actualUrl);
   }
 
   /**
    * @param newUrl of the actual resource that is about to be loaded
    * @return a new instance with an updated {@link #getActualUrl()} value
    */
-  public HalComparisonContext withNewActualUrl(String newUrl) {
-    return new HalComparisonContext(strategy, halPath, expectedUrl, newUrl);
+  public HalComparisonContextImpl withNewActualUrl(String newUrl) {
+    return new HalComparisonContextImpl(strategy, halPath, expectedUrl, newUrl);
+  }
+
+  @Override
+  public String getLastRelation() {
+    return halPath.getLastRelation();
+  }
+
+  @Override
+  public String toString() {
+    return halPath.toString();
   }
 }

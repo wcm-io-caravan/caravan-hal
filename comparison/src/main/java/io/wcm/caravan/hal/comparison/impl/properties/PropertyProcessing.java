@@ -22,7 +22,7 @@ package io.wcm.caravan.hal.comparison.impl.properties;
 import java.util.List;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 
 
@@ -37,6 +37,6 @@ public interface PropertyProcessing {
    * @param actual the resource to be compared against the ground truth
    * @return the differences that were detected
    */
-  List<HalDifference> process(HalComparisonContext context, HalResource expected, HalResource actual);
+  List<HalDifference> process(HalComparisonContextImpl context, HalResource expected, HalResource actual);
 
 }

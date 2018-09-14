@@ -28,7 +28,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
 import io.wcm.caravan.hal.comparison.impl.ProcessingResult;
 import io.wcm.caravan.hal.comparison.impl.embedded.steps.EmbeddedCountMismatchDetector;
@@ -61,7 +61,7 @@ public class EmbeddedProcessingImpl implements EmbeddedProcessing {
   }
 
   @Override
-  public ProcessingResult<HalResource> process(HalComparisonContext context, HalResource expected, HalResource actual) {
+  public ProcessingResult<HalResource> process(HalComparisonContextImpl context, HalResource expected, HalResource actual) {
 
     List<PairWithRelation<HalResource>> pairsToCompare = new ArrayList<>();
     List<HalDifference> diffs = new ArrayList<>();
@@ -73,7 +73,7 @@ public class EmbeddedProcessingImpl implements EmbeddedProcessing {
 
     for (String relation : allRelations) {
 
-      HalComparisonContext newContext = context.withAppendedHalPath(relation);
+      HalComparisonContextImpl newContext = context.withAppendedHalPath(relation);
 
       List<HalResource> remainingExpectedResources = new ArrayList<>(allExpectedResources.get(relation));
       List<HalResource> remainingActualResources = new ArrayList<>(allActualResources.get(relation));

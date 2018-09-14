@@ -22,7 +22,7 @@ package io.wcm.caravan.hal.comparison.impl.embedded;
 import java.util.List;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 
 /**
@@ -44,5 +44,5 @@ public interface EmbeddedProcessingStep {
    * @param actual a *mutable* list that the step can reorder or reduce (if specific resources shouldn't be compared)
    * @return a list of all {@link HalDifference} that were detected
    */
-  List<HalDifference> apply(HalComparisonContext context, String relation, List<HalResource> expected, List<HalResource> actual);
+  List<HalDifference> apply(HalComparisonContextImpl context, String relation, List<HalResource> expected, List<HalResource> actual);
 }

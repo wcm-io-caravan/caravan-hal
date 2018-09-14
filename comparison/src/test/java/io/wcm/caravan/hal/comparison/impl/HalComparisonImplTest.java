@@ -78,7 +78,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/$.text", diff.get(0).getHalPath().toString());
+    assertEquals("/$.text", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -91,7 +91,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item$.number", diff.get(0).getHalPath().toString());
+    assertEquals("/item$.number", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -105,7 +105,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalPath().toString());
+    assertEquals("/item", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -119,7 +119,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalPath().toString());
+    assertEquals("/item", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -132,7 +132,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item$.text", diff.get(0).getHalPath().toString());
+    assertEquals("/item$.text", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -146,7 +146,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalPath().toString());
+    assertEquals("/item", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -160,7 +160,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalPath().toString());
+    assertEquals("/item", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -173,7 +173,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item$.flag", diff.get(0).getHalPath().toString());
+    assertEquals("/item$.flag", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -187,8 +187,8 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(2));
-    assertEquals("/item", diff.get(0).getHalPath().toString()); // first diff only says the number of link has changed
-    assertEquals("/item", diff.get(1).getHalPath().toString()); // second diff says exactly which link has been removed
+    assertEquals("/item", diff.get(0).getHalContext().toString()); // first diff only says the number of link has changed
+    assertEquals("/item", diff.get(1).getHalContext().toString()); // second diff says exactly which link has been removed
   }
 
   @Test
@@ -202,8 +202,8 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(2));
-    assertEquals("/item", diff.get(0).getHalPath().toString()); // first diff only says the number of link has changed
-    assertEquals("/item", diff.get(1).getHalPath().toString()); // second diff says exactly which link has been added
+    assertEquals("/item", diff.get(0).getHalContext().toString()); // first diff only says the number of link has changed
+    assertEquals("/item", diff.get(1).getHalContext().toString()); // second diff says exactly which link has been added
   }
 
   @Test
@@ -216,8 +216,8 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals(expected.getEntryPointUrl(), diff.get(0).getExpectedUrl());
-    assertEquals(actual.getEntryPointUrl(), diff.get(0).getActualUrl());
+    assertEquals(expected.getEntryPointUrl(), diff.get(0).getHalContext().getExpectedUrl());
+    assertEquals(actual.getEntryPointUrl(), diff.get(0).getHalContext().getActualUrl());
   }
 
   @Test
@@ -232,8 +232,8 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals(expectedItem.getUrl(), diff.get(0).getExpectedUrl());
-    assertEquals(actualItem.getUrl(), diff.get(0).getActualUrl());
+    assertEquals(expectedItem.getUrl(), diff.get(0).getHalContext().getExpectedUrl());
+    assertEquals(actualItem.getUrl(), diff.get(0).getHalContext().getActualUrl());
   }
 
   @Test
@@ -248,8 +248,8 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals(expectedSection.getUrl(), diff.get(0).getExpectedUrl());
-    assertEquals(actualSection.getUrl(), diff.get(0).getActualUrl());
+    assertEquals(expectedSection.getUrl(), diff.get(0).getHalContext().getExpectedUrl());
+    assertEquals(actualSection.getUrl(), diff.get(0).getHalContext().getActualUrl());
   }
 
   @Test
@@ -269,7 +269,7 @@ public class HalComparisonImplTest {
 
     // only the difference for the section should be reported, not the one for the item
     assertThat(diff, hasSize(1));
-    assertEquals("/section$.number", diff.get(0).getHalPath().toString());
+    assertEquals("/section$.number", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -289,7 +289,7 @@ public class HalComparisonImplTest {
 
     // only the difference for the section should be reported, not the one for the item
     assertThat(diff, hasSize(1));
-    assertEquals("/section$.number", diff.get(0).getHalPath().toString());
+    assertEquals("/section$.number", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -308,7 +308,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item[1]$.text", diff.get(0).getHalPath().toString());
+    assertEquals("/item[1]$.text", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -327,7 +327,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item[1]$.text", diff.get(0).getHalPath().toString());
+    assertEquals("/item[1]$.text", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -346,7 +346,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item['name2']$.text", diff.get(0).getHalPath().toString());
+    assertEquals("/item['name2']$.text", diff.get(0).getHalContext().toString());
   }
 
   @Test
@@ -358,6 +358,6 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item$.array[2]", diff.get(0).getHalPath().toString());
+    assertEquals("/item$.array[2]", diff.get(0).getHalContext().toString());
   }
 }

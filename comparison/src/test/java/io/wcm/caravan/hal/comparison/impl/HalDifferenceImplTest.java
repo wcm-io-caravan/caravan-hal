@@ -33,12 +33,12 @@ import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
 public class HalDifferenceImplTest {
 
   private HalPathImpl halPath;
-  private HalComparisonContext context;
+  private HalComparisonContextImpl context;
 
   @Before
   public void setUp() {
     halPath = new HalPathImpl().append(ITEM, null, null);
-    context = new HalComparisonContext(new TestHalComparisonStrategy(), halPath, "/", "/");
+    context = new HalComparisonContextImpl(new TestHalComparisonStrategy(), halPath, "/", "/");
   }
 
   @Test
@@ -52,6 +52,6 @@ public class HalDifferenceImplTest {
   public void string_representation_contains_hal_path() throws Exception {
 
     HalDifferenceImpl diff = new HalDifferenceImpl(context, null, null, "this is the description");
-    assertThat(diff.toString(), containsString(diff.getHalPath().toString()));
+    assertThat(diff.toString(), containsString(diff.getHalContext().toString()));
   }
 }

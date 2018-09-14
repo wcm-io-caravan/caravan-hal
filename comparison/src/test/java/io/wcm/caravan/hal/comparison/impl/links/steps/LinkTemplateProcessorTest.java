@@ -33,7 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.TestHalComparisonContext;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -41,7 +41,7 @@ import io.wcm.caravan.hal.resource.Link;
 public class LinkTemplateProcessorTest {
 
   private LinkTemplateProcessor processor;
-  private HalComparisonContext context;
+  private HalComparisonContextImpl context;
 
   @Before
   public void setUp() {
@@ -111,7 +111,7 @@ public class LinkTemplateProcessorTest {
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalPath().toString());
+    assertEquals("/item", diff.get(0).getHalContext().toString());
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());
@@ -127,7 +127,7 @@ public class LinkTemplateProcessorTest {
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalPath().toString());
+    assertEquals("/item", diff.get(0).getHalContext().toString());
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());
@@ -143,7 +143,7 @@ public class LinkTemplateProcessorTest {
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalPath().toString());
+    assertEquals("/item", diff.get(0).getHalContext().toString());
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());
@@ -159,7 +159,7 @@ public class LinkTemplateProcessorTest {
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalPath().toString());
+    assertEquals("/item", diff.get(0).getHalContext().toString());
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());
@@ -175,7 +175,7 @@ public class LinkTemplateProcessorTest {
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalPath().toString());
+    assertEquals("/item", diff.get(0).getHalContext().toString());
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());

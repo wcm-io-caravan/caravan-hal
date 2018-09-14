@@ -24,20 +24,20 @@ import java.util.List;
 
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.resource.HalResource;
 
 /**
  * Ignore specific embedded resources as configured in
- * {@link HalComparisonStrategy#ignoreEmbeddedAt(io.wcm.caravan.hal.comparison.HalPath)}
+ * {@link HalComparisonStrategy#ignoreEmbeddedAt(io.wcm.caravan.hal.comparison.HalResourceContext)}
  */
 public class EmbeddedRelationBlackList implements EmbeddedProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<HalResource> expected, List<HalResource> actual) {
+  public List<HalDifference> apply(HalComparisonContextImpl context, String relation, List<HalResource> expected, List<HalResource> actual) {
 
-    boolean blackListed = context.getStrategy().ignoreEmbeddedAt(context.getHalPath());
+    boolean blackListed = context.getStrategy().ignoreEmbeddedAt(context);
     if (blackListed) {
       expected.clear();
       actual.clear();

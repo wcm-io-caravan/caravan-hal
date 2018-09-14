@@ -32,7 +32,7 @@ import com.damnhandy.uri.template.UriTemplate;
 import com.google.common.collect.Sets;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.impl.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.resource.Link;
@@ -44,7 +44,7 @@ import io.wcm.caravan.hal.resource.Link;
 public class LinkTemplateProcessor implements LinkProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expected, List<Link> actual) {
+  public List<HalDifference> apply(HalComparisonContextImpl context, String relation, List<Link> expected, List<Link> actual) {
 
     List<HalDifference> diffs = new ArrayList<>();
 
@@ -94,7 +94,7 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
     return formatNames(variables);
   }
 
-  private HalDifferenceImpl findTemplateDifferences(HalComparisonContext context, Link expected, Link actual) {
+  private HalDifferenceImpl findTemplateDifferences(HalComparisonContextImpl context, Link expected, Link actual) {
 
     if (expected.isTemplated() != actual.isTemplated()) {
       String msg = expected.isTemplated()
