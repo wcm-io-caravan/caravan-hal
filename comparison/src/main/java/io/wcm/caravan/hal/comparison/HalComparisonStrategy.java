@@ -19,7 +19,13 @@
  */
 package io.wcm.caravan.hal.comparison;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import org.osgi.annotation.versioning.ConsumerType;
+
+import io.wcm.caravan.hal.resource.Link;
 
 /**
  * A user-defined configuration strategy for the {@link HalComparison} service that can be implemented dynamically and
@@ -50,8 +56,11 @@ public interface HalComparisonStrategy {
     return false;
   }
 
+  default List<Map<String, Object>> getVariablesToExpandLinkTemplate(HalComparisonContext context, Link expectedLink, Link actualLink) {
+    return Collections.emptyList();
+  }
+
   // TODO: add more configuration options
   // - limit the maximum depth of crawling
-  // - allow to specify which link templates should be expanded (with which values)
   // - allow to specify for which links/resources can be found in random order
 }

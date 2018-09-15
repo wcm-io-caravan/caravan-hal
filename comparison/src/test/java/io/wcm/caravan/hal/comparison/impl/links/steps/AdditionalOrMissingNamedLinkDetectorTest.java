@@ -38,8 +38,8 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonContext;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -49,7 +49,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
   private static final String REMOVED = "missing";
 
   private AdditionalOrMissingNamedLinkDetector processor;
-  private HalComparisonContextImpl context;
+  private HalComparisonContext context;
 
   @Before
   public void setUp() {

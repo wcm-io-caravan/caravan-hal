@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
@@ -55,7 +56,7 @@ public class LinkProcessingImpl implements LinkProcessing {
         new LinkRelationBlackList(strategy),
         new LinkCountMismatchDetector(),
         new AdditionalOrMissingNamedLinkDetector(),
-        new LinkTemplateProcessor());
+        new LinkTemplateProcessor(strategy));
   }
 
   /**
@@ -79,7 +80,7 @@ public class LinkProcessingImpl implements LinkProcessing {
 
     for (String relation : allRelations) {
 
-      HalComparisonContextImpl newContext = context.withAppendedHalPath(relation);
+      HalComparisonContext newContext = context.withAppendedHalPath(relation);
 
       List<Link> remainingExpectedLinks = new ArrayList<>(allExpectedLinks.get(relation));
       List<Link> remainingActualLinks = new ArrayList<>(allActualLinks.get(relation));

@@ -32,20 +32,25 @@ import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonContext;
+import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
 import io.wcm.caravan.hal.resource.Link;
 
 
 public class LinkTemplateProcessorTest {
 
   private LinkTemplateProcessor processor;
-  private HalComparisonContextImpl context;
+  private HalComparisonContext context;
+  private HalComparisonStrategy strategy;
 
   @Before
   public void setUp() {
-    processor = new LinkTemplateProcessor();
+
+    strategy = new TestHalComparisonStrategy();
+    processor = new LinkTemplateProcessor(strategy);
 
     // the LinkProcessingImpl will already add the relation to the contet before calling its steps, so we do the same here
     context = new TestHalComparisonContext().withAppendedHalPath(ITEM);

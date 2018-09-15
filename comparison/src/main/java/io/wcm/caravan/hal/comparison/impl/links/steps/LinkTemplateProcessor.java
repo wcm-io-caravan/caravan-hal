@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -32,6 +33,7 @@ import com.damnhandy.uri.template.UriTemplate;
 import com.google.common.collect.Sets;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
@@ -43,10 +45,22 @@ import io.wcm.caravan.hal.resource.Link;
  */
 public class LinkTemplateProcessor implements LinkProcessingStep {
 
+  private final HalComparisonStrategy strategy;
+
+  /**
+   * @param strategy that defines which relations should be ignored
+   */
+  public LinkTemplateProcessor(HalComparisonStrategy strategy) {
+    this.strategy = strategy;
+  }
+
   @Override
   public List<HalDifference> apply(HalComparisonContext context, List<Link> expected, List<Link> actual) {
 
     List<HalDifference> diffs = new ArrayList<>();
+
+    List<Link> expectedExpandedTemplates = new ArrayList<>();
+    List<Link> actualExpandedTemplates = new ArrayList<>();
 
     Iterator<Link> expectedIt = expected.iterator();
     Iterator<Link> actualIt = actual.iterator();
@@ -56,15 +70,24 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
 
       // whenever one of the links is templated...
       if (expectedLink.isTemplated() || actualLink.isTemplated()) {
-        // ... they are removed from the list of links to compare
-        expectedIt.remove();
-        actualIt.remove();
 
-        // but only return a result when there is a difference in the template parameters
+        // return a result when there is a difference in the template parameters
         HalDifferenceImpl diff = findTemplateDifferences(context, expectedLink, actualLink);
         if (diff != null) {
           diffs.add(diff);
         }
+
+        List<Map<String, Object>> variables = strategy.getVariablesToExpandLinkTemplate(context, expectedLink, actualLink);
+        if (variables != null) {
+          for (Map<String, Object> map : variables) {
+            expectedExpandedTemplates.add(createExpandedLink(expectedLink, map));
+            actualExpandedTemplates.add(createExpandedLink(actualLink, map));
+          }
+        }
+
+        // and finally remove the links from the list of links to compare
+        expectedIt.remove();
+        actualIt.remove();
       }
     }
 
@@ -72,10 +95,19 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
     filterTemplatesFromRemaining(expectedIt);
     filterTemplatesFromRemaining(actualIt);
 
+    expected.addAll(expectedExpandedTemplates);
+    actual.addAll(actualExpandedTemplates);
+
     return diffs;
   }
 
-  private void filterTemplatesFromRemaining(Iterator<Link> remainingIt) {
+  private static Link createExpandedLink(Link linkTemplate, Map<String, Object> variables) {
+    UriTemplate template = UriTemplate.fromTemplate(linkTemplate.getHref());
+    String expandedUrl = template.expand(variables);
+    return new Link(expandedUrl);
+  }
+
+  private static void filterTemplatesFromRemaining(Iterator<Link> remainingIt) {
     while (remainingIt.hasNext()) {
       Link link = remainingIt.next();
       if (link.isTemplated()) {
@@ -94,7 +126,7 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
     return formatNames(variables);
   }
 
-  private HalDifferenceImpl findTemplateDifferences(HalComparisonContext context, Link expected, Link actual) {
+  private static HalDifferenceImpl findTemplateDifferences(HalComparisonContext context, Link expected, Link actual) {
 
     if (expected.isTemplated() != actual.isTemplated()) {
       String msg = expected.isTemplated()
