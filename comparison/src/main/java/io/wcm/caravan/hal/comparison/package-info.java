@@ -18,7 +18,7 @@
  * #L%
  */
 /**
- * HAL resource bean representations.
+ * Interfaces to recursively compare two asynchronously loaded trees of HAL+JSON resources
  */
-@org.osgi.annotation.versioning.Version("0.1.0")
+@org.osgi.annotation.versioning.Version("1.0.0")
 package io.wcm.caravan.hal.comparison;
