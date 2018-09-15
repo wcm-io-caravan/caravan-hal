@@ -44,7 +44,7 @@ public class EmbeddedRelationBlackList implements EmbeddedProcessingStep {
   }
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<HalResource> expected, List<HalResource> actual) {
+  public List<HalDifference> apply(HalComparisonContext context, List<HalResource> expected, List<HalResource> actual) {
 
     boolean blackListed = strategy.ignoreEmbeddedAt(context);
     if (blackListed) {

@@ -45,7 +45,7 @@ public class LinkRelationBlackList implements LinkProcessingStep {
   }
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expected, List<Link> actual) {
+  public List<HalDifference> apply(HalComparisonContext context, List<Link> expected, List<Link> actual) {
 
     boolean blackListed = strategy.ignoreLinkTo(context);
     if (blackListed) {

@@ -37,9 +37,9 @@ public final class ReportAllLinkedResources implements LinkProcessingStep {
   private List<HalDifference> diffsForAllRelations = new ArrayList<>();
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> e, List<Link> a) {
+  public List<HalDifference> apply(HalComparisonContext context, List<Link> e, List<Link> a) {
 
-    if (SELF.equals(relation)) {
+    if (SELF.equals(context.getLastRelation())) {
       return Collections.emptyList();
     }
 

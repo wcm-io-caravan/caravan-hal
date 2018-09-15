@@ -63,7 +63,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/path1");
     List<Link> actual = createLinks("/path2");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // no comparison errors should be triggered, and the links shouldn't have been filtered
     assertThat(diff, empty());
@@ -77,7 +77,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/{?queryParam}");
     List<Link> actual = createLinks("/{?queryParam}");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // no comparison errors should be triggered
     assertThat(diff, empty());
@@ -92,7 +92,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/{?param}");
     List<Link> actual = createLinks("/{param}");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // no comparison errors should be triggered
     assertThat(diff, empty());
@@ -107,7 +107,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/{?queryParam}");
     List<Link> actual = createLinks("/");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
@@ -123,7 +123,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/");
     List<Link> actual = createLinks("/{?queryParam}");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
@@ -139,7 +139,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/{?param1,param2}");
     List<Link> actual = createLinks("/{?param1}");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
@@ -155,7 +155,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/{?param1}");
     List<Link> actual = createLinks("/{?param1,param2}");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
@@ -171,7 +171,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/{?queryParam}");
     List<Link> actual = createLinks("/{?otherParam}");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // a comparison error should be triggered
     assertThat(diff, hasSize(1));
@@ -187,7 +187,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/path1");
     List<Link> actual = createLinks("/path2", "/additional");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // no comparison errors should be triggered, and the links shouldn't have been filtered
     assertThat(diff, empty());
@@ -201,7 +201,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/path1", "/missing");
     List<Link> actual = createLinks("/path2");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // no comparison errors should be triggered, and the links shouldn't have been filtered
     assertThat(diff, empty());
@@ -215,7 +215,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/path1");
     List<Link> actual = createLinks("/path2", "/{?queryParam}");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // no comparison errors should be triggered, but the link template should be filtered
     assertThat(diff, empty());
@@ -229,7 +229,7 @@ public class LinkTemplateProcessorTest {
     List<Link> expected = createLinks("/path1", "/{?queryParam}");
     List<Link> actual = createLinks("/path2");
 
-    List<HalDifference> diff = processor.apply(context, ITEM, expected, actual);
+    List<HalDifference> diff = processor.apply(context, expected, actual);
 
     // no comparison errors should be triggered, but the link template should be filtered
     assertThat(diff, empty());

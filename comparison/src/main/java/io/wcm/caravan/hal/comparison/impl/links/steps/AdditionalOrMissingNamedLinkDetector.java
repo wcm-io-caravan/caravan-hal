@@ -41,7 +41,7 @@ import io.wcm.caravan.hal.resource.Link;
 public class AdditionalOrMissingNamedLinkDetector implements LinkProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expected, List<Link> actual) {
+  public List<HalDifference> apply(HalComparisonContext context, List<Link> expected, List<Link> actual) {
 
     boolean thereAreLinksWithoutNames = Stream.concat(expected.stream(), actual.stream())
         .anyMatch(link -> link.getName() == null);
@@ -60,13 +60,13 @@ public class AdditionalOrMissingNamedLinkDetector implements LinkProcessingStep 
 
     for (Link link : missingLinks) {
       expected.remove(link);
-      String msg = "Expected '" + relation + "' link with name '" + link.getName() + "' is missing";
+      String msg = "Expected '" + context.getLastRelation() + "' link with name '" + link.getName() + "' is missing";
       diffs.add(new HalDifferenceImpl(context, asString(link), null, msg));
     }
 
     for (Link link : unexpectedLinks) {
       actual.remove(link);
-      String msg = "Found an unexpected '" + relation + "' link with name '" + link.getName() + "'";
+      String msg = "Found an unexpected '" + context.getLastRelation() + "' link with name '" + link.getName() + "'";
       diffs.add(new HalDifferenceImpl(context, null, asString(link), msg));
     }
 

@@ -40,10 +40,9 @@ public interface LinkProcessingStep {
 
   /**
    * @param context specifies the 'relational' location of the given resources (and provides access to configuration)
-   * @param relation of the given links in their context resource
    * @param expected a *mutable* list that the step can reorder or reduce (if specific resources shouldn't be compared)
    * @param actual a *mutable* list that the step can reorder or reduce (if specific resources shouldn't be compared)
    * @return a list of all {@link HalDifference} that were detected
    */
-  List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expected, List<Link> actual);
+  List<HalDifference> apply(HalComparisonContext context, List<Link> expected, List<Link> actual);
 }

@@ -44,7 +44,7 @@ import io.wcm.caravan.hal.resource.Link;
 public class LinkTemplateProcessor implements LinkProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expected, List<Link> actual) {
+  public List<HalDifference> apply(HalComparisonContext context, List<Link> expected, List<Link> actual) {
 
     List<HalDifference> diffs = new ArrayList<>();
 

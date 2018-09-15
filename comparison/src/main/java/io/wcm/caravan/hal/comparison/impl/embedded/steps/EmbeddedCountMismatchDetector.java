@@ -38,14 +38,13 @@ import io.wcm.caravan.hal.resource.HalResource;
 public class EmbeddedCountMismatchDetector implements EmbeddedProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<HalResource> expected,
-      List<HalResource> actual) {
+  public List<HalDifference> apply(HalComparisonContext context, List<HalResource> expected, List<HalResource> actual) {
 
     if (expected.size() == actual.size()) {
       return Collections.emptyList();
     }
 
-    String msg = "Expected " + expected.size() + " embedded '" + relation + "' resources, but found " + actual.size();
+    String msg = "Expected " + expected.size() + " embedded '" + context.getLastRelation() + "' resources, but found " + actual.size();
     return ImmutableList.of(new HalDifferenceImpl(context, asString(expected), asString(actual), msg));
   }
 

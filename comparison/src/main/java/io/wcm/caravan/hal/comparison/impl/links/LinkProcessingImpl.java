@@ -85,7 +85,7 @@ public class LinkProcessingImpl implements LinkProcessing {
       List<Link> remainingActualLinks = new ArrayList<>(allActualLinks.get(relation));
 
       for (LinkProcessingStep step : processingSteps) {
-        diffs.addAll(step.apply(newContext, relation, remainingExpectedLinks, remainingActualLinks));
+        diffs.addAll(step.apply(newContext, remainingExpectedLinks, remainingActualLinks));
       }
 
       for (int i = 0; i < remainingExpectedLinks.size() && i < remainingActualLinks.size(); i++) {

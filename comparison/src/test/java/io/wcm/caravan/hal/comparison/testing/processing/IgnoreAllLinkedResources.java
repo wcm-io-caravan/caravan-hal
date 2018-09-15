@@ -30,7 +30,7 @@ import io.wcm.caravan.hal.resource.Link;
 public final class IgnoreAllLinkedResources implements LinkProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expectedLinks, List<Link> actualLinks) {
+  public List<HalDifference> apply(HalComparisonContext context, List<Link> expectedLinks, List<Link> actualLinks) {
     expectedLinks.clear();
     actualLinks.clear();
     return Collections.emptyList();

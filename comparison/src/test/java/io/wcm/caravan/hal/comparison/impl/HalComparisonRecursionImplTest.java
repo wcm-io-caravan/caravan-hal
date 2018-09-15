@@ -392,10 +392,9 @@ public class HalComparisonRecursionImplTest {
     mockLinkProcessing(new LinkProcessingStep() {
 
       @Override
-      public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expectedLinks, List<Link> actualLinks) {
+      public List<HalDifference> apply(HalComparisonContext context, List<Link> expectedLinks, List<Link> actualLinks) {
 
         if (SELF.equals(context.getLastRelation())) {
-          assertThat(context.getLastRelation(), equalTo(relation));
 
           assertThat(expectedLinks, hasSize(1));
           assertThat(expectedLinks.get(0).getHref(), equalTo(context.getExpectedUrl()));
@@ -407,7 +406,6 @@ public class HalComparisonRecursionImplTest {
           stepCalledForItem.incrementAndGet();
 
           assertThat(context.getLastRelation(), equalTo(ITEM));
-          assertThat(context.getLastRelation(), equalTo(relation));
 
           assertThat(expectedLinks, hasSize(2));
           assertThat(expectedLinks.get(0).getHref(), equalTo(expectedItem1.getUrl()));
@@ -441,11 +439,10 @@ public class HalComparisonRecursionImplTest {
     mockEmbeddedProcessing(new EmbeddedProcessingStep() {
 
       @Override
-      public List<HalDifference> apply(HalComparisonContext context, String relation, List<HalResource> expectedEmbedded, List<HalResource> actualEmbedded) {
+      public List<HalDifference> apply(HalComparisonContext context, List<HalResource> expectedEmbedded, List<HalResource> actualEmbedded) {
         stepCalledForItem.incrementAndGet();
 
         assertThat(context.getLastRelation(), equalTo(ITEM));
-        assertThat(context.getLastRelation(), equalTo(relation));
 
         assertThat(expectedEmbedded, hasSize(2));
         assertThat(expectedEmbedded.get(0).getModel(), equalTo(expectedItem1.getJson()));

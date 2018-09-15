@@ -39,13 +39,13 @@ import io.wcm.caravan.hal.resource.Link;
 public class LinkCountMismatchDetector implements LinkProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expected, List<Link> actual) {
+  public List<HalDifference> apply(HalComparisonContext context, List<Link> expected, List<Link> actual) {
 
     if (expected.size() == actual.size()) {
       return Collections.emptyList();
     }
 
-    String msg = "Expected " + expected.size() + " '" + relation + "' links, but found " + actual.size();
+    String msg = "Expected " + expected.size() + " '" + context.getLastRelation() + "' links, but found " + actual.size();
     return ImmutableList.of(new HalDifferenceImpl(context, asString(expected), asString(actual), msg));
   }
 }
