@@ -92,6 +92,15 @@ public class HalPathImpl {
     return Iterables.getLast(halTokens).getName();
   }
 
+  /**
+   * @return all relations that were followed to get to the context resources
+   */
+  List<String> getAllRelations() {
+    return halTokens.stream()
+        .map(Token::getName)
+        .collect(Collectors.toList());
+  }
+
   @Override
   public String toString() {
 

@@ -56,6 +56,13 @@ public interface HalComparisonStrategy {
     return false;
   }
 
+  /**
+   * @param context the relational location of a link template
+   * @param expectedLink the full link template as found in the expected resource tree
+   * @param actualLink the full link template as found in the actual resource tree
+   * @return a list that contains one map of variables for each expanded instance of this link template that should be
+   *         created
+   */
   default List<Map<String, Object>> getVariablesToExpandLinkTemplate(HalComparisonContext context, Link expectedLink, Link actualLink) {
     return Collections.emptyList();
   }

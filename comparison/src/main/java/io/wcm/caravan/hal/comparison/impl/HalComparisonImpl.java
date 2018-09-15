@@ -26,7 +26,6 @@ import io.wcm.caravan.hal.comparison.HalComparisonSource;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
-import io.wcm.caravan.hal.comparison.impl.context.HalPathImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessing;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessing;
@@ -72,7 +71,7 @@ public class HalComparisonImpl implements HalComparison {
     String expectedUrl = expected.getEntryPointUrl();
     String actualUrl = actual.getEntryPointUrl();
 
-    return new HalComparisonContextImpl(new HalPathImpl(), expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(expectedUrl, actualUrl);
   }
 
   private Observable<HalDifference> loadEntryPointsAndStartRecursion(HalComparisonRecursionImpl recursion, HalComparisonContextImpl context,

@@ -80,7 +80,7 @@ public class LinkProcessingImpl implements LinkProcessing {
 
     for (String relation : allRelations) {
 
-      HalComparisonContext newContext = context.withAppendedHalPath(relation);
+      HalComparisonContext newContext = context.withAppendedHalPath(relation, expected);
 
       List<Link> remainingExpectedLinks = new ArrayList<>(allExpectedLinks.get(relation));
       List<Link> remainingActualLinks = new ArrayList<>(allActualLinks.get(relation));

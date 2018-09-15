@@ -19,9 +19,14 @@
  */
 package io.wcm.caravan.hal.comparison.impl.context;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.ImmutableMap;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
@@ -38,17 +43,26 @@ public class HalComparisonContextImpl implements HalComparisonContext {
   private final String expectedUrl;
   private final String actualUrl;
 
+  private final Map<HalPathImpl, HalResource> parentResources;
+
   /**
    * This constructor shouldn't be used except for creating the initial context for the entry point. From then on, use
    * the #withXyz methods to build a new context
-   * @param halPath
    * @param expectedUrl
    * @param actualUrl
    */
-  public HalComparisonContextImpl(HalPathImpl halPath, String expectedUrl, String actualUrl) {
+  public HalComparisonContextImpl(String expectedUrl, String actualUrl) {
+    this.halPath = new HalPathImpl();
+    this.expectedUrl = expectedUrl;
+    this.actualUrl = actualUrl;
+    this.parentResources = Collections.emptyMap();
+  }
+
+  private HalComparisonContextImpl(HalPathImpl halPath, String expectedUrl, String actualUrl, Map<HalPathImpl, HalResource> parentResources) {
     this.halPath = halPath;
     this.expectedUrl = expectedUrl;
     this.actualUrl = actualUrl;
+    this.parentResources = ImmutableMap.copyOf(parentResources);
   }
 
   @Override
@@ -65,12 +79,17 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    * @param relation of the linked or embedded resource that is about to be processed
    * @return a new instance with an updated {@link HalPathImpl}
    */
-  public HalComparisonContextImpl withAppendedHalPath(String relation) {
+  public HalComparisonContext withAppendedHalPath(String relation, HalResource contextResource) {
 
     HalPathImpl newHalPath = halPath.append(relation, null, null);
-    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl, createNewParentResourceMap(contextResource));
   }
 
+  private Map<HalPathImpl, HalResource> createNewParentResourceMap(HalResource contextResource) {
+    Map<HalPathImpl, HalResource> newParents = new HashMap<>(parentResources);
+    newParents.put(halPath, contextResource);
+    return newParents;
+  }
   /**
    * @param pair of resources that is about to be compared
    * @param contextResource the resource from the expected tree that embeds the resource to be compared
@@ -87,8 +106,9 @@ public class HalComparisonContextImpl implements HalComparisonContext {
     }
 
     HalPathImpl newHalPath = halPath.append(relation, originalIndex, null);
-    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl, createNewParentResourceMap(contextResource));
   }
+
 
   private Integer findOriginalIndex(PairWithRelation<HalResource> pair, List<HalResource> originalEmbedded) {
     for (int i = 0; i < originalEmbedded.size(); i++) {
@@ -111,14 +131,15 @@ public class HalComparisonContextImpl implements HalComparisonContext {
     List<Link> originalLinks = contextResource.getLinks(relation);
 
     Integer originalIndex = null;
-    String name = null;
+    String name = pair.getExpected().getName();
     if (originalLinks.size() > 1) {
-      name = pair.getExpected().getName();
       originalIndex = originalLinks.indexOf(pair.getExpected());
     }
 
     HalPathImpl newHalPath = halPath.append(relation, originalIndex, name);
-    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
+    Map<HalPathImpl, HalResource> newParents = new HashMap<>(parentResources);
+    newParents.put(halPath, contextResource);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl, createNewParentResourceMap(contextResource));
   }
 
   /**
@@ -127,7 +148,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    */
   public HalComparisonContextImpl withAppendedJsonPath(String fieldName) {
     HalPathImpl newHalPath = halPath.appendJsonPath(fieldName);
-    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl, parentResources);
   }
 
   /**
@@ -136,7 +157,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    */
   public HalComparisonContextImpl withJsonPathIndex(int indexInArray) {
     HalPathImpl newHalPath = halPath.replaceJsonPathIndex(indexInArray);
-    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl, parentResources);
   }
 
   /**
@@ -144,7 +165,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    * @return a new instance with an updated {@link #getExpectedUrl()} value
    */
   public HalComparisonContextImpl withNewExpectedUrl(String newUrl) {
-    return new HalComparisonContextImpl(halPath, newUrl, actualUrl);
+    return new HalComparisonContextImpl(halPath, newUrl, actualUrl, parentResources);
   }
 
   /**
@@ -152,12 +173,34 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    * @return a new instance with an updated {@link #getActualUrl()} value
    */
   public HalComparisonContextImpl withNewActualUrl(String newUrl) {
-    return new HalComparisonContextImpl(halPath, expectedUrl, newUrl);
+    return new HalComparisonContextImpl(halPath, expectedUrl, newUrl, parentResources);
   }
 
   @Override
   public String getLastRelation() {
     return halPath.getLastRelation();
+  }
+
+  @Override
+  public List<String> getAllRelations() {
+    return halPath.getAllRelations();
+  }
+
+  @Override
+  public HalResource getParentResourceWithRelation(String relation) {
+    return parentResources.entrySet().stream()
+        .filter(entry -> entry.getKey().getLastRelation().equals(relation))
+        .sorted(HalComparisonContextImpl::longestHalPathFirstComparator)
+        .map(Entry::getValue)
+        .findFirst()
+        .orElse(null);
+  }
+
+  private static int longestHalPathFirstComparator(Entry<HalPathImpl, HalResource> entry1, Entry<HalPathImpl, HalResource> entry2) {
+    String firstHalPath = entry1.getKey().toString();
+    String secondHalPath = entry2.getKey().toString();
+
+    return -Integer.compare(firstHalPath.length(), secondHalPath.length());
   }
 
   @Override

@@ -173,7 +173,7 @@ public class HalComparisonImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    assertEquals("/item$.flag", diff.get(0).getHalContext().toString());
+    assertEquals("/item['common']$.flag", diff.get(0).getHalContext().toString());
   }
 
   @Test

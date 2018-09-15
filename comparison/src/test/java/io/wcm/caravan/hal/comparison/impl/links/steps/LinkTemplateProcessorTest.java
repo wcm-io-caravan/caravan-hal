@@ -37,6 +37,7 @@ import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonContext;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
+import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 
@@ -53,7 +54,7 @@ public class LinkTemplateProcessorTest {
     processor = new LinkTemplateProcessor(strategy);
 
     // the LinkProcessingImpl will already add the relation to the contet before calling its steps, so we do the same here
-    context = new TestHalComparisonContext().withAppendedHalPath(ITEM);
+    context = new TestHalComparisonContext().withAppendedHalPath(ITEM, new HalResource());
   }
 
   private List<Link> createLinks(String... paths) {

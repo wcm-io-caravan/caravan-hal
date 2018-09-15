@@ -56,7 +56,6 @@ import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
-import io.wcm.caravan.hal.comparison.impl.context.HalPathImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessing;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
@@ -114,7 +113,7 @@ public class HalComparisonRecursionImplTest {
 
           @Override
           public List<HalDifference> answer(InvocationOnMock invocation) throws Throwable {
-            HalComparisonContextImpl context = contextCaptor.getValue();
+            HalComparisonContext context = contextCaptor.getValue();
             HalDifferenceImpl result = new HalDifferenceImpl(context, null, null, "mocked comparison error");
             return ImmutableList.of(result);
           }
@@ -127,7 +126,7 @@ public class HalComparisonRecursionImplTest {
     String expectedUrl = expected.getEntryPointUrl();
     String actualUrl = actual.getEntryPointUrl();
 
-    HalComparisonContextImpl context = new HalComparisonContextImpl(new HalPathImpl(), expectedUrl, actualUrl);
+    HalComparisonContextImpl context = new HalComparisonContextImpl(expectedUrl, actualUrl);
 
     if (embeddedProcessing == null) {
       embeddedProcessing = new EmbeddedProcessingImpl(strategy);

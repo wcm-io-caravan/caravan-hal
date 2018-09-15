@@ -19,26 +19,23 @@
  */
 package io.wcm.caravan.hal.comparison.impl;
 
-import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
-import io.wcm.caravan.hal.comparison.impl.context.HalPathImpl;
 
 
 public class HalDifferenceImplTest {
 
-  private HalPathImpl halPath;
-  private HalComparisonContextImpl context;
+  private HalComparisonContext context;
 
   @Before
   public void setUp() {
-    halPath = new HalPathImpl().append(ITEM, null, null);
-    context = new HalComparisonContextImpl(halPath, "/", "/");
+    context = new HalComparisonContextImpl("/", "/");
   }
 
   @Test

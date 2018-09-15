@@ -19,6 +19,8 @@
  */
 package io.wcm.caravan.hal.comparison;
 
+import java.util.List;
+
 import org.osgi.annotation.versioning.ProviderType;
 
 import io.wcm.caravan.hal.resource.HalResource;
@@ -34,6 +36,17 @@ public interface HalComparisonContext {
    * @return the name of the last HAL relation in the path
    */
   String getLastRelation();
+
+  /**
+   * @return all relations that were followed to get to the context resources
+   */
+  List<String> getAllRelations();
+
+  /**
+   * @param relation from the current context
+   * @return the nearest parent of the current context that was linked or embedded with that relation
+   */
+  HalResource getParentResourceWithRelation(String relation);
 
   /**
    * @return the URL where the resource that contains the expected value can be loaded from
@@ -54,4 +67,5 @@ public interface HalComparisonContext {
    */
   @Override
   String toString();
+
 }
