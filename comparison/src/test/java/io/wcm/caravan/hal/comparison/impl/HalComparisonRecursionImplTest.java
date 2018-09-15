@@ -24,7 +24,9 @@ import static io.wcm.caravan.hal.comparison.testing.StandardRelations.COLLECTION
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.RELATED;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.SECTION;
+import static io.wcm.caravan.hal.comparison.testing.StandardRelations.SELF;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -35,7 +37,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +52,7 @@ import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.ImmutableList;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
@@ -66,6 +71,7 @@ import io.wcm.caravan.hal.comparison.testing.processing.ReportAllEmbeddedResourc
 import io.wcm.caravan.hal.comparison.testing.processing.ReportAllLinkedResources;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResource;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResourceTree;
+import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 import rx.Observable;
 
@@ -372,6 +378,91 @@ public class HalComparisonRecursionImplTest {
     assertEquals("/section", diff.get(0).getHalContext().toString());
   }
 
+  @Test
+  public void link_processing_steps_are_executed_with_correct_parameters() throws Exception {
+
+    TestResource expectedItem1 = expected.createLinked(ITEM);
+    TestResource expectedItem2 = expected.createLinked(ITEM);
+
+    TestResource actualItem1 = actual.createLinked(ITEM);
+    TestResource actualItem2 = actual.createLinked(ITEM);
+
+    AtomicInteger stepCalledForItem = new AtomicInteger();
+
+    mockLinkProcessing(new LinkProcessingStep() {
+
+      @Override
+      public List<HalDifference> apply(HalComparisonContext context, String relation, List<Link> expectedLinks, List<Link> actualLinks) {
+
+        if (SELF.equals(context.getLastRelation())) {
+          assertThat(context.getLastRelation(), equalTo(relation));
+
+          assertThat(expectedLinks, hasSize(1));
+          assertThat(expectedLinks.get(0).getHref(), equalTo(context.getExpectedUrl()));
+
+          assertThat(actualLinks, hasSize(1));
+          assertThat(actualLinks.get(0).getHref(), equalTo(context.getActualUrl()));
+        }
+        else {
+          stepCalledForItem.incrementAndGet();
+
+          assertThat(context.getLastRelation(), equalTo(ITEM));
+          assertThat(context.getLastRelation(), equalTo(relation));
+
+          assertThat(expectedLinks, hasSize(2));
+          assertThat(expectedLinks.get(0).getHref(), equalTo(expectedItem1.getUrl()));
+          assertThat(expectedLinks.get(1).getHref(), equalTo(expectedItem2.getUrl()));
+
+          assertThat(actualLinks, hasSize(2));
+          assertThat(actualLinks.get(0).getHref(), equalTo(actualItem1.getUrl()));
+          assertThat(actualLinks.get(1).getHref(), equalTo(actualItem2.getUrl()));
+        }
+
+        return Collections.emptyList();
+      }
+    });
+
+    findDifferences();
+
+    assertThat(stepCalledForItem.get(), equalTo(1));
+  }
+
+  @Test
+  public void embedded_processing_steps_are_executed_with_correct_parameters() throws Exception {
+
+    TestResource expectedItem1 = expected.createEmbedded(ITEM);
+    TestResource expectedItem2 = expected.createEmbedded(ITEM);
+
+    TestResource actualItem1 = actual.createEmbedded(ITEM);
+    TestResource actualItem2 = actual.createEmbedded(ITEM);
+
+    AtomicInteger stepCalledForItem = new AtomicInteger();
+
+    mockEmbeddedProcessing(new EmbeddedProcessingStep() {
+
+      @Override
+      public List<HalDifference> apply(HalComparisonContext context, String relation, List<HalResource> expectedEmbedded, List<HalResource> actualEmbedded) {
+        stepCalledForItem.incrementAndGet();
+
+        assertThat(context.getLastRelation(), equalTo(ITEM));
+        assertThat(context.getLastRelation(), equalTo(relation));
+
+        assertThat(expectedEmbedded, hasSize(2));
+        assertThat(expectedEmbedded.get(0).getModel(), equalTo(expectedItem1.getJson()));
+        assertThat(expectedEmbedded.get(1).getModel(), equalTo(expectedItem2.getJson()));
+
+        assertThat(actualEmbedded, hasSize(2));
+        assertThat(actualEmbedded.get(0).getModel(), equalTo(actualItem1.getJson()));
+        assertThat(actualEmbedded.get(1).getModel(), equalTo(actualItem2.getJson()));
+
+        return Collections.emptyList();
+      }
+    });
+
+    findDifferences();
+
+    assertThat(stepCalledForItem.get(), equalTo(1));
+  }
 
   @Test
   public void erorrs_when_resolving_resources_should_be_wrapped() throws Exception {
