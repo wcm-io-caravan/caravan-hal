@@ -102,9 +102,14 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
   }
 
   private static Link createExpandedLink(Link linkTemplate, Map<String, Object> variables) {
+    String name = linkTemplate.getName();
     UriTemplate template = UriTemplate.fromTemplate(linkTemplate.getHref());
     String expandedUrl = template.expand(variables);
-    return new Link(expandedUrl);
+    Link expandedLink = new Link(expandedUrl);
+    if (name == null) {
+      expandedLink.setName(variables.toString());
+    }
+    return expandedLink;
   }
 
   private static void filterTemplatesFromRemaining(Iterator<Link> remainingIt) {

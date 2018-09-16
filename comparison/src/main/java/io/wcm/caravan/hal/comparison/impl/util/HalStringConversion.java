@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.wcm.caravan.hal.resource.HalObject;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -61,5 +62,12 @@ public final class HalStringConversion {
    */
   public static String asString(JsonNode node) {
     return node.toString();
+  }
+
+  public static ObjectNode cloneAndStripHalProperties(ObjectNode node) {
+    ObjectNode clone = node.deepCopy();
+    clone.remove("_links");
+    clone.remove("_embedded");
+    return clone;
   }
 }

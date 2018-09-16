@@ -33,6 +33,7 @@ import com.google.common.collect.ImmutableList;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
+import io.wcm.caravan.hal.comparison.impl.util.HalStringConversion;
 import io.wcm.caravan.hal.resource.HalResource;
 
 /**
@@ -44,8 +45,8 @@ public class PropertyDiffDetector implements PropertyProcessing {
   @Override
   public List<HalDifference> process(HalComparisonContextImpl context, HalResource expected, HalResource actual) {
 
-    ObjectNode expectedJson = cloneAndStripHalProperties(expected.getModel());
-    ObjectNode actualJson = cloneAndStripHalProperties(actual.getModel());
+    ObjectNode expectedJson = HalStringConversion.cloneAndStripHalProperties(expected.getModel());
+    ObjectNode actualJson = HalStringConversion.cloneAndStripHalProperties(actual.getModel());
 
     AtomicInteger nodeCounter = new AtomicInteger();
     List<HalDifference> allDiffs = compareObjects(context, expectedJson, actualJson, nodeCounter);
@@ -60,13 +61,6 @@ public class PropertyDiffDetector implements PropertyProcessing {
     String msg = allDiffs.size() + " of " + nodeCounter.get() + " JSON nodes are different";
     HalDifferenceImpl result = new HalDifferenceImpl(context, expectedJson.toString(), actualJson.toString(), msg);
     return ImmutableList.of(result);
-  }
-
-  private static ObjectNode cloneAndStripHalProperties(ObjectNode node) {
-    ObjectNode clone = node.deepCopy();
-    clone.remove("_links");
-    clone.remove("_embedded");
-    return clone;
   }
 
   private List<HalDifference> compareObjects(HalComparisonContextImpl context, ObjectNode expectedJson, ObjectNode actualJson, AtomicInteger nodeCounter) {

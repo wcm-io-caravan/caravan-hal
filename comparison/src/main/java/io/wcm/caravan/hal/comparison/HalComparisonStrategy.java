@@ -22,9 +22,11 @@ package io.wcm.caravan.hal.comparison;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.osgi.annotation.versioning.ConsumerType;
 
+import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 /**
@@ -65,6 +67,10 @@ public interface HalComparisonStrategy {
    */
   default List<Map<String, Object>> getVariablesToExpandLinkTemplate(HalComparisonContext context, Link expectedLink, Link actualLink) {
     return Collections.emptyList();
+  }
+
+  default Function<HalResource, String> getIdProvider(HalComparisonContext context) {
+    return null;
   }
 
   // TODO: add more configuration options

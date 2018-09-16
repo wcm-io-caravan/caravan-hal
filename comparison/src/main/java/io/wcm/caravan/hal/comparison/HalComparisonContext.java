@@ -38,12 +38,12 @@ public interface HalComparisonContext {
   String getLastRelation();
 
   /**
-   * @return all relations that were followed to get to the context resources
+   * @return all relations that were followed to get to the context resource
    */
   List<String> getAllRelations();
 
   /**
-   * @param relation from the current context
+   * @param relation that was used to embed/link to the resource which is to be found
    * @return the nearest parent of the current context that was linked or embedded with that relation
    */
   HalResource getParentResourceWithRelation(String relation);
@@ -58,14 +58,10 @@ public interface HalComparisonContext {
    */
   String getActualUrl();
 
-  // TODO: add more methods to access other HAL relations and JSON path parts to allow more fine-grained
-  // rules in the HalComparisonStrategy
-
   /**
    * @return a string representation of the full HAL path (e.g. <code>/section[1]/item[0]</code> for the first item in
    *         the second section linked or embbedded from the entry point)
    */
   @Override
   String toString();
-
 }

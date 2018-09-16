@@ -283,6 +283,7 @@ public class HalComparisonRecursionImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
+    System.out.println(diff.get(0).getDescription());
     assertEquals("/item[1]", diff.get(0).getHalContext().toString());
 
     verify(propertyProcessor).process(any(), sameHal(expectedEntryPoint), sameHal(actualEntryPoint));
