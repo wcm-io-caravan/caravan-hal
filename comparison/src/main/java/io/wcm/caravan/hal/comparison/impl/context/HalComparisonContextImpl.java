@@ -30,6 +30,7 @@ import com.google.common.collect.ImmutableMap;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -73,6 +74,10 @@ public class HalComparisonContextImpl implements HalComparisonContext {
   @Override
   public String getActualUrl() {
     return this.actualUrl;
+  }
+
+  public HalDifferenceListBuilder createDiffBuilder() {
+    return new HalDifferenceListBuilder(this);
   }
 
   /**

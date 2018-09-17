@@ -19,9 +19,6 @@
  */
 package io.wcm.caravan.hal.comparison.impl.links.steps;
 
-import static io.wcm.caravan.hal.comparison.impl.util.HalStringConversion.asString;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -30,7 +27,7 @@ import java.util.stream.Stream;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -53,24 +50,24 @@ public class AdditionalOrMissingNamedLinkDetector implements LinkProcessingStep 
       return Collections.emptyList();
     }
 
+    HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
+
     List<Link> unexpectedLinks = findItemsNotPresentIn(expected, actual);
     List<Link> missingLinks = findItemsNotPresentIn(actual, expected);
-
-    List<HalDifference> diffs = new ArrayList<>();
 
     for (Link link : missingLinks) {
       expected.remove(link);
       String msg = "Expected '" + context.getLastRelation() + "' link with name '" + link.getName() + "' is missing";
-      diffs.add(new HalDifferenceImpl(context, HalDifference.ChangeType.MISSING, HalDifference.EntityType.LINK, asString(link), null, msg));
+      diffs.reportMissingLink(msg, link);
     }
 
     for (Link link : unexpectedLinks) {
       actual.remove(link);
       String msg = "Found an unexpected '" + context.getLastRelation() + "' link with name '" + link.getName() + "'";
-      diffs.add(new HalDifferenceImpl(context, HalDifference.ChangeType.ADDITIONAL, HalDifference.EntityType.LINK, null, asString(link), msg));
+      diffs.reportAdditionalLink(msg, link);
     }
 
-    return diffs;
+    return diffs.build();
   }
 
   List<Link> findItemsNotPresentIn(List<Link> toLookIn, List<Link> toLookFor) {

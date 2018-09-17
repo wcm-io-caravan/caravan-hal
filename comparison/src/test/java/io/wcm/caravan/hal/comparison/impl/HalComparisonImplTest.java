@@ -90,7 +90,7 @@ public class HalComparisonImplTest {
 
     actual.getEntryPoint().setText("bar");
 
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/$.text");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/$.text");
   }
 
   @Test
@@ -100,7 +100,7 @@ public class HalComparisonImplTest {
 
     actual.createEmbedded(ITEM).setNumber(456);
 
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item$.number");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/item$.number");
   }
 
   @Test
@@ -132,7 +132,7 @@ public class HalComparisonImplTest {
 
     actual.createLinked(ITEM).setText("def");
 
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item$.text");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/item$.text");
   }
 
   @Test
@@ -164,7 +164,7 @@ public class HalComparisonImplTest {
 
     actual.createLinked(ITEM, "common").setFlag(false);
 
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item['common']$.flag");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/item['common']$.flag");
   }
 
   @Test
@@ -204,7 +204,7 @@ public class HalComparisonImplTest {
 
     actual.getEntryPoint().setText("bar");
 
-    HalDifference diff = compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/$.text");
+    HalDifference diff = compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/$.text");
 
     assertEquals(expected.getEntryPointUrl(), diff.getHalContext().getExpectedUrl());
     assertEquals(actual.getEntryPointUrl(), diff.getHalContext().getActualUrl());
@@ -219,7 +219,7 @@ public class HalComparisonImplTest {
     TestResource actualSection = actual.createLinked(SECTION);
     TestResource actualItem = actualSection.createLinked(ITEM).setText("bar");
 
-    HalDifference diff = compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/section/item$.text");
+    HalDifference diff = compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/section/item$.text");
 
     assertEquals(expectedItem.getUrl(), diff.getHalContext().getExpectedUrl());
     assertEquals(actualItem.getUrl(), diff.getHalContext().getActualUrl());
@@ -234,7 +234,7 @@ public class HalComparisonImplTest {
     TestResource actualSection = actual.createLinked(SECTION);
     actualSection.createEmbedded(ITEM).setText("bar");
 
-    HalDifference diff = compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/section/item$.text");
+    HalDifference diff = compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/section/item$.text");
 
     assertEquals(expectedSection.getUrl(), diff.getHalContext().getExpectedUrl());
     assertEquals(actualSection.getUrl(), diff.getHalContext().getActualUrl());
@@ -254,7 +254,7 @@ public class HalComparisonImplTest {
     strategy = new TestHalComparisonStrategy().addEmbeddedRelationToIgnore(ITEM);
 
     // only the difference for the section should be reported, not the one for the item
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/section$.number");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/section$.number");
   }
 
   @Test
@@ -271,7 +271,7 @@ public class HalComparisonImplTest {
     strategy = new TestHalComparisonStrategy().addLinkRelationToIgnore(ITEM);
 
     // only the difference for the section should be reported, not the one for the item
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/section$.number");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/section$.number");
   }
 
   @Test
@@ -287,7 +287,7 @@ public class HalComparisonImplTest {
     actualEntryPoint.createEmbedded(ITEM).setText("bar");
     actualEntryPoint.createEmbedded(ITEM).setText("foo");
 
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item[1]$.text");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/item[1]$.text");
   }
 
   @Test
@@ -303,7 +303,7 @@ public class HalComparisonImplTest {
     actualEntryPoint.createLinked(ITEM).setText("bar");
     actualEntryPoint.createLinked(ITEM).setText("foo");
 
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item[1]$.text");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/item[1]$.text");
   }
 
   @Test
@@ -319,7 +319,7 @@ public class HalComparisonImplTest {
     actualEntryPoint.createLinked(ITEM, "name2").setText("bar");
     actualEntryPoint.createLinked(ITEM, "name3").setText("foo");
 
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item['name2']$.text");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/item['name2']$.text");
   }
 
   @Test
@@ -328,6 +328,6 @@ public class HalComparisonImplTest {
     expected.createEmbedded(ITEM).setArray("a", "b", "c");
     actual.createEmbedded(ITEM).setArray("a", "b", "foo");
 
-    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item$.array[2]");
+    compareAndAssertThatDifferenceIs(ChangeType.MODIFIED, EntityType.PROPERTY, "/item$.array[2]");
   }
 }

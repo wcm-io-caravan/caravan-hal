@@ -39,42 +39,6 @@ import io.wcm.caravan.hal.resource.HalResource;
 @ProviderType
 public interface HalDifference {
 
-  enum EntityType {
-    LINK, EMBEDDED, PROPERTY;
-
-    boolean isLink() {
-      return this == LINK;
-    }
-
-    boolean isEmbedded() {
-      return this == EMBEDDED;
-    }
-
-    boolean isProperty() {
-      return this == PROPERTY;
-    }
-  }
-
-  enum ChangeType {
-    ADDITIONAL, MISSING, UPDATED, REORDERED;
-
-    boolean isAdditiona() {
-      return this == ADDITIONAL;
-    }
-
-    boolean isMissing() {
-      return this == MISSING;
-    }
-
-    boolean isUpdated() {
-      return this == UPDATED;
-    }
-
-    boolean isReordered() {
-      return this == REORDERED;
-    }
-  }
-
   /**
    * Describes the "relational" location of the resource (or property) that was reported to be different.
    * @return a {@link HalComparisonContext} that can be used to group or filter the results based on their relations and
@@ -82,8 +46,14 @@ public interface HalDifference {
    */
   HalComparisonContext getHalContext();
 
+  /**
+   * @return what kind of modification was detected
+   */
   ChangeType getChangeType();
 
+  /**
+   * @return what kind of HAL/JSON element was found to be different
+   */
   EntityType getEntityType();
 
   /**
@@ -103,4 +73,17 @@ public interface HalDifference {
    */
   String getActualJson();
 
+  /**
+   * defines the different kind of HAL/JSON elements that are compared
+   */
+  enum EntityType {
+    LINK, EMBEDDED, PROPERTY
+  }
+
+  /**
+   * defines the different types of modifications that can be detected
+   */
+  enum ChangeType {
+    ADDITIONAL, MISSING, MODIFIED, REORDERED
+  }
 }

@@ -19,8 +19,6 @@
  */
 package io.wcm.caravan.hal.comparison.impl.links.steps;
 
-import static io.wcm.caravan.hal.comparison.impl.util.HalStringConversion.asString;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -35,7 +33,7 @@ import com.google.common.collect.Sets;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -57,7 +55,7 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
   @Override
   public List<HalDifference> apply(HalComparisonContext context, List<Link> expected, List<Link> actual) {
 
-    List<HalDifference> diffs = new ArrayList<>();
+    HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
 
     List<Link> expectedExpandedTemplates = new ArrayList<>();
     List<Link> actualExpandedTemplates = new ArrayList<>();
@@ -72,10 +70,7 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
       if (expectedLink.isTemplated() || actualLink.isTemplated()) {
 
         // return a result when there is a difference in the template parameters
-        HalDifferenceImpl diff = findTemplateDifferences(context, expectedLink, actualLink);
-        if (diff != null) {
-          diffs.add(diff);
-        }
+        findTemplateDifferences(context, expectedLink, actualLink, diffs);
 
         List<Map<String, Object>> variables = strategy.getVariablesToExpandLinkTemplate(context, expectedLink, actualLink);
         if (variables != null) {
@@ -98,7 +93,7 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
     expected.addAll(expectedExpandedTemplates);
     actual.addAll(actualExpandedTemplates);
 
-    return diffs;
+    return diffs.build();
   }
 
   private static Link createExpandedLink(Link linkTemplate, Map<String, Object> variables) {
@@ -131,13 +126,14 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
     return formatNames(variables);
   }
 
-  private static HalDifferenceImpl findTemplateDifferences(HalComparisonContext context, Link expected, Link actual) {
+  private static void findTemplateDifferences(HalComparisonContext context, Link expected, Link actual, HalDifferenceListBuilder diffs) {
 
     if (expected.isTemplated() != actual.isTemplated()) {
       String msg = expected.isTemplated()
           ? "Expected templated link with variables " + formatTemplateVariables(expected) + ", but found resolved link"
           : "Expected resolved link, but found template with variables " + formatTemplateVariables(actual);
-      return new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.LINK, asString(expected), asString(actual), msg);
+      diffs.reportModifiedLink(msg, expected, actual);
+      return;
     }
 
     UriTemplate expectedTemplate = UriTemplate.fromTemplate(expected.getHref());
@@ -152,10 +148,8 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
     if (!missingVariables.isEmpty() || !additionalVariables.isEmpty()) {
       String msg = "Expected template parameters to be " + formatNames(expectedVariables) + ","
           + " but found " + formatNames(actualVariables);
-      return new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.LINK, asString(expected), asString(actual), msg);
+      diffs.reportModifiedLink(msg, expected, actual);
     }
-
-    return null;
   }
 
 }

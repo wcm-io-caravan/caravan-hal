@@ -19,17 +19,12 @@
  */
 package io.wcm.caravan.hal.comparison.impl.links.steps;
 
-import static io.wcm.caravan.hal.comparison.impl.util.HalStringConversion.asString;
-
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
-
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
-import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -46,10 +41,17 @@ public class LinkCountMismatchDetector implements LinkProcessingStep {
       return Collections.emptyList();
     }
 
+    HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
+
     String msg = "Expected " + expected.size() + " '" + context.getLastRelation() + "' links, but found " + actual.size();
 
-    HalDifference.ChangeType changeType = expected.size() > actual.size() ? ChangeType.MISSING : ChangeType.ADDITIONAL;
+    if (expected.size() > actual.size()) {
+      diffs.reportMissingLinks(msg, expected, actual);
+    }
+    else {
+      diffs.reportAdditionalLinks(msg, expected, actual);
+    }
 
-    return ImmutableList.of(new HalDifferenceImpl(context, changeType, HalDifference.EntityType.LINK, asString(expected), asString(actual), msg));
+    return diffs.build();
   }
 }

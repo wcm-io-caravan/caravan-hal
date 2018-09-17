@@ -50,6 +50,10 @@ public class PropertyDiffDetectorTest {
     context = new TestHalComparisonContext();
   }
 
+  private List<HalDifference> findDifferences(HalResource expected, HalResource actual) {
+    return processor.process(context, expected, actual);
+  }
+
   @Test
   public void no_results_for_equal_resources() throws Exception {
 
@@ -58,7 +62,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(pojo);
     HalResource actual = new HalResource(pojo.copy());
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, empty());
   }
 
@@ -71,7 +75,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(pojo);
     HalResource actual = new HalResource(pojo.copy());
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, empty());
   }
 
@@ -81,7 +85,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(new TestPojo().withName("foo").withNumber(123).withFlag(true));
     HalResource actual = new HalResource(new TestPojo().withName("bar").withNumber(456).withFlag(false));
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(1));
     assertEquals("/", diffs.get(0).getHalContext().toString());
     assertEquals("", diffs.get(0).getHalContext().getLastRelation());
@@ -95,7 +99,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(new TestPojo().withName("foo").withNumber(123).withFlag(true));
     HalResource actual = new HalResource(new TestPojo().withName("bar").withNumber(123).withFlag(true));
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(1));
     assertEquals("/$.name", diffs.get(0).getHalContext().toString());
     assertEquals(expected.getModel().path("name").toString(), diffs.get(0).getExpectedJson());
@@ -110,7 +114,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(pojo);
     HalResource actual = new HalResource(pojo.copy());
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, empty());
   }
 
@@ -120,7 +124,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(new TestPojo().withArray("a", "b", "c"));
     HalResource actual = new HalResource(new TestPojo().withArray("a", "1", "c"));
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(1));
     assertEquals("/$.array[1]", diffs.get(0).getHalContext().toString());
   }
@@ -131,7 +135,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(new TestPojo().withArray("a", "b", "c"));
     HalResource actual = new HalResource(new TestPojo().withArray("a", "1", "2"));
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(2));
     assertEquals("/$.array[1]", diffs.get(0).getHalContext().toString());
     assertEquals("/$.array[2]", diffs.get(1).getHalContext().toString());
@@ -143,7 +147,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(new TestPojo().withArray("a", "b", "c"));
     HalResource actual = new HalResource(new TestPojo().withArray("a", "b"));
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(1));
     assertEquals("/$.array", diffs.get(0).getHalContext().toString());
   }
@@ -154,7 +158,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(new TestPojo().withArray("a", "b"));
     HalResource actual = new HalResource(new TestPojo().withArray("a", "b", "c"));
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(1));
     assertEquals("/$.array", diffs.get(0).getHalContext().toString());
   }
@@ -165,7 +169,7 @@ public class PropertyDiffDetectorTest {
     HalResource expected = new HalResource(new TestPojo().withArray("a", "b", "c"));
     HalResource actual = new HalResource(new TestPojo().withArray("a", "1"));
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(2));
     assertEquals("/$.array", diffs.get(0).getHalContext().toString());
     assertEquals("/$.array[1]", diffs.get(1).getHalContext().toString());
@@ -180,7 +184,7 @@ public class PropertyDiffDetectorTest {
     ObjectNode modifiedClone = expected.getModel().deepCopy().put("name", 123);
     HalResource actual = new HalResource(modifiedClone);
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(1));
     assertEquals("/$.name", diffs.get(0).getHalContext().toString());
   }
@@ -195,7 +199,7 @@ public class PropertyDiffDetectorTest {
     modifiedClone.remove("name");
     HalResource actual = new HalResource(modifiedClone);
 
-    List<HalDifference> diffs = processor.process(context, expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(1));
     assertEquals("/$.name", diffs.get(0).getHalContext().toString());
   }

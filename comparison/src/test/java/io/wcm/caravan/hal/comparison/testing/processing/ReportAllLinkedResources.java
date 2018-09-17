@@ -24,11 +24,10 @@ import static io.wcm.caravan.hal.comparison.testing.StandardRelations.SELF;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -43,12 +42,15 @@ public final class ReportAllLinkedResources implements LinkProcessingStep {
       return Collections.emptyList();
     }
 
-    List<HalDifference> diffsForThisRelation = e.stream()
-        .map(r -> new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.LINK, null, null, null))
-        .collect(Collectors.toList());
+    HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
 
-    diffsForAllRelations.addAll(diffsForThisRelation);
-    return diffsForThisRelation;
+    for (Link link : e) {
+      diffs.reportModifiedLink("flagged by " + getClass().getSimpleName(), link, null);
+    }
+
+    diffsForAllRelations.addAll(diffs.build());
+
+    return diffs.build();
   }
 
   public List<HalDifference> getReportedDiffs() {

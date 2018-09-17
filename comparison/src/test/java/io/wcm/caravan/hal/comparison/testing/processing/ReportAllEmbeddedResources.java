@@ -21,11 +21,10 @@ package io.wcm.caravan.hal.comparison.testing.processing;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -35,13 +34,15 @@ public final class ReportAllEmbeddedResources implements EmbeddedProcessingStep 
 
   @Override
   public List<HalDifference> apply(HalComparisonContext context, List<HalResource> e, List<HalResource> a) {
+    HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
 
-    List<HalDifference> diffsForThisRelation = e.stream()
-        .map(r -> new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.EMBEDDED, null, null, null))
-        .collect(Collectors.toList());
+    for (HalResource hal : e) {
+      diffs.reportModifiedEmbedded("flagged by " + getClass().getSimpleName(), hal, null);
+    }
 
-    diffsForAllRelations.addAll(diffsForThisRelation);
-    return diffsForThisRelation;
+    diffsForAllRelations.addAll(diffs.build());
+
+    return diffs.build();
   }
 
   public List<HalDifference> getReportedDiffs() {

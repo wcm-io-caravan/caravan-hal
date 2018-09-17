@@ -19,7 +19,6 @@
  */
 package io.wcm.caravan.hal.comparison.impl.properties;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -28,13 +27,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.ImmutableList;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
-import io.wcm.caravan.hal.comparison.HalDifference.EntityType;
-import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.util.HalStringConversion;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -50,25 +46,28 @@ public class PropertyDiffDetector implements PropertyProcessing {
     ObjectNode expectedJson = HalStringConversion.cloneAndStripHalProperties(expected.getModel());
     ObjectNode actualJson = HalStringConversion.cloneAndStripHalProperties(actual.getModel());
 
+    HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
+
     AtomicInteger nodeCounter = new AtomicInteger();
-    List<HalDifference> allDiffs = compareObjects(context, expectedJson, actualJson, nodeCounter);
+    compareObjects(context, expectedJson, actualJson, nodeCounter, diffs);
 
     // if there are less than three differences in the individual properties, one HalDifference is emitted for each difference
-    if (allDiffs.size() < 3) {
-      return allDiffs;
+    int numPropertyDifferences = diffs.build().size();
+    if (numPropertyDifferences < 3) {
+      return diffs.build();
     }
 
     // if there are more differences, then it might be a completely different object,
     // so just a single HalDifference is emitted
-    String msg = allDiffs.size() + " of " + nodeCounter.get() + " JSON nodes are different";
-    HalDifferenceImpl result = new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY, expectedJson.toString(),
-        actualJson.toString(), msg);
-    return ImmutableList.of(result);
+    diffs.clearPreviouslyReported();
+
+    String msg = numPropertyDifferences + " of " + nodeCounter.get() + " JSON nodes are different";
+    diffs.reportModifiedProperty(msg, expectedJson, actualJson);
+    return diffs.build();
   }
 
-  private List<HalDifference> compareObjects(HalComparisonContextImpl context, ObjectNode expectedJson, ObjectNode actualJson, AtomicInteger nodeCounter) {
-
-    List<HalDifference> diffs = new ArrayList<>();
+  private void compareObjects(HalComparisonContextImpl context, ObjectNode expectedJson, ObjectNode actualJson, AtomicInteger nodeCounter,
+      HalDifferenceListBuilder diffs) {
 
     Iterator<String> fieldNameIt = expectedJson.fieldNames();
     while (fieldNameIt.hasNext()) {
@@ -78,50 +77,52 @@ public class PropertyDiffDetector implements PropertyProcessing {
       JsonNode expectedValue = expectedJson.path(fieldName);
       JsonNode actualValue = actualJson.path(fieldName);
 
-      diffs.addAll(compareValues(newContext, expectedValue, actualValue, nodeCounter));
+      HalDifferenceListBuilder newDiffs = new HalDifferenceListBuilder(newContext);
+      compareValues(newContext, expectedValue, actualValue, nodeCounter, newDiffs);
+      diffs.addAllFrom(newDiffs);
     }
-
-    return diffs;
   }
 
-  private List<HalDifference> compareValues(HalComparisonContextImpl context, JsonNode expectedValue, JsonNode actualValue, AtomicInteger nodeCounter) {
+  private void compareValues(HalComparisonContextImpl context, JsonNode expectedValue, JsonNode actualValue, AtomicInteger nodeCounter,
+      HalDifferenceListBuilder diffs) {
 
     nodeCounter.incrementAndGet();
 
-    List<HalDifference> results = new ArrayList<>();
     if (actualValue.isMissingNode()) {
-      results.add(new HalDifferenceImpl(context, HalDifference.ChangeType.MISSING, HalDifference.EntityType.PROPERTY, expectedValue.toString(), null,
-          "Expected property is missing"));
+      diffs.reportMissingProperty("Expected property is missing", expectedValue);
     }
     else if (actualValue.getNodeType() != expectedValue.getNodeType()) {
-      results.add(new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY,
-          expectedValue.toString(), actualValue.toString(),
-          "Expected property of type " + expectedValue.getNodeType().name() + ", but found " + actualValue.getNodeType().name()));
+      String msg = "Expected property of type " + expectedValue.getNodeType().name() + ", but found " + actualValue.getNodeType().name();
+      diffs.reportModifiedProperty(msg, expectedValue, actualValue);
     }
     else if (expectedValue.isObject()) {
-      results.addAll(compareObjects(context, (ObjectNode)expectedValue, (ObjectNode)actualValue, nodeCounter));
+      compareObjects(context, (ObjectNode)expectedValue, (ObjectNode)actualValue, nodeCounter, diffs);
     }
     else if (expectedValue.isArray()) {
       int numExpected = expectedValue.size();
       int numActual = actualValue.size();
 
       if (numExpected != numActual) {
-
-        HalDifference.ChangeType changeType = numExpected > numActual ? ChangeType.MISSING : ChangeType.ADDITIONAL;
-        results.add(new HalDifferenceImpl(context, changeType, HalDifference.EntityType.PROPERTY,
-            expectedValue.toString(), actualValue.toString(), "Expected array with " + numExpected + " elements, but found " + numActual));
+        String msg = "Expected array with " + numExpected + " elements, but found " + numActual;
+        if (numExpected > numActual) {
+          diffs.reportMissingProperty(msg, expectedValue, actualValue);
+        }
+        else {
+          diffs.reportAdditionalProperty(msg, expectedValue, actualValue);
+        }
       }
       for (int i = 0; i < numExpected && i < numActual; i++) {
         HalComparisonContextImpl newContext = context.withJsonPathIndex(i);
-        results.addAll(compareValues(newContext, expectedValue.get(i), actualValue.get(i), nodeCounter));
+        HalDifferenceListBuilder newDiffs = new HalDifferenceListBuilder(newContext);
+        compareValues(newContext, expectedValue.get(i), actualValue.get(i), nodeCounter, newDiffs);
+        diffs.addAllFrom(newDiffs);
       }
     }
     else if (!expectedValue.equals(actualValue)) {
-      results.add(new HalDifferenceImpl(context, ChangeType.UPDATED, EntityType.PROPERTY,
-          expectedValue.toString(), actualValue.toString(), "Expected value '" + StringUtils.abbreviate(expectedValue.asText(), 40) + "',"
-              + " but found '" + StringUtils.abbreviate(actualValue.asText(), 40) + "'"));
+      String msg = "Expected value '" + StringUtils.abbreviate(expectedValue.asText(), 40) + "',"
+          + " but found '" + StringUtils.abbreviate(actualValue.asText(), 40) + "'";
+      diffs.reportModifiedProperty(msg, expectedValue, actualValue);
     }
-    return results;
   }
 
 }

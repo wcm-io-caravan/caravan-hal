@@ -84,7 +84,9 @@ public class EmbeddedProcessingImpl implements EmbeddedProcessing {
       List<HalResource> remainingActualResources = new ArrayList<>(allActualResources.get(relation));
 
       for (EmbeddedProcessingStep step : processingSteps) {
-        diffs.addAll(step.apply(newContext, remainingExpectedResources, remainingActualResources));
+
+        List<HalDifference> stepDiffs = step.apply(newContext, remainingExpectedResources, remainingActualResources);
+        diffs.addAll(stepDiffs);
       }
 
       for (int i = 0; i < remainingExpectedResources.size() && i < remainingActualResources.size(); i++) {

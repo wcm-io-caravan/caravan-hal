@@ -65,7 +65,7 @@ public class LinkTemplateExpansionTest {
     };
   }
 
-  private List<HalDifference> createAndApplyProcessor(List<Link> expected, List<Link> actual) {
+  private List<HalDifference> findDifferences(List<Link> expected, List<Link> actual) {
 
     // use the default strategy unless a specific strategy was defined in the test
     if (strategy == null) {
@@ -94,7 +94,7 @@ public class LinkTemplateExpansionTest {
       }
     };
 
-    createAndApplyProcessor(expected, actual);
+    findDifferences(expected, actual);
   }
 
   @Test
@@ -105,7 +105,7 @@ public class LinkTemplateExpansionTest {
 
     mockExpansionStrategyWithVariables();
 
-    createAndApplyProcessor(expected, actual);
+    findDifferences(expected, actual);
 
     assertThat(expected, hasSize(0));
     assertThat(actual, hasSize(0));
@@ -121,7 +121,7 @@ public class LinkTemplateExpansionTest {
         ImmutableMap.of("a", "A1", "b", "B1"),
         ImmutableMap.of("a", "A2", "b", "B2"));
 
-    createAndApplyProcessor(expected, actual);
+    findDifferences(expected, actual);
 
     assertThat(expected, hasSize(2));
     assertThat(expected.get(0).getHref(), equalTo("/expected?a=A1&b=B1"));
@@ -141,7 +141,7 @@ public class LinkTemplateExpansionTest {
 
     mockExpansionStrategyWithVariables(ImmutableMap.of("flag", true));
 
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     // the fact that only one link is templated is still considered a difference!
     assertThat(diffs, hasSize(1));
@@ -163,7 +163,7 @@ public class LinkTemplateExpansionTest {
 
     mockExpansionStrategyWithVariables(ImmutableMap.of("flag", true));
 
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     // the fact that only one link is templated is still considered a difference!
     assertThat(diffs, hasSize(1));
@@ -186,7 +186,7 @@ public class LinkTemplateExpansionTest {
     mockExpansionStrategyWithVariables(
         ImmutableMap.of("a", "A1"));
 
-    createAndApplyProcessor(expected, actual);
+    findDifferences(expected, actual);
 
     assertThat(expected, hasSize(1));
     assertThat(expected.get(0).getHref(), equalTo("/expected?a=A1"));

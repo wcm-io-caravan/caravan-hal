@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.comparison.impl;
+package io.wcm.caravan.hal.comparison.impl.difference;
 
 import org.apache.commons.lang3.StringUtils;
 

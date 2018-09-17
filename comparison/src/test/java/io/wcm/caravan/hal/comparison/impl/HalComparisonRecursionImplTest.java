@@ -56,6 +56,7 @@ import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessing;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
@@ -114,9 +115,9 @@ public class HalComparisonRecursionImplTest {
           @Override
           public List<HalDifference> answer(InvocationOnMock invocation) throws Throwable {
             HalComparisonContext context = contextCaptor.getValue();
-            HalDifferenceImpl result = new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY, null, null,
-                "mocked comparison error");
-            return ImmutableList.of(result);
+            HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
+            diffs.reportModifiedProperty("mocked comparison error", null, null);
+            return diffs.build();
           }
 
         });
@@ -284,7 +285,6 @@ public class HalComparisonRecursionImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(1));
-    System.out.println(diff.get(0).getDescription());
     assertEquals("/item[1]", diff.get(0).getHalContext().toString());
 
     verify(propertyProcessor).process(any(), sameHal(expectedEntryPoint), sameHal(actualEntryPoint));

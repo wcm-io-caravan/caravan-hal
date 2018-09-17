@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.comparison.impl;
+package io.wcm.caravan.hal.comparison.impl.difference;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
@@ -28,6 +28,7 @@ import org.junit.Test;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceImpl;
 
 
 public class HalDifferenceImplTest {
@@ -42,7 +43,7 @@ public class HalDifferenceImplTest {
   @Test
   public void string_representation_contains_description() throws Exception {
 
-    HalDifferenceImpl diff = new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY, null, null,
+    HalDifferenceImpl diff = new HalDifferenceImpl(context, HalDifference.ChangeType.MODIFIED, HalDifference.EntityType.PROPERTY, null, null,
         "this is the description");
     assertThat(diff.toString(), containsString(diff.getDescription()));
   }
@@ -50,7 +51,7 @@ public class HalDifferenceImplTest {
   @Test
   public void string_representation_contains_hal_path() throws Exception {
 
-    HalDifferenceImpl diff = new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY, null, null,
+    HalDifferenceImpl diff = new HalDifferenceImpl(context, HalDifference.ChangeType.MODIFIED, HalDifference.EntityType.PROPERTY, null, null,
         "this is the description");
     assertThat(diff.toString(), containsString(diff.getHalContext().toString()));
   }

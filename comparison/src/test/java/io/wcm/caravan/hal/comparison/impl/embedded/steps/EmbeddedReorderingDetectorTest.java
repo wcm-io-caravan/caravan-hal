@@ -72,7 +72,7 @@ public class EmbeddedReorderingDetectorTest {
     return hal.getModel().path("id").asText();
   }
 
-  private List<HalDifference> createAndApplyProcessor(List<HalResource> expected, List<HalResource> actual) {
+  private List<HalDifference> findDifferences(List<HalResource> expected, List<HalResource> actual) {
 
     // use the default strategy unless a specific strategy was defined in the test
     if (strategy == null) {
@@ -133,7 +133,7 @@ public class EmbeddedReorderingDetectorTest {
     List<Integer> expectedOrdering = getOrdering(expected);
 
     mockExpansionStrategyWithFunction(new EmbeddedReorderingDetector.DefaultIdProvider());
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(0));
     assertThat(getOrdering(expected), equalTo(expectedOrdering));
@@ -146,7 +146,7 @@ public class EmbeddedReorderingDetectorTest {
     List<HalResource> expected = createIdenticalResources(100);
     List<HalResource> actual = createIdenticalResources(100);
 
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(0));
   }
@@ -161,7 +161,7 @@ public class EmbeddedReorderingDetectorTest {
     List<Integer> expectedOrdering = getOrdering(expected);
     List<Integer> actualOrdering = getOrdering(actual);
 
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(0));
     assertThat(getOrdering(expected), equalTo(expectedOrdering));
@@ -177,7 +177,7 @@ public class EmbeddedReorderingDetectorTest {
     List<Integer> expectedOrdering = getOrdering(expected);
     List<Integer> actualOrdering = getOrdering(actual);
 
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(0));
     assertThat(getOrdering(expected), equalTo(expectedOrdering));
@@ -193,7 +193,7 @@ public class EmbeddedReorderingDetectorTest {
     List<Integer> expectedOrdering = getOrdering(expected);
     List<Integer> actualOrdering = getOrdering(actual);
 
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(0));
     assertThat(getOrdering(expected), equalTo(expectedOrdering));
@@ -210,7 +210,7 @@ public class EmbeddedReorderingDetectorTest {
     List<Integer> expectedOrdering = getOrdering(expected);
     mockExpansionStrategyWithFunction(EmbeddedReorderingDetectorTest::getIdProperty);
 
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(1));
     assertThat(getOrdering(expected), equalTo(expectedOrdering));
@@ -229,7 +229,7 @@ public class EmbeddedReorderingDetectorTest {
     }
 
     List<Integer> expectedOrdering = getOrdering(expected);
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     int diffCountBecauseOfReordering = reorder ? 1 : 0;
 
@@ -299,7 +299,7 @@ public class EmbeddedReorderingDetectorTest {
     List<Integer> expectedOrdering = getOrdering(actual);
     expectedOrdering.sort(Ordering.natural());
 
-    List<HalDifference> diffs = createAndApplyProcessor(expected, actual);
+    List<HalDifference> diffs = findDifferences(expected, actual);
 
     int diffCountBecauseOfReordering = reorder ? 1 : 0;
 

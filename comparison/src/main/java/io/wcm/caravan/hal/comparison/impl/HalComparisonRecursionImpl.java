@@ -24,9 +24,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonSource;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessing;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessing;

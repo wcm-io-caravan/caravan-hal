@@ -19,10 +19,9 @@
  */
 package io.wcm.caravan.hal.comparison.impl.util;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.wcm.caravan.hal.resource.HalObject;
@@ -32,28 +31,40 @@ import io.wcm.caravan.hal.resource.Link;
 /**
  * Utility methods to create JSON representations from {@link HalResource}, {@link Link} and Collections
  */
-public final class HalStringConversion {
+public final class HalJsonConversion {
 
-  private HalStringConversion() {
+  private static final JsonNodeFactory FACTORY = JsonNodeFactory.instance;
+
+  private static final JsonNode MISSING_NODE = FACTORY.objectNode().path("missing");
+
+  private HalJsonConversion() {
     // static utility methods only
   }
 
   /**
-   * @param resourcesOrLinks to format
-   * @return a JSON string
+   * @param resourcesOrLinks
+   * @return an {@link ArrayNode}
    */
-  public static String asString(Collection<? extends HalObject> resourcesOrLinks) {
-    return resourcesOrLinks.stream()
-        .map(HalStringConversion::asString)
-        .collect(Collectors.joining(",\n", "[\n", "\n]"));
+  public static ArrayNode asJson(Iterable<? extends HalObject> resourcesOrLinks) {
+
+    ArrayNode array = FACTORY.arrayNode();
+
+    for (HalObject hal : resourcesOrLinks) {
+      array.add(asJson(hal));
+    }
+
+    return array;
   }
 
   /**
-   * @param resourcesOrLinks to format
-   * @return a JSON string
+   * @param resourceOrLink to format
+   * @return an
    */
-  public static String asString(HalObject resourcesOrLinks) {
-    return asString(resourcesOrLinks.getModel());
+  public static JsonNode asJson(HalObject resourceOrLink) {
+    if (resourceOrLink == null) {
+      return MISSING_NODE;
+    }
+    return resourceOrLink.getModel();
   }
 
   /**

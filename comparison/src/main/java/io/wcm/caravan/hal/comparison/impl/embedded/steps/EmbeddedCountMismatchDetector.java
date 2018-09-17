@@ -19,17 +19,12 @@
  */
 package io.wcm.caravan.hal.comparison.impl.embedded.steps;
 
-import static io.wcm.caravan.hal.comparison.impl.util.HalStringConversion.asString;
-
 import java.util.Collections;
 import java.util.List;
 
-import com.google.common.collect.ImmutableList;
-
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
-import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
-import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
+import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -45,11 +40,17 @@ public class EmbeddedCountMismatchDetector implements EmbeddedProcessingStep {
       return Collections.emptyList();
     }
 
+    HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
+
     String msg = "Expected " + expected.size() + " embedded '" + context.getLastRelation() + "' resources, but found " + actual.size();
+    if (expected.size() > actual.size()) {
+      diffs.reportMissingEmbedded(msg, expected, actual);
+    }
+    else {
+      diffs.reportAdditionalEmbedded(msg, expected, actual);
+    }
 
-    HalDifference.ChangeType changeType = expected.size() > actual.size() ? ChangeType.MISSING : ChangeType.ADDITIONAL;
-
-    return ImmutableList.of(new HalDifferenceImpl(context, changeType, HalDifference.EntityType.EMBEDDED, asString(expected), asString(actual), msg));
+    return diffs.build();
   }
 
 }
