@@ -29,24 +29,24 @@ public class HalComparisonException extends RuntimeException {
   private static final long serialVersionUID = 1L;
 
   private final HalComparisonContext halContext;
-  private final String resourceUrl;
+  private final String contextUrl;
 
   /**
-   * @param halContext of the resource that fails to load
-   * @param resourceUrl of the resource that contains the link to this resource
+   * @param halContext of the resource that failed to load
+   * @param contextUrl URL of the resource that contains the link to this resource
    * @param cause the original exception
    */
-  public HalComparisonException(HalComparisonContext halContext, String resourceUrl, Throwable cause) {
-    super("Failed to load resource with HAL path " + halContext + " that was linked from " + resourceUrl, cause);
+  public HalComparisonException(HalComparisonContext halContext, String contextUrl, Throwable cause) {
+    super("Failed to load resource with HAL path " + halContext + " that was linked from " + contextUrl, cause);
     this.halContext = halContext;
-    this.resourceUrl = resourceUrl;
+    this.contextUrl = contextUrl;
   }
 
   public HalComparisonContext getHalContext() {
     return this.halContext;
   }
 
-  public String getResourceUrl() {
-    return this.resourceUrl;
+  public String getContextUrl() {
+    return this.contextUrl;
   }
 }

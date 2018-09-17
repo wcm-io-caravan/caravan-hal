@@ -480,7 +480,7 @@ public class HalComparisonRecursionImplTest {
     }
     catch (HalComparisonException ex) {
       assertEquals("/section/item", ex.getHalContext().toString());
-      assertEquals(expectedSection.getUrl(), ex.getResourceUrl());
+      assertEquals(expectedSection.getUrl(), ex.getContextUrl());
     }
 
   }

@@ -20,7 +20,6 @@
 package io.wcm.caravan.hal.comparison.impl.difference;
 
 import static io.wcm.caravan.hal.comparison.impl.util.HalJsonConversion.asJson;
-import static io.wcm.caravan.hal.comparison.impl.util.HalStringConversion.asString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +61,7 @@ public class HalDifferenceListBuilder {
 
     HalDifference diff = new HalDifferenceImpl(context,
         changeType, entityType,
-        asString(expectedJson), asString(actualJson), description);
+        expectedJson, actualJson, description);
 
     differences.add(diff);
   }

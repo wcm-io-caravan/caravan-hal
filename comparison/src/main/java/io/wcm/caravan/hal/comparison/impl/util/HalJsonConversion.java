@@ -22,6 +22,7 @@ package io.wcm.caravan.hal.comparison.impl.util;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.MissingNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.wcm.caravan.hal.resource.HalObject;
@@ -29,7 +30,7 @@ import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 /**
- * Utility methods to create JSON representations from {@link HalResource}, {@link Link} and Collections
+ * Utility methods to extract the JSON representations from {@link HalResource}, {@link Link} and Collections
  */
 public final class HalJsonConversion {
 
@@ -42,8 +43,8 @@ public final class HalJsonConversion {
   }
 
   /**
-   * @param resourcesOrLinks
-   * @return an {@link ArrayNode}
+   * @param resourcesOrLinks a collection of {@link Link} or {@link HalResource}
+   * @return an {@link ArrayNode} that contains the JSON representation of those objects
    */
   public static ArrayNode asJson(Iterable<? extends HalObject> resourcesOrLinks) {
 
@@ -57,8 +58,8 @@ public final class HalJsonConversion {
   }
 
   /**
-   * @param resourceOrLink to format
-   * @return an
+   * @param resourceOrLink a {@link Link} or {@link HalResource}
+   * @return the corresponding {@link ObjectNode} (or a {@link MissingNode} for null input)
    */
   public static JsonNode asJson(HalObject resourceOrLink) {
     if (resourceOrLink == null) {
@@ -68,15 +69,12 @@ public final class HalJsonConversion {
   }
 
   /**
-   * @param node to format
-   * @return a JSON string
+   * @param hal a HalResource
+   * @return a cloned {@link ObjectNode} that contains only the resource state (i.e. links and embedded resources are
+   *         stripped)
    */
-  public static String asString(JsonNode node) {
-    return node != null ? node.toString() : null;
-  }
-
-  public static ObjectNode cloneAndStripHalProperties(ObjectNode node) {
-    ObjectNode clone = node.deepCopy();
+  public static ObjectNode cloneAndStripHalProperties(HalResource hal) {
+    ObjectNode clone = hal.getModel().deepCopy();
     clone.remove("_links");
     clone.remove("_embedded");
     return clone;

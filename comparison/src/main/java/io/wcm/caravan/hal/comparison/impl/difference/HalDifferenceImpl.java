@@ -21,6 +21,8 @@ package io.wcm.caravan.hal.comparison.impl.difference;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
 
@@ -36,18 +38,18 @@ public class HalDifferenceImpl implements HalDifference {
 
   private final String description;
 
-  private final String expectedJson;
-  private final String actualJson;
+  private final JsonNode expectedJson;
+  private final JsonNode actualJson;
 
   /**
    * @param context specifies in which part of the tree the difference was detected
-   * @param changeType TODO:
-   * @param entityType TODO:
+   * @param changeType what kind of modification was detected
+   * @param entityType what kind of HAL/JSON element was found to be different
    * @param expectedJson the value that was expected in the ground truth resource tree
    * @param actualJson the actually value found in the resource tree to be compared
    * @param description a human-readable explanation of the difference
    */
-  public HalDifferenceImpl(HalComparisonContext context, ChangeType changeType, EntityType entityType, String expectedJson, String actualJson,
+  public HalDifferenceImpl(HalComparisonContext context, ChangeType changeType, EntityType entityType, JsonNode expectedJson, JsonNode actualJson,
       String description) {
     this.context = context;
     this.changeType = changeType;
@@ -68,13 +70,13 @@ public class HalDifferenceImpl implements HalDifference {
   }
 
   @Override
-  public String getExpectedJson() {
-    return StringUtils.trimToEmpty(this.expectedJson);
+  public JsonNode getExpectedJson() {
+    return this.expectedJson;
   }
 
   @Override
-  public String getActualJson() {
-    return StringUtils.trimToEmpty(this.actualJson);
+  public JsonNode getActualJson() {
+    return this.actualJson;
   }
 
   /*

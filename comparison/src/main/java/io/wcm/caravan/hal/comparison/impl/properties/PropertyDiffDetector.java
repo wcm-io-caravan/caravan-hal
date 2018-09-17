@@ -31,7 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
-import io.wcm.caravan.hal.comparison.impl.util.HalStringConversion;
+import io.wcm.caravan.hal.comparison.impl.util.HalJsonConversion;
 import io.wcm.caravan.hal.resource.HalResource;
 
 /**
@@ -43,8 +43,8 @@ public class PropertyDiffDetector implements PropertyProcessing {
   @Override
   public List<HalDifference> process(HalComparisonContextImpl context, HalResource expected, HalResource actual) {
 
-    ObjectNode expectedJson = HalStringConversion.cloneAndStripHalProperties(expected.getModel());
-    ObjectNode actualJson = HalStringConversion.cloneAndStripHalProperties(actual.getModel());
+    ObjectNode expectedJson = HalJsonConversion.cloneAndStripHalProperties(expected);
+    ObjectNode actualJson = HalJsonConversion.cloneAndStripHalProperties(actual);
 
     HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
 

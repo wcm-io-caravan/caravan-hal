@@ -21,6 +21,8 @@ package io.wcm.caravan.hal.comparison;
 
 import org.osgi.annotation.versioning.ProviderType;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import io.wcm.caravan.hal.resource.HalResource;
 
 /**
@@ -65,13 +67,13 @@ public interface HalDifference {
    * @return a formatted JSON string of the resource, link, property or state object that was expected (or an empty
    *         string if the value only exists in the actual resource)
    */
-  String getExpectedJson();
+  JsonNode getExpectedJson();
 
   /**
    * @return a formatted JSON string of the resource, link, property or state object that was actually found (or an
    *         empty string if the value only exists in the expected resource)
    */
-  String getActualJson();
+  JsonNode getActualJson();
 
   /**
    * defines the different kind of HAL/JSON elements that are compared

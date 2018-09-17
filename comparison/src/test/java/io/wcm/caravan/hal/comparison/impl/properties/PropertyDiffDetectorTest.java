@@ -19,7 +19,6 @@
  */
 package io.wcm.caravan.hal.comparison.impl.properties;
 
-import static io.wcm.caravan.hal.comparison.impl.util.HalStringConversion.asString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -89,8 +88,8 @@ public class PropertyDiffDetectorTest {
     assertThat(diffs, hasSize(1));
     assertEquals("/", diffs.get(0).getHalContext().toString());
     assertEquals("", diffs.get(0).getHalContext().getLastRelation());
-    assertEquals(asString(expected), diffs.get(0).getExpectedJson());
-    assertEquals(asString(actual), diffs.get(0).getActualJson());
+    assertEquals(expected.getModel(), diffs.get(0).getExpectedJson());
+    assertEquals(actual.getModel(), diffs.get(0).getActualJson());
   }
 
   @Test
@@ -102,8 +101,8 @@ public class PropertyDiffDetectorTest {
     List<HalDifference> diffs = findDifferences(expected, actual);
     assertThat(diffs, hasSize(1));
     assertEquals("/$.name", diffs.get(0).getHalContext().toString());
-    assertEquals(expected.getModel().path("name").toString(), diffs.get(0).getExpectedJson());
-    assertEquals(actual.getModel().path("name").toString(), diffs.get(0).getActualJson());
+    assertEquals(expected.getModel().path("name"), diffs.get(0).getExpectedJson());
+    assertEquals(actual.getModel().path("name"), diffs.get(0).getActualJson());
   }
 
   @Test

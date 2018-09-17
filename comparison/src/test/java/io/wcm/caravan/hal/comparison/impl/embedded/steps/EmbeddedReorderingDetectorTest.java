@@ -19,7 +19,6 @@
  */
 package io.wcm.caravan.hal.comparison.impl.embedded.steps;
 
-import static io.wcm.caravan.hal.comparison.impl.util.HalStringConversion.asString;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
@@ -239,7 +238,7 @@ public class EmbeddedReorderingDetectorTest {
       assertThat(diffs.get(0).getDescription(), containsString("different order"));
     }
     for (int i = 0; i < added.size(); i++) {
-      assertThat(diffs.get(i + diffCountBecauseOfReordering).getActualJson(), equalTo(asString(added.get(i))));
+      assertThat(diffs.get(i + diffCountBecauseOfReordering).getActualJson(), equalTo(added.get(i).getModel()));
     }
 
     assertThat(getOrdering(expected), equalTo(expectedOrdering));
@@ -308,7 +307,7 @@ public class EmbeddedReorderingDetectorTest {
       assertThat(diffs.get(0).getDescription(), containsString("different order"));
     }
     for (int i = 0; i < removed.size(); i++) {
-      assertThat(diffs.get(i + diffCountBecauseOfReordering).getExpectedJson(), equalTo(asString(removed.get(i))));
+      assertThat(diffs.get(i + diffCountBecauseOfReordering).getExpectedJson(), equalTo(removed.get(i).getModel()));
     }
     assertThat(getOrdering(expected), equalTo(expectedOrdering));
     assertThat(getOrdering(actual), equalTo(expectedOrdering));
