@@ -19,11 +19,12 @@
  */
 package io.wcm.caravan.hal.comparison.impl.embedded.steps;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -33,14 +34,14 @@ import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
-import io.wcm.caravan.hal.comparison.impl.embedded.steps.IdentityMatchingAlgorithm.ItemWithIndex;
-import io.wcm.caravan.hal.comparison.impl.embedded.steps.IdentityMatchingAlgorithm.MatchingResult;
+import io.wcm.caravan.hal.comparison.impl.matching.MatchingAlgorithm;
+import io.wcm.caravan.hal.comparison.impl.matching.MatchingResult;
+import io.wcm.caravan.hal.comparison.impl.matching.SimpleIdentityMatchingAlgorithm;
 import io.wcm.caravan.hal.resource.HalResource;
 
 
 public class EmbeddedReorderingDetector implements EmbeddedProcessingStep {
 
-  private final IdentityMatchingAlgorithm matching = new IdentityMatchingAlgorithm();
   private final DefaultIdProvider defaultIdProvider = new DefaultIdProvider();
 
   private final HalComparisonStrategy strategy;
@@ -55,12 +56,38 @@ public class EmbeddedReorderingDetector implements EmbeddedProcessingStep {
   @Override
   public List<HalDifference> apply(HalComparisonContext context, List<HalResource> expected, List<HalResource> actual) {
 
-    Function<HalResource, String> idProvider = ObjectUtils.defaultIfNull(strategy.getIdProvider(context), defaultIdProvider);
-    MatchingResult matchingResult = matching.match(expected, actual, idProvider);
+    MatchingResult<HalResource> matchingResult = applyMatchingAlgorithm(context, expected, actual);
 
+    // if not a single match that was found, then either one of the lists is empty, or all items
+    // are considered to be different. In that case it's better to compare them in the original order,
+    // then just to treat them all as added and removed, so we return early without reporting any diff
     if (matchingResult.getMatchedActual().isEmpty()) {
       return Collections.emptyList();
     }
+
+    // collect the re-ordering, addition and removal differences
+    HalDifferenceListBuilder diffs = findDifferences(context, expected, actual, matchingResult);
+
+    // all following processing steps should only process the embedded resources that were successfully
+    // matched (and re-ordered), so the given lists will be completely replaced with the ones from the
+    // matching result
+    replaceItems(expected, matchingResult.getMatchedExpected());
+    replaceItems(actual, matchingResult.getMatchedActual());
+
+    return diffs.build();
+  }
+
+  private MatchingResult<HalResource> applyMatchingAlgorithm(HalComparisonContext context, List<HalResource> expected, List<HalResource> actual) {
+
+    Function<HalResource, String> idProvider = defaultIfNull(strategy.getIdProvider(context), defaultIdProvider);
+
+    MatchingAlgorithm<HalResource> algorithm = new SimpleIdentityMatchingAlgorithm<HalResource>(idProvider);
+
+    return algorithm.findMatchingItems(expected, actual);
+  }
+
+  private HalDifferenceListBuilder findDifferences(HalComparisonContext context, List<HalResource> expected, List<HalResource> actual,
+      MatchingResult<HalResource> matchingResult) {
 
     HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
     String relation = context.getLastRelation();
@@ -71,22 +98,17 @@ public class EmbeddedReorderingDetector implements EmbeddedProcessingStep {
       diffs.reportReorderedEmbedded(msg, expected, actual);
     }
 
-    for (ItemWithIndex removed : matchingResult.getRemovedExpected()) {
-      HalResource removedHal = removed.getItem();
-      String msg = "An embedded " + relation + getResourceTitle(removedHal) + "is missing in the actual resource";
-      diffs.reportMissingEmbedded(msg, removedHal);
+    for (HalResource removed : matchingResult.getRemovedExpected()) {
+      String msg = "An embedded " + relation + getResourceTitle(removed) + "is missing in the actual resource";
+      diffs.reportMissingEmbedded(msg, removed);
     }
 
-    for (ItemWithIndex added : matchingResult.getAddedActual()) {
-      HalResource addedHal = added.getItem();
-      String msg = "An additional embedded " + relation + getResourceTitle(addedHal) + "is present in the actual resource";
-      diffs.reportAdditionalEmbedded(msg, addedHal);
+    for (HalResource added : matchingResult.getAddedActual()) {
+      String msg = "An additional embedded " + relation + getResourceTitle(added) + "is present in the actual resource";
+      diffs.reportAdditionalEmbedded(msg, added);
     }
 
-    replaceItems(expected, matchingResult.getMatchedExpected());
-    replaceItems(actual, matchingResult.getMatchedActual());
-
-    return diffs.build();
+    return diffs;
   }
 
   private static String getResourceTitle(HalResource hal) {
@@ -96,12 +118,10 @@ public class EmbeddedReorderingDetector implements EmbeddedProcessingStep {
     return label;
   }
 
-  private static void replaceItems(List<HalResource> original, List<ItemWithIndex> remaining) {
+  private static void replaceItems(List<HalResource> original, List<HalResource> remaining) {
     original.clear();
 
-    remaining.stream()
-        .map(ItemWithIndex::getItem)
-        .forEach(item -> original.add(item));
+    original.addAll(remaining);
   }
 
   /**
