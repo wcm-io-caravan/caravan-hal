@@ -27,12 +27,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
-import java.util.function.Function;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
@@ -40,7 +38,6 @@ import io.wcm.caravan.hal.comparison.HalDifference.EntityType;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResource;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResourceTree;
-import io.wcm.caravan.hal.resource.HalResource;
 import rx.Observable;
 
 
@@ -280,26 +277,15 @@ public class HalComparisonImplTest {
   @Test
   public void indices_should_be_included_in_halpath_for_multiple_embedded_resources_with_same_relation() {
 
-    // TODO: we need this strategy (and the number properties) so that the EmbeddedReorderingStep does not
-    // think that a "foo" item has been removed, and a "bar item" has been added instead
-    strategy = new HalComparisonStrategy() {
-
-      @Override
-      public Function<HalResource, String> getIdProvider(HalComparisonContext context) {
-        return hal -> hal.getModel().path("number").asText();
-      }
-
-    };
-
     TestResource expectedEntryPoint = expected.getEntryPoint();
-    expectedEntryPoint.createEmbedded(ITEM).setNumber(1).setText("foo");
-    expectedEntryPoint.createEmbedded(ITEM).setNumber(2).setText("foo");
-    expectedEntryPoint.createEmbedded(ITEM).setNumber(3).setText("foo");
+    expectedEntryPoint.createEmbedded(ITEM).setText("foo");
+    expectedEntryPoint.createEmbedded(ITEM).setText("foo");
+    expectedEntryPoint.createEmbedded(ITEM).setText("foo");
 
     TestResource actualEntryPoint = actual.getEntryPoint();
-    actualEntryPoint.createEmbedded(ITEM).setNumber(1).setText("foo");
-    actualEntryPoint.createEmbedded(ITEM).setNumber(2).setText("bar");
-    actualEntryPoint.createEmbedded(ITEM).setNumber(3).setText("foo");
+    actualEntryPoint.createEmbedded(ITEM).setText("foo");
+    actualEntryPoint.createEmbedded(ITEM).setText("bar");
+    actualEntryPoint.createEmbedded(ITEM).setText("foo");
 
     compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item[1]$.text");
   }

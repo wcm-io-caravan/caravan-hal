@@ -40,7 +40,6 @@ import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.comparison.impl.embedded.steps.IdentityMatchingAlgorithm.ItemWithIndex;
 import io.wcm.caravan.hal.comparison.impl.embedded.steps.IdentityMatchingAlgorithm.MatchingResult;
-import io.wcm.caravan.hal.comparison.impl.util.HalStringConversion;
 import io.wcm.caravan.hal.resource.HalResource;
 
 
@@ -112,12 +111,15 @@ public class EmbeddedReorderingDetector implements EmbeddedProcessingStep {
         .forEach(item -> original.add(item));
   }
 
+  /**
+   * If {@link HalComparisonStrategy#getIdProvider(HalComparisonContext)} is not implemented by the consumer,
+   * the default behaviour is to identify embedded resources by their title property
+   */
   static class DefaultIdProvider implements Function<HalResource, String> {
 
     @Override
     public String apply(HalResource resource) {
-      ObjectNode stateJson = HalStringConversion.cloneAndStripHalProperties(resource.getModel());
-      return stateJson.toString();
+      return resource.getModel().path("title").asText();
     }
   }
 }
