@@ -51,9 +51,9 @@ public class PropertyDiffDetector implements PropertyProcessing {
     AtomicInteger nodeCounter = new AtomicInteger();
     compareObjects(context, expectedJson, actualJson, nodeCounter, diffs);
 
-    // if there are less than three differences in the individual properties, one HalDifference is emitted for each difference
+    // if there only a few differences in the individual properties, one HalDifference is emitted for each difference
     int numPropertyDifferences = diffs.build().size();
-    if (numPropertyDifferences < 3) {
+    if (numPropertyDifferences < 3 || numPropertyDifferences <= nodeCounter.get() / 2) {
       return diffs.build();
     }
 
