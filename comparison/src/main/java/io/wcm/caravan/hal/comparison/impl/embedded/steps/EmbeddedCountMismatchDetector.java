@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -45,7 +46,10 @@ public class EmbeddedCountMismatchDetector implements EmbeddedProcessingStep {
     }
 
     String msg = "Expected " + expected.size() + " embedded '" + context.getLastRelation() + "' resources, but found " + actual.size();
-    return ImmutableList.of(new HalDifferenceImpl(context, asString(expected), asString(actual), msg));
+
+    HalDifference.ChangeType changeType = expected.size() > actual.size() ? ChangeType.MISSING : ChangeType.ADDITIONAL;
+
+    return ImmutableList.of(new HalDifferenceImpl(context, changeType, HalDifference.EntityType.EMBEDDED, asString(expected), asString(actual), msg));
   }
 
 }

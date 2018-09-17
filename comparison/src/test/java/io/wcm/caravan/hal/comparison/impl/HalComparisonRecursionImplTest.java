@@ -114,7 +114,8 @@ public class HalComparisonRecursionImplTest {
           @Override
           public List<HalDifference> answer(InvocationOnMock invocation) throws Throwable {
             HalComparisonContext context = contextCaptor.getValue();
-            HalDifferenceImpl result = new HalDifferenceImpl(context, null, null, "mocked comparison error");
+            HalDifferenceImpl result = new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY, null, null,
+                "mocked comparison error");
             return ImmutableList.of(result);
           }
 

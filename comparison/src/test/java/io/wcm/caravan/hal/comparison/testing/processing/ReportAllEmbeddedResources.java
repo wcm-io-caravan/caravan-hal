@@ -37,7 +37,7 @@ public final class ReportAllEmbeddedResources implements EmbeddedProcessingStep 
   public List<HalDifference> apply(HalComparisonContext context, List<HalResource> e, List<HalResource> a) {
 
     List<HalDifference> diffsForThisRelation = e.stream()
-        .map(r -> new HalDifferenceImpl(context, null, null, null))
+        .map(r -> new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.EMBEDDED, null, null, null))
         .collect(Collectors.toList());
 
     diffsForAllRelations.addAll(diffsForThisRelation);

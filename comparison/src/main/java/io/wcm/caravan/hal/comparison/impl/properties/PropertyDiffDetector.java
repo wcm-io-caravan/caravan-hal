@@ -31,6 +31,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
 
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
+import io.wcm.caravan.hal.comparison.HalDifference.EntityType;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.util.HalStringConversion;
@@ -59,7 +61,8 @@ public class PropertyDiffDetector implements PropertyProcessing {
     // if there are more differences, then it might be a completely different object,
     // so just a single HalDifference is emitted
     String msg = allDiffs.size() + " of " + nodeCounter.get() + " JSON nodes are different";
-    HalDifferenceImpl result = new HalDifferenceImpl(context, expectedJson.toString(), actualJson.toString(), msg);
+    HalDifferenceImpl result = new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY, expectedJson.toString(),
+        actualJson.toString(), msg);
     return ImmutableList.of(result);
   }
 
@@ -87,10 +90,12 @@ public class PropertyDiffDetector implements PropertyProcessing {
 
     List<HalDifference> results = new ArrayList<>();
     if (actualValue.isMissingNode()) {
-      results.add(new HalDifferenceImpl(context, expectedValue.toString(), null, "Expected property is missing"));
+      results.add(new HalDifferenceImpl(context, HalDifference.ChangeType.MISSING, HalDifference.EntityType.PROPERTY, expectedValue.toString(), null,
+          "Expected property is missing"));
     }
     else if (actualValue.getNodeType() != expectedValue.getNodeType()) {
-      results.add(new HalDifferenceImpl(context, expectedValue.toString(), actualValue.toString(),
+      results.add(new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY,
+          expectedValue.toString(), actualValue.toString(),
           "Expected property of type " + expectedValue.getNodeType().name() + ", but found " + actualValue.getNodeType().name()));
     }
     else if (expectedValue.isObject()) {
@@ -101,8 +106,10 @@ public class PropertyDiffDetector implements PropertyProcessing {
       int numActual = actualValue.size();
 
       if (numExpected != numActual) {
-        results.add(new HalDifferenceImpl(context, expectedValue.toString(), actualValue.toString(),
-            "Expected array with " + numExpected + " elements, but found " + numActual));
+
+        HalDifference.ChangeType changeType = numExpected > numActual ? ChangeType.MISSING : ChangeType.ADDITIONAL;
+        results.add(new HalDifferenceImpl(context, changeType, HalDifference.EntityType.PROPERTY,
+            expectedValue.toString(), actualValue.toString(), "Expected array with " + numExpected + " elements, but found " + numActual));
       }
       for (int i = 0; i < numExpected && i < numActual; i++) {
         HalComparisonContextImpl newContext = context.withJsonPathIndex(i);
@@ -110,8 +117,8 @@ public class PropertyDiffDetector implements PropertyProcessing {
       }
     }
     else if (!expectedValue.equals(actualValue)) {
-      results.add(new HalDifferenceImpl(context, expectedValue.toString(), actualValue.toString(),
-          "Expected value '" + StringUtils.abbreviate(expectedValue.asText(), 40) + "',"
+      results.add(new HalDifferenceImpl(context, ChangeType.UPDATED, EntityType.PROPERTY,
+          expectedValue.toString(), actualValue.toString(), "Expected value '" + StringUtils.abbreviate(expectedValue.asText(), 40) + "',"
               + " but found '" + StringUtils.abbreviate(actualValue.asText(), 40) + "'"));
     }
     return results;

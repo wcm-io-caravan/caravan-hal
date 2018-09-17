@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.resource.Link;
@@ -46,6 +47,9 @@ public class LinkCountMismatchDetector implements LinkProcessingStep {
     }
 
     String msg = "Expected " + expected.size() + " '" + context.getLastRelation() + "' links, but found " + actual.size();
-    return ImmutableList.of(new HalDifferenceImpl(context, asString(expected), asString(actual), msg));
+
+    HalDifference.ChangeType changeType = expected.size() > actual.size() ? ChangeType.MISSING : ChangeType.ADDITIONAL;
+
+    return ImmutableList.of(new HalDifferenceImpl(context, changeType, HalDifference.EntityType.LINK, asString(expected), asString(actual), msg));
   }
 }

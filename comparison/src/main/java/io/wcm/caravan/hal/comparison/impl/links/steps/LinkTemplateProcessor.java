@@ -137,7 +137,7 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
       String msg = expected.isTemplated()
           ? "Expected templated link with variables " + formatTemplateVariables(expected) + ", but found resolved link"
           : "Expected resolved link, but found template with variables " + formatTemplateVariables(actual);
-      return new HalDifferenceImpl(context, asString(expected), asString(actual), msg);
+      return new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.LINK, asString(expected), asString(actual), msg);
     }
 
     UriTemplate expectedTemplate = UriTemplate.fromTemplate(expected.getHref());
@@ -152,7 +152,7 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
     if (!missingVariables.isEmpty() || !additionalVariables.isEmpty()) {
       String msg = "Expected template parameters to be " + formatNames(expectedVariables) + ","
           + " but found " + formatNames(actualVariables);
-      return new HalDifferenceImpl(context, asString(expected), asString(actual), msg);
+      return new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.LINK, asString(expected), asString(actual), msg);
     }
 
     return null;

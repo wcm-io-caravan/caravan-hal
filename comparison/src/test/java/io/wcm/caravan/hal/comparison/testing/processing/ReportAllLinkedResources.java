@@ -44,7 +44,7 @@ public final class ReportAllLinkedResources implements LinkProcessingStep {
     }
 
     List<HalDifference> diffsForThisRelation = e.stream()
-        .map(r -> new HalDifferenceImpl(context, null, null, null))
+        .map(r -> new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.LINK, null, null, null))
         .collect(Collectors.toList());
 
     diffsForAllRelations.addAll(diffsForThisRelation);

@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
+import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 
 
@@ -41,14 +42,16 @@ public class HalDifferenceImplTest {
   @Test
   public void string_representation_contains_description() throws Exception {
 
-    HalDifferenceImpl diff = new HalDifferenceImpl(context, null, null, "this is the description");
+    HalDifferenceImpl diff = new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY, null, null,
+        "this is the description");
     assertThat(diff.toString(), containsString(diff.getDescription()));
   }
 
   @Test
   public void string_representation_contains_hal_path() throws Exception {
 
-    HalDifferenceImpl diff = new HalDifferenceImpl(context, null, null, "this is the description");
+    HalDifferenceImpl diff = new HalDifferenceImpl(context, HalDifference.ChangeType.UPDATED, HalDifference.EntityType.PROPERTY, null, null,
+        "this is the description");
     assertThat(diff.toString(), containsString(diff.getHalContext().toString()));
   }
 }

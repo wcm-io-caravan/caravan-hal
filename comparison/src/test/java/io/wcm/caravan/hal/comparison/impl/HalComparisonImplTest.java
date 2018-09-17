@@ -21,6 +21,7 @@ package io.wcm.caravan.hal.comparison.impl;
 
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.SECTION;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -34,6 +35,8 @@ import org.junit.Test;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
+import io.wcm.caravan.hal.comparison.HalDifference.EntityType;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResource;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResourceTree;
@@ -71,6 +74,18 @@ public class HalComparisonImplTest {
     return diffs.toList().toBlocking().single();
   }
 
+  private HalDifference compareAndAssertThatDifferenceIs(HalDifference.ChangeType changeType, HalDifference.EntityType entityType, String halPath) {
+
+    List<HalDifference> diff = findDifferences();
+
+    assertThat(diff, hasSize(1));
+    assertThat(diff.get(0).getChangeType(), equalTo(changeType));
+    assertThat(diff.get(0).getEntityType(), equalTo(entityType));
+    assertThat(diff.get(0).getHalContext().toString(), equalTo(halPath));
+
+    return diff.get(0);
+  }
+
   @Test
   public void different_entrypoint_should_be_detected() throws Exception {
 
@@ -78,10 +93,7 @@ public class HalComparisonImplTest {
 
     actual.getEntryPoint().setText("bar");
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/$.text", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/$.text");
   }
 
   @Test
@@ -91,10 +103,7 @@ public class HalComparisonImplTest {
 
     actual.createEmbedded(ITEM).setNumber(456);
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item$.number", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item$.number");
   }
 
   @Test
@@ -105,10 +114,7 @@ public class HalComparisonImplTest {
 
     actual.createEmbedded(ITEM);
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.MISSING, EntityType.EMBEDDED, "/item");
   }
 
   @Test
@@ -119,10 +125,7 @@ public class HalComparisonImplTest {
     actual.createEmbedded(ITEM);
     actual.createEmbedded(ITEM);
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.ADDITIONAL, EntityType.EMBEDDED, "/item");
   }
 
   @Test
@@ -132,10 +135,7 @@ public class HalComparisonImplTest {
 
     actual.createLinked(ITEM).setText("def");
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item$.text", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item$.text");
   }
 
   @Test
@@ -146,10 +146,7 @@ public class HalComparisonImplTest {
 
     actual.createLinked(ITEM);
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.MISSING, EntityType.LINK, "/item");
   }
 
   @Test
@@ -160,10 +157,7 @@ public class HalComparisonImplTest {
     actual.createLinked(ITEM);
     actual.createLinked(ITEM);
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.ADDITIONAL, EntityType.LINK, "/item");
   }
 
   @Test
@@ -173,10 +167,7 @@ public class HalComparisonImplTest {
 
     actual.createLinked(ITEM, "common").setFlag(false);
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item['common']$.flag", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item['common']$.flag");
   }
 
   @Test
@@ -216,11 +207,10 @@ public class HalComparisonImplTest {
 
     actual.getEntryPoint().setText("bar");
 
-    List<HalDifference> diff = findDifferences();
+    HalDifference diff = compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/$.text");
 
-    assertThat(diff, hasSize(1));
-    assertEquals(expected.getEntryPointUrl(), diff.get(0).getHalContext().getExpectedUrl());
-    assertEquals(actual.getEntryPointUrl(), diff.get(0).getHalContext().getActualUrl());
+    assertEquals(expected.getEntryPointUrl(), diff.getHalContext().getExpectedUrl());
+    assertEquals(actual.getEntryPointUrl(), diff.getHalContext().getActualUrl());
   }
 
   @Test
@@ -232,11 +222,10 @@ public class HalComparisonImplTest {
     TestResource actualSection = actual.createLinked(SECTION);
     TestResource actualItem = actualSection.createLinked(ITEM).setText("bar");
 
-    List<HalDifference> diff = findDifferences();
+    HalDifference diff = compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/section/item$.text");
 
-    assertThat(diff, hasSize(1));
-    assertEquals(expectedItem.getUrl(), diff.get(0).getHalContext().getExpectedUrl());
-    assertEquals(actualItem.getUrl(), diff.get(0).getHalContext().getActualUrl());
+    assertEquals(expectedItem.getUrl(), diff.getHalContext().getExpectedUrl());
+    assertEquals(actualItem.getUrl(), diff.getHalContext().getActualUrl());
   }
 
   @Test
@@ -248,11 +237,10 @@ public class HalComparisonImplTest {
     TestResource actualSection = actual.createLinked(SECTION);
     actualSection.createEmbedded(ITEM).setText("bar");
 
-    List<HalDifference> diff = findDifferences();
+    HalDifference diff = compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/section/item$.text");
 
-    assertThat(diff, hasSize(1));
-    assertEquals(expectedSection.getUrl(), diff.get(0).getHalContext().getExpectedUrl());
-    assertEquals(actualSection.getUrl(), diff.get(0).getHalContext().getActualUrl());
+    assertEquals(expectedSection.getUrl(), diff.getHalContext().getExpectedUrl());
+    assertEquals(actualSection.getUrl(), diff.getHalContext().getActualUrl());
   }
 
   @Test
@@ -268,11 +256,8 @@ public class HalComparisonImplTest {
 
     strategy = new TestHalComparisonStrategy().addEmbeddedRelationToIgnore(ITEM);
 
-    List<HalDifference> diff = findDifferences();
-
     // only the difference for the section should be reported, not the one for the item
-    assertThat(diff, hasSize(1));
-    assertEquals("/section$.number", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/section$.number");
   }
 
   @Test
@@ -288,11 +273,8 @@ public class HalComparisonImplTest {
 
     strategy = new TestHalComparisonStrategy().addLinkRelationToIgnore(ITEM);
 
-    List<HalDifference> diff = findDifferences();
-
     // only the difference for the section should be reported, not the one for the item
-    assertThat(diff, hasSize(1));
-    assertEquals("/section$.number", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/section$.number");
   }
 
   @Test
@@ -319,10 +301,7 @@ public class HalComparisonImplTest {
     actualEntryPoint.createEmbedded(ITEM).setNumber(2).setText("bar");
     actualEntryPoint.createEmbedded(ITEM).setNumber(3).setText("foo");
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item[1]$.text", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item[1]$.text");
   }
 
   @Test
@@ -338,10 +317,7 @@ public class HalComparisonImplTest {
     actualEntryPoint.createLinked(ITEM).setText("bar");
     actualEntryPoint.createLinked(ITEM).setText("foo");
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item[1]$.text", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item[1]$.text");
   }
 
   @Test
@@ -357,10 +333,7 @@ public class HalComparisonImplTest {
     actualEntryPoint.createLinked(ITEM, "name2").setText("bar");
     actualEntryPoint.createLinked(ITEM, "name3").setText("foo");
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item['name2']$.text", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item['name2']$.text");
   }
 
   @Test
@@ -369,9 +342,6 @@ public class HalComparisonImplTest {
     expected.createEmbedded(ITEM).setArray("a", "b", "c");
     actual.createEmbedded(ITEM).setArray("a", "b", "foo");
 
-    List<HalDifference> diff = findDifferences();
-
-    assertThat(diff, hasSize(1));
-    assertEquals("/item$.array[2]", diff.get(0).getHalContext().toString());
+    compareAndAssertThatDifferenceIs(ChangeType.UPDATED, EntityType.PROPERTY, "/item$.array[2]");
   }
 }

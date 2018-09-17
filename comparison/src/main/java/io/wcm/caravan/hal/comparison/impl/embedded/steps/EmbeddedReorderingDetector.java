@@ -34,6 +34,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
+import io.wcm.caravan.hal.comparison.HalDifference.EntityType;
 import io.wcm.caravan.hal.comparison.impl.HalDifferenceImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.comparison.impl.embedded.steps.IdentityMatchingAlgorithm.ItemWithIndex;
@@ -72,21 +74,21 @@ public class EmbeddedReorderingDetector implements EmbeddedProcessingStep {
     boolean reorderingRequired = matchingResult.areMatchesReordered();
 
     if (reorderingRequired) {
-      diffs.add(new HalDifferenceImpl(context, null, null,
-          "The embedded " + relation + " resources have a different order in the actual resource"));
+      diffs.add(new HalDifferenceImpl(context, ChangeType.REORDERED, EntityType.EMBEDDED,
+          null, null, "The embedded " + relation + " resources have a different order in the actual resource"));
     }
 
     for (ItemWithIndex removed : matchingResult.getRemovedExpected()) {
       HalResource removedHal = removed.getItem();
 
-      diffs.add(new HalDifferenceImpl(context, asString(removedHal), null,
-          "An embedded " + relation + getResourceTitle(removedHal) + "is missing in the actual resource"));
+      diffs.add(new HalDifferenceImpl(context, ChangeType.MISSING, EntityType.EMBEDDED,
+          asString(removedHal), null, "An embedded " + relation + getResourceTitle(removedHal) + "is missing in the actual resource"));
     }
 
     for (ItemWithIndex added : matchingResult.getAddedActual()) {
       HalResource addedHal = added.getItem();
-      diffs.add(new HalDifferenceImpl(context, null, asString(addedHal),
-          "An additional embedded " + relation + getResourceTitle(addedHal) + "is present in the actual resource"));
+      diffs.add(new HalDifferenceImpl(context, ChangeType.ADDITIONAL, EntityType.EMBEDDED,
+          null, asString(addedHal), "An additional embedded " + relation + getResourceTitle(addedHal) + "is present in the actual resource"));
     }
 
     replaceItems(expected, matchingResult.getMatchedExpected());

@@ -61,13 +61,13 @@ public class AdditionalOrMissingNamedLinkDetector implements LinkProcessingStep 
     for (Link link : missingLinks) {
       expected.remove(link);
       String msg = "Expected '" + context.getLastRelation() + "' link with name '" + link.getName() + "' is missing";
-      diffs.add(new HalDifferenceImpl(context, asString(link), null, msg));
+      diffs.add(new HalDifferenceImpl(context, HalDifference.ChangeType.MISSING, HalDifference.EntityType.LINK, asString(link), null, msg));
     }
 
     for (Link link : unexpectedLinks) {
       actual.remove(link);
       String msg = "Found an unexpected '" + context.getLastRelation() + "' link with name '" + link.getName() + "'";
-      diffs.add(new HalDifferenceImpl(context, null, asString(link), msg));
+      diffs.add(new HalDifferenceImpl(context, HalDifference.ChangeType.ADDITIONAL, HalDifference.EntityType.LINK, null, asString(link), msg));
     }
 
     return diffs;
