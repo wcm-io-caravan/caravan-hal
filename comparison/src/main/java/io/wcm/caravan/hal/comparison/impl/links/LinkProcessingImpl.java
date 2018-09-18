@@ -33,9 +33,7 @@ import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
 import io.wcm.caravan.hal.comparison.impl.ProcessingResult;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
-import io.wcm.caravan.hal.comparison.impl.links.steps.AdditionalOrMissingNamedLinkDetector;
 import io.wcm.caravan.hal.comparison.impl.links.steps.LinkAdditionRemovalReorderingDetection;
-import io.wcm.caravan.hal.comparison.impl.links.steps.LinkCountMismatchDetector;
 import io.wcm.caravan.hal.comparison.impl.links.steps.LinkRelationBlackList;
 import io.wcm.caravan.hal.comparison.impl.links.steps.LinkTemplateProcessor;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -56,8 +54,6 @@ public class LinkProcessingImpl implements LinkProcessing {
     this.processingSteps = ImmutableList.of(
         new LinkRelationBlackList(strategy),
         new LinkAdditionRemovalReorderingDetection(),
-        new LinkCountMismatchDetector(),
-        new AdditionalOrMissingNamedLinkDetector(),
         new LinkTemplateProcessor(strategy));
   }
 
