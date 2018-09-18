@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.comparison.impl.embedded.steps;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.ADDITIONAL;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MISSING;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.REORDERED;
@@ -37,6 +38,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -353,5 +355,53 @@ public class EmbeddedReorderingDetectorTest {
   @Test
   public void should_find_multiple_removed_items_when_ordering_has_changed() {
     checkDetectionOfAddedItems(true, 0, 3, 7);
+  }
+
+  @Test
+  public void description_should_contain_resource_title_if_available() {
+
+    HalResource hal = new HalResource();
+    hal.getModel()
+        .put("title", "title text")
+        .put("name", "name text");
+
+    List<HalResource> expected = newArrayList(hal);
+    List<HalResource> actual = Collections.emptyList();
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    String desc = diffs.get(0).getDescription();
+    assertThat(desc, Matchers.containsString(ITEM));
+    assertThat(desc, Matchers.containsString("title text"));
+  }
+
+  @Test
+  public void description_should_contain_resource_name_if_title_not_available() {
+
+    HalResource hal = new HalResource();
+    hal.getModel()
+        .put("name", "name text");
+
+    List<HalResource> expected = newArrayList(hal);
+    List<HalResource> actual = Collections.emptyList();
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    String desc = diffs.get(0).getDescription();
+    assertThat(desc, Matchers.containsString(ITEM));
+    assertThat(desc, Matchers.containsString("name text"));
+  }
+
+  @Test
+  public void description_should_contain_relation_if_title_and_name_not_available() {
+
+    HalResource hal = new HalResource();
+
+    List<HalResource> expected = newArrayList(hal);
+    List<HalResource> actual = Collections.emptyList();
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    assertThat(diffs.get(0).getDescription(), Matchers.containsString(ITEM));
   }
 }
