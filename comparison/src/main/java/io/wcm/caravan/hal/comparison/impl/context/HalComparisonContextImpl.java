@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableMap;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
-import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -76,10 +75,6 @@ public class HalComparisonContextImpl implements HalComparisonContext {
     return this.actualUrl;
   }
 
-  public HalDifferenceListBuilder createDiffBuilder() {
-    return new HalDifferenceListBuilder(this);
-  }
-
   /**
    * @param relation of the linked or embedded resource that is about to be processed
    * @return a new instance with an updated {@link HalPathImpl}
@@ -95,6 +90,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
     newParents.put(halPath, contextResource);
     return newParents;
   }
+
   /**
    * @param pair of resources that is about to be compared
    * @param contextResource the resource from the expected tree that embeds the resource to be compared
@@ -122,7 +118,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
         return i;
       }
     }
-    return null;
+    throw new IllegalArgumentException("The resource from the given pair is not actually embedded in the context resource");
   }
 
   /**

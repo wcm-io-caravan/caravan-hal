@@ -101,6 +101,18 @@ public class LinkTemplateExpansionTest {
   }
 
   @Test
+  public void templates_should_be_filtered_instead_of_expanded_if_default_strategy_is_used() throws Exception {
+
+    List<Link> expected = createLinks("/expected{?a,b}");
+    List<Link> actual = createLinks("/actual/{a}/{b}");
+
+    findDifferences(expected, actual);
+
+    assertThat(expected, hasSize(0));
+    assertThat(actual, hasSize(0));
+  }
+
+  @Test
   public void templates_should_be_filtered_instead_of_expanded_if_no_variables_are_specified() throws Exception {
 
     List<Link> expected = createLinks("/expected{?a,b}");

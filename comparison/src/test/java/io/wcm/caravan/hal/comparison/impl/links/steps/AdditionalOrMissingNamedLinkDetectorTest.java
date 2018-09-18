@@ -183,6 +183,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
     verifyResults(diffs, expected, actual, ImmutableMap.of("e1", MISSING));
   }
 
+  @Test
   public void item_removed_in_the_middle_is_detected() throws Exception {
 
     List<Link> expected = createLinks("c1", "e1", "c2");

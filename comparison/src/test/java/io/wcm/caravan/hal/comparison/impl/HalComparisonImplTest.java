@@ -338,7 +338,7 @@ public class HalComparisonImplTest {
   }
 
   @Test
-  public void indices_should_be_included_in_halpath_for_multiple_named_linked_resources_with_same_relation() {
+  public void name_should_be_included_in_halpath_for_multiple_named_linked_resources_with_same_relation() {
 
     TestResource expectedEntryPoint = expected.getEntryPoint();
     expectedEntryPoint.createLinked(ITEM, "name1").setText("foo");

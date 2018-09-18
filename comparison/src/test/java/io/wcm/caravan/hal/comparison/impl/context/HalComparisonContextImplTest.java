@@ -37,8 +37,10 @@ import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.HalComparisonImpl;
+import io.wcm.caravan.hal.comparison.impl.PairWithRelation;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResource;
 import io.wcm.caravan.hal.comparison.testing.resources.TestResourceTree;
+import io.wcm.caravan.hal.resource.HalResource;
 import rx.Observable;
 
 
@@ -60,12 +62,6 @@ public class HalComparisonContextImplTest {
 
   private List<HalDifference> findDifferences() {
 
-    // use the default config unless a test case has created a specific strategy instance
-    if (strategy == null) {
-      strategy = new HalComparisonStrategy() {
-        // only use the default implementations from the interface
-      };
-    }
     Observable<HalDifference> diffs = comparison.compare(expected, actual, strategy);
 
     return diffs.toList().toBlocking().single();
@@ -149,7 +145,7 @@ public class HalComparisonContextImplTest {
           assertThat(halContext.getParentResourceWithRelation(COLLECTION).getModel(), equalTo(expectedCollection.getJson()));
           assertThat(halContext.getParentResourceWithRelation(SECTION), nullValue());
         }
-        else if (ITEM.equals(relation)) {
+        else {
           assertThat(halContext.getAllRelations(), Matchers.contains(COLLECTION, SECTION, ITEM));
 
           assertThat(halContext.getParentResourceWithRelation(COLLECTION).getModel(), equalTo(expectedCollection.getJson()));
@@ -203,7 +199,7 @@ public class HalComparisonContextImplTest {
 
             assertThat(halContext.getParentResourceWithRelation(ITEM), equalTo(expectedItem2.asHalResource()));
           }
-          else if (itemDepth == 4) {
+          else {
             assertThat(halContext.getAllRelations(), Matchers.contains(ITEM, ITEM, ITEM, ITEM));
 
             assertThat(halContext.getParentResourceWithRelation(ITEM), equalTo(expectedItem3.asHalResource()));
@@ -218,5 +214,23 @@ public class HalComparisonContextImplTest {
     List<HalDifference> diff = findDifferences();
 
     assertThat(diff, hasSize(0));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void invalid_usage_of_withHalPathOfEmbeddedResource_should_be_detected() throws Exception {
+
+    // the code path to test only kicks in if there is more than one embedded item
+    expected.createEmbedded(ITEM);
+    expected.createEmbedded(ITEM);
+
+    TestResource actualItem = actual.createEmbedded(ITEM);
+
+    // create an invalid pair where the expectedItem is not actually embedded in the context resource
+    HalResource invalidExpected = new HalResource();
+    PairWithRelation<HalResource> invalidPair = new PairWithRelation<>(ITEM, invalidExpected, actualItem.asHalResource());
+
+    HalComparisonContextImpl context = new HalComparisonContextImpl(null, null);
+
+    context.withHalPathOfEmbeddedResource(invalidPair, expected.getEntryPoint().asHalResource());
   }
 }
