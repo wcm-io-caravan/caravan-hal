@@ -35,10 +35,13 @@ import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.comparison.impl.matching.MatchingAlgorithm;
 import io.wcm.caravan.hal.comparison.impl.matching.MatchingResult;
-import io.wcm.caravan.hal.comparison.impl.matching.SimpleIdentityMatchingAlgorithm;
+import io.wcm.caravan.hal.comparison.impl.matching.SimpleIdMatchingAlgorithm;
 import io.wcm.caravan.hal.resource.HalResource;
 
-
+/**
+ * Determines if embedded resources have been added/removed/reordered, and ensures that the following steps
+ * will only find pairs of matching expected/actual resources in their lists.
+ */
 public class EmbeddedAdditionRemovalReorderingDetection implements EmbeddedProcessingStep {
 
   private final DefaultIdProvider defaultIdProvider = new DefaultIdProvider();
@@ -73,7 +76,7 @@ public class EmbeddedAdditionRemovalReorderingDetection implements EmbeddedProce
 
     Function<HalResource, String> idProvider = defaultIfNull(strategy.getIdProvider(context), defaultIdProvider);
 
-    MatchingAlgorithm<HalResource> algorithm = new SimpleIdentityMatchingAlgorithm<HalResource>(idProvider);
+    MatchingAlgorithm<HalResource> algorithm = new SimpleIdMatchingAlgorithm<HalResource>(idProvider);
 
     return algorithm.findMatchingItems(expected, actual);
   }

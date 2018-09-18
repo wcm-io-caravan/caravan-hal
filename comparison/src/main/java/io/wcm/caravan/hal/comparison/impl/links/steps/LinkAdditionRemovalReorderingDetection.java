@@ -30,10 +30,13 @@ import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.comparison.impl.matching.MatchingAlgorithm;
 import io.wcm.caravan.hal.comparison.impl.matching.MatchingResult;
-import io.wcm.caravan.hal.comparison.impl.matching.SimpleIdentityMatchingAlgorithm;
+import io.wcm.caravan.hal.comparison.impl.matching.SimpleIdMatchingAlgorithm;
 import io.wcm.caravan.hal.resource.Link;
 
-
+/**
+ * Determines if links have been added/removed/reordered, and ensures that the following steps
+ * will only find pairs of matching expected/actual links in their lists.
+ */
 public class LinkAdditionRemovalReorderingDetection implements LinkProcessingStep {
 
   @Override
@@ -58,9 +61,9 @@ public class LinkAdditionRemovalReorderingDetection implements LinkProcessingSte
 
   private MatchingResult<Link> applyMatchingAlgorithm(HalComparisonContext context, List<Link> expected, List<Link> actual) {
 
-    Function<Link, String> idProvider = link -> link.getName();
+    Function<Link, String> idProvider = new DefaultIdProvider(expected, actual);
 
-    MatchingAlgorithm<Link> algorithm = new SimpleIdentityMatchingAlgorithm<>(idProvider);
+    MatchingAlgorithm<Link> algorithm = new SimpleIdMatchingAlgorithm<>(idProvider);
 
     return algorithm.findMatchingItems(expected, actual);
   }
@@ -73,17 +76,17 @@ public class LinkAdditionRemovalReorderingDetection implements LinkProcessingSte
     boolean reorderingRequired = matchingResult.areMatchesReordered();
 
     if (reorderingRequired) {
-      String msg = "The embedded " + relation + " resources have a different order in the actual resource";
+      String msg = "The " + relation + " links have a different order in the actual resource";
       diffs.reportReorderedLinks(msg, expected, actual);
     }
 
     for (Link removed : matchingResult.getRemovedExpected()) {
-      String msg = "An embedded " + relation + getLinkNameOrTitle(removed) + "is missing in the actual resource";
+      String msg = "A " + relation + " link" + getLinkNameOrTitle(removed) + " is missing in the actual resource";
       diffs.reportMissingLink(msg, removed);
     }
 
     for (Link added : matchingResult.getAddedActual()) {
-      String msg = "An additional embedded " + relation + getLinkNameOrTitle(added) + "is present in the actual resource";
+      String msg = "An additional " + relation + " link" + getLinkNameOrTitle(added) + " is present in the actual resource";
       diffs.reportAdditionalLink(msg, added);
     }
 
@@ -92,8 +95,40 @@ public class LinkAdditionRemovalReorderingDetection implements LinkProcessingSte
 
   private static String getLinkNameOrTitle(Link link) {
 
-    String nameOrTitle = StringUtils.defaultIfEmpty(link.getName(), link.getTitle());
-    String label = StringUtils.isNotBlank(nameOrTitle) ? " '" + nameOrTitle + "' " : " ";
-    return label;
+    if (link.getName() != null) {
+      return " with name '" + link.getName() + "'";
+    }
+    else if (link.getTitle() != null) {
+      return " with title '" + link.getName() + "'";
+    }
+    return "";
+  }
+
+
+  static class DefaultIdProvider implements Function<Link, String> {
+
+    private final boolean useLinkName;
+
+    DefaultIdProvider(List<Link> expected, List<Link> actual) {
+      // only use names as an ID if they are used in the expected and actual resources
+      // otherwise you would get confusing results if link names were only added
+      // in one of the versions to be compared
+      useLinkName = namesAreUsedIn(expected) && namesAreUsedIn(actual);
+    }
+
+    private static boolean namesAreUsedIn(List<Link> expected) {
+      return expected.stream()
+          .anyMatch(link -> link.getName() != null);
+    }
+
+    @Override
+    public String apply(Link link) {
+      if (useLinkName) {
+        return StringUtils.trimToEmpty(link.getName());
+      }
+
+      // otherwise use a blank ID, which results in links being matched on their index only
+      return "";
+    }
   }
 }
