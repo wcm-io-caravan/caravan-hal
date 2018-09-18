@@ -19,6 +19,9 @@
  */
 package io.wcm.caravan.hal.comparison.impl.links.steps;
 
+import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MODIFIED;
+import static io.wcm.caravan.hal.comparison.HalDifference.EntityType.LINK;
+import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertOnlyOneDifference;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -144,7 +147,7 @@ public class LinkTemplateExpansionTest {
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     // the fact that only one link is templated is still considered a difference!
-    assertThat(diffs, hasSize(1));
+    assertOnlyOneDifference(diffs, MODIFIED, LINK, "/item");
 
     // but what's important is that with defining those values, it's now possible to continue crawling
     // and comparing, because the link template was expanded to be identical to the resolved link
@@ -166,7 +169,7 @@ public class LinkTemplateExpansionTest {
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     // the fact that only one link is templated is still considered a difference!
-    assertThat(diffs, hasSize(1));
+    assertOnlyOneDifference(diffs, MODIFIED, LINK, "/item");
 
     // but what's important is that with defining those values, it's now possible to continue crawling
     // and comparing, because the link template was expanded to be identical to the resolved link

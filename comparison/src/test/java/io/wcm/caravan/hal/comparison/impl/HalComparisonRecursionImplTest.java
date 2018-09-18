@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.comparison.impl;
 
+import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertOnlyOneDifference;
 import static io.wcm.caravan.hal.comparison.testing.SameHalResourceMatcher.sameHal;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.COLLECTION;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
@@ -55,6 +56,8 @@ import com.google.common.collect.ImmutableList;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
+import io.wcm.caravan.hal.comparison.HalDifference.EntityType;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessing;
@@ -284,8 +287,7 @@ public class HalComparisonRecursionImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertThat(diff, hasSize(1));
-    assertEquals("/item[1]", diff.get(0).getHalContext().toString());
+    assertOnlyOneDifference(diff, ChangeType.MODIFIED, EntityType.PROPERTY, "/item[1]");
 
     verify(propertyProcessor).process(any(), sameHal(expectedEntryPoint), sameHal(actualEntryPoint));
     verify(propertyProcessor).process(any(), sameHal(expectedItem1), sameHal(actualItem1));
@@ -311,8 +313,7 @@ public class HalComparisonRecursionImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertThat(diff, hasSize(1));
-    assertEquals("/item[1]", diff.get(0).getHalContext().toString());
+    assertOnlyOneDifference(diff, ChangeType.MODIFIED, EntityType.PROPERTY, "/item[1]");
 
     verify(propertyProcessor).process(any(), sameHal(expectedEntryPoint), sameHal(actualEntryPoint));
     verify(propertyProcessor).process(any(), sameHal(expectedItem1), sameHal(actualItem1));
@@ -375,8 +376,7 @@ public class HalComparisonRecursionImplTest {
     List<HalDifference> diff = findDifferences();
 
     // there would be more than on error if the "related" link that points back to the section was followed
-    assertThat(diff, hasSize(1));
-    assertEquals("/section", diff.get(0).getHalContext().toString());
+    assertOnlyOneDifference(diff, ChangeType.MODIFIED, EntityType.PROPERTY, "/section");
   }
 
   @Test

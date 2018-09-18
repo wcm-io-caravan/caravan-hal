@@ -19,10 +19,12 @@
  */
 package io.wcm.caravan.hal.comparison.impl.links.steps;
 
+import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MODIFIED;
+import static io.wcm.caravan.hal.comparison.HalDifference.EntityType.LINK;
+import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertOnlyOneDifference;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
@@ -122,8 +124,8 @@ public class LinkTemplateProcessorTest {
     List<HalDifference> diff = findDifferences(expected, actual);
 
     // a comparison error should be triggered
-    assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalContext().toString());
+    assertOnlyOneDifference(diff, MODIFIED, LINK, "/item");
+
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());
@@ -138,8 +140,8 @@ public class LinkTemplateProcessorTest {
     List<HalDifference> diff = findDifferences(expected, actual);
 
     // a comparison error should be triggered
-    assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalContext().toString());
+    assertOnlyOneDifference(diff, MODIFIED, LINK, "/item");
+
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());
@@ -154,8 +156,8 @@ public class LinkTemplateProcessorTest {
     List<HalDifference> diff = findDifferences(expected, actual);
 
     // a comparison error should be triggered
-    assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalContext().toString());
+    assertOnlyOneDifference(diff, MODIFIED, LINK, "/item");
+
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());
@@ -170,8 +172,8 @@ public class LinkTemplateProcessorTest {
     List<HalDifference> diff = findDifferences(expected, actual);
 
     // a comparison error should be triggered
-    assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalContext().toString());
+    assertOnlyOneDifference(diff, MODIFIED, LINK, "/item");
+
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());
@@ -186,8 +188,8 @@ public class LinkTemplateProcessorTest {
     List<HalDifference> diff = findDifferences(expected, actual);
 
     // a comparison error should be triggered
-    assertThat(diff, hasSize(1));
-    assertEquals("/item", diff.get(0).getHalContext().toString());
+    assertOnlyOneDifference(diff, MODIFIED, LINK, "/item");
+
     // and the links should be removed from the list, as they can't be followed
     assertThat(expected, empty());
     assertThat(actual, empty());

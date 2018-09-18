@@ -19,8 +19,11 @@
  */
 package io.wcm.caravan.hal.comparison.impl.links.steps;
 
+import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.ADDITIONAL;
+import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MISSING;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
@@ -40,13 +43,11 @@ import com.google.common.collect.ImmutableMap;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonContext;
 import io.wcm.caravan.hal.resource.Link;
 
 public class AdditionalOrMissingNamedLinkDetectorTest {
-
-  private static final String ADDED = "unexpected";
-  private static final String REMOVED = "missing";
 
   private AdditionalOrMissingNamedLinkDetector processor;
   private HalComparisonContext context;
@@ -71,30 +72,28 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
     return processor.apply(context, expected, actual);
   }
 
-  private void verifyResults(List<HalDifference> actualResults, List<Link> expected, List<Link> actual, Map<String, String> resultMap) {
+  private void verifyResults(List<HalDifference> actualResults, List<Link> expected, List<Link> actual, Map<String, ChangeType> expectedChanges) {
 
-    assertThat(actualResults, hasSize(resultMap.size()));
+    assertThat(actualResults, hasSize(expectedChanges.size()));
 
     int resultIndex = 0;
-    for (Entry<String, String> entry : resultMap.entrySet()) {
+    for (Entry<String, ChangeType> entry : expectedChanges.entrySet()) {
       HalDifference nextResult = actualResults.get(resultIndex++);
       String description = nextResult.getDescription();
 
       String linkName = entry.getKey();
-      String addedOrRemoved = entry.getValue();
-
-      assertThat(description, containsString(addedOrRemoved));
+      assertThat(nextResult.getChangeType(), equalTo(entry.getValue()));
       assertThat(description, containsString(linkName));
     }
 
-    verifyItemsRemoved(resultMap, actual, ADDED);
-    verifyItemsRemoved(resultMap, expected, REMOVED);
+    verifyItemsRemoved(expectedChanges, actual, ADDITIONAL);
+    verifyItemsRemoved(expectedChanges, expected, MISSING);
   }
 
-  private void verifyItemsRemoved(Map<String, String> resultMap, List<Link> collection, String addedOrRemoved) {
+  private void verifyItemsRemoved(Map<String, ChangeType> resultMap, List<Link> collection, ChangeType changeType) {
 
     List<String> linkNames = resultMap.entrySet().stream()
-        .filter(entry -> entry.getValue().equals(addedOrRemoved))
+        .filter(entry -> entry.getValue().equals(changeType))
         .map(entry -> entry.getKey())
         .collect(Collectors.toList());
 
@@ -126,7 +125,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("a1", ADDED, "a2", ADDED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("a1", ADDITIONAL, "a2", ADDITIONAL));
   }
 
   @Test
@@ -137,7 +136,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", REMOVED, "e2", REMOVED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", MISSING, "e2", MISSING));
   }
 
   @Test
@@ -148,7 +147,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("a1", ADDED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("a1", ADDITIONAL));
   }
 
   @Test
@@ -159,7 +158,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("a1", ADDED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("a1", ADDITIONAL));
   }
 
   @Test
@@ -170,7 +169,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("a1", ADDED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("a1", ADDITIONAL));
   }
 
   @Test
@@ -181,7 +180,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", REMOVED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", MISSING));
   }
 
   public void item_removed_in_the_middle_is_detected() throws Exception {
@@ -191,7 +190,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", REMOVED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", MISSING));
   }
 
   @Test
@@ -202,7 +201,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", REMOVED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", MISSING));
   }
 
   @Test
@@ -213,9 +212,10 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", REMOVED, "a1", ADDED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", MISSING, "a1", ADDITIONAL));
   }
 
+  @Test
   public void item_replaced_in_the_middle_is_detected() throws Exception {
 
     List<Link> expected = createLinks("c1", "e1", "c2");
@@ -223,7 +223,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", REMOVED, "a1", ADDED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", MISSING, "a1", ADDITIONAL));
   }
 
   @Test
@@ -234,7 +234,7 @@ public class AdditionalOrMissingNamedLinkDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", REMOVED, "a1", ADDED));
+    verifyResults(diffs, expected, actual, ImmutableMap.of("e1", MISSING, "a1", ADDITIONAL));
   }
 
   @Test

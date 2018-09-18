@@ -19,8 +19,11 @@
  */
 package io.wcm.caravan.hal.comparison.impl.embedded.steps;
 
+import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.ADDITIONAL;
+import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MISSING;
+import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.REORDERED;
+import static io.wcm.caravan.hal.comparison.HalDifference.EntityType.EMBEDDED;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertThat;
@@ -235,10 +238,13 @@ public class EmbeddedReorderingDetectorTest {
     assertThat(diffs, hasSize(added.size() + diffCountBecauseOfReordering));
 
     if (reorder) {
-      assertThat(diffs.get(0).getDescription(), containsString("different order"));
+      assertThat(diffs.get(0).getChangeType(), equalTo(REORDERED));
     }
     for (int i = 0; i < added.size(); i++) {
-      assertThat(diffs.get(i + diffCountBecauseOfReordering).getActualJson(), equalTo(added.get(i).getModel()));
+      HalDifference diff = diffs.get(i + diffCountBecauseOfReordering);
+      assertThat(diff.getChangeType(), equalTo(ADDITIONAL));
+      assertThat(diff.getEntityType(), equalTo(EMBEDDED));
+      assertThat(diff.getActualJson(), equalTo(added.get(i).getModel()));
     }
 
     assertThat(getOrdering(expected), equalTo(expectedOrdering));
@@ -304,10 +310,13 @@ public class EmbeddedReorderingDetectorTest {
 
     assertThat(diffs, hasSize(removed.size() + diffCountBecauseOfReordering));
     if (reorder) {
-      assertThat(diffs.get(0).getDescription(), containsString("different order"));
+      assertThat(diffs.get(0).getChangeType(), equalTo(REORDERED));
     }
     for (int i = 0; i < removed.size(); i++) {
-      assertThat(diffs.get(i + diffCountBecauseOfReordering).getExpectedJson(), equalTo(removed.get(i).getModel()));
+      HalDifference diff = diffs.get(i + diffCountBecauseOfReordering);
+      assertThat(diff.getChangeType(), equalTo(MISSING));
+      assertThat(diff.getEntityType(), equalTo(EMBEDDED));
+      assertThat(diff.getExpectedJson(), equalTo(removed.get(i).getModel()));
     }
     assertThat(getOrdering(expected), equalTo(expectedOrdering));
     assertThat(getOrdering(actual), equalTo(expectedOrdering));

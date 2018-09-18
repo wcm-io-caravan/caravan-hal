@@ -28,7 +28,6 @@ import org.junit.Test;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
-import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceImpl;
 
 
 public class HalDifferenceImplTest {
