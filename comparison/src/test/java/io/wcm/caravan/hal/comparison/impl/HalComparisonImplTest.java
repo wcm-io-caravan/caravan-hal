@@ -22,16 +22,14 @@ package io.wcm.caravan.hal.comparison.impl;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.ADDITIONAL;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MISSING;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MODIFIED;
+import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.REORDERED;
 import static io.wcm.caravan.hal.comparison.HalDifference.EntityType.EMBEDDED;
 import static io.wcm.caravan.hal.comparison.HalDifference.EntityType.LINK;
 import static io.wcm.caravan.hal.comparison.HalDifference.EntityType.PROPERTY;
-import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertDifference;
 import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertOnlyOneDifference;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.SECTION;
-import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
@@ -186,12 +184,7 @@ public class HalComparisonImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertThat(diff, hasSize(2));
-
-    // first diff only says the number of link has changed
-    assertDifference(diff.get(0), MISSING, LINK, "/item");
-    // second diff says exactly which link has been removed
-    assertDifference(diff.get(1), MISSING, LINK, "/item");
+    assertOnlyOneDifference(diff, MISSING, LINK, "/item");
   }
 
   @Test
@@ -204,11 +197,21 @@ public class HalComparisonImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertThat(diff, hasSize(2));
-    // first diff only says the number of link has changed
-    assertDifference(diff.get(0), ADDITIONAL, LINK, "/item");
-    // second diff says exactly which link has been added
-    assertDifference(diff.get(1), ADDITIONAL, LINK, "/item");
+    assertOnlyOneDifference(diff, ADDITIONAL, LINK, "/item");
+  }
+
+  @Test
+  public void reordered_named_linked_resources_should_be_detected() throws Exception {
+
+    expected.createLinked(ITEM, "first");
+    expected.createLinked(ITEM, "second");
+
+    actual.createLinked(ITEM, "second");
+    actual.createLinked(ITEM, "first");
+
+    List<HalDifference> diff = findDifferences();
+
+    assertOnlyOneDifference(diff, REORDERED, LINK, "/item");
   }
 
   @Test
