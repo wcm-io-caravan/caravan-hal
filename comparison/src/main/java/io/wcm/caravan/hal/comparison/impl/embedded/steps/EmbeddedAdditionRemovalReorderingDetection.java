@@ -39,7 +39,7 @@ import io.wcm.caravan.hal.comparison.impl.matching.SimpleIdentityMatchingAlgorit
 import io.wcm.caravan.hal.resource.HalResource;
 
 
-public class EmbeddedReorderingDetector implements EmbeddedProcessingStep {
+public class EmbeddedAdditionRemovalReorderingDetection implements EmbeddedProcessingStep {
 
   private final DefaultIdProvider defaultIdProvider = new DefaultIdProvider();
 
@@ -48,7 +48,7 @@ public class EmbeddedReorderingDetector implements EmbeddedProcessingStep {
   /**
    * @param strategy that defines equivalence for specific hal resources
    */
-  public EmbeddedReorderingDetector(HalComparisonStrategy strategy) {
+  public EmbeddedAdditionRemovalReorderingDetection(HalComparisonStrategy strategy) {
     this.strategy = strategy;
   }
 

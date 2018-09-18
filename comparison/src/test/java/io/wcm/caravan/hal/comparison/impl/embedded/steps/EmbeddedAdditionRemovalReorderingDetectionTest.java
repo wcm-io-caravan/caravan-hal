@@ -53,7 +53,7 @@ import io.wcm.caravan.hal.comparison.testing.TestHalComparisonContext;
 import io.wcm.caravan.hal.resource.HalResource;
 
 
-public class EmbeddedReorderingDetectorTest {
+public class EmbeddedAdditionRemovalReorderingDetectionTest {
 
   private HalComparisonStrategy strategy;
 
@@ -82,10 +82,10 @@ public class EmbeddedReorderingDetectorTest {
 
     // use the default strategy unless a specific strategy was defined in the test
     if (strategy == null) {
-      mockExpansionStrategyWithFunction(EmbeddedReorderingDetectorTest::getIdProperty);
+      mockExpansionStrategyWithFunction(EmbeddedAdditionRemovalReorderingDetectionTest::getIdProperty);
     }
 
-    EmbeddedReorderingDetector processor = new EmbeddedReorderingDetector(strategy);
+    EmbeddedAdditionRemovalReorderingDetection processor = new EmbeddedAdditionRemovalReorderingDetection(strategy);
 
     // the LinkProcessingImpl will already add the relation to the context before calling its steps, so we do the same here
     HalComparisonContext context = new TestHalComparisonContext().withAppendedHalPath(ITEM, new HalResource());
@@ -138,7 +138,7 @@ public class EmbeddedReorderingDetectorTest {
 
     List<Integer> expectedOrdering = getOrdering(expected);
 
-    mockExpansionStrategyWithFunction(new EmbeddedReorderingDetector.DefaultIdProvider());
+    mockExpansionStrategyWithFunction(new EmbeddedAdditionRemovalReorderingDetection.DefaultIdProvider());
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(0));
@@ -204,7 +204,6 @@ public class EmbeddedReorderingDetectorTest {
     List<HalResource> actual = cloneListAndReverse(expected);
 
     List<Integer> expectedOrdering = getOrdering(expected);
-    mockExpansionStrategyWithFunction(EmbeddedReorderingDetectorTest::getIdProperty);
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 

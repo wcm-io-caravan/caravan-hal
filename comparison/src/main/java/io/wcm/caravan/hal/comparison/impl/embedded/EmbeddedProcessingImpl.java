@@ -35,7 +35,7 @@ import io.wcm.caravan.hal.comparison.impl.ProcessingResult;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.steps.EmbeddedCountMismatchDetector;
 import io.wcm.caravan.hal.comparison.impl.embedded.steps.EmbeddedRelationBlackList;
-import io.wcm.caravan.hal.comparison.impl.embedded.steps.EmbeddedReorderingDetector;
+import io.wcm.caravan.hal.comparison.impl.embedded.steps.EmbeddedAdditionRemovalReorderingDetection;
 import io.wcm.caravan.hal.resource.HalResource;
 
 /**
@@ -53,7 +53,7 @@ public class EmbeddedProcessingImpl implements EmbeddedProcessing {
   public EmbeddedProcessingImpl(HalComparisonStrategy strategy) {
     this.processingSteps = ImmutableList.of(
         new EmbeddedRelationBlackList(strategy),
-        new EmbeddedReorderingDetector(strategy),
+        new EmbeddedAdditionRemovalReorderingDetection(strategy),
         new EmbeddedCountMismatchDetector());
   }
 
