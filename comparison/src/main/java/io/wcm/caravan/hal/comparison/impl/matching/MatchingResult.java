@@ -21,17 +21,37 @@ package io.wcm.caravan.hal.comparison.impl.matching;
 
 import java.util.List;
 
-
+/**
+ * Result class for {@link MatchingAlgorithm}s
+ * @param <T> the type of the items to be matched
+ */
 public interface MatchingResult<T> {
 
+  /**
+   * @return a list of all expected items (in the original order) for which a matching actual item was found
+   */
   List<T> getMatchedExpected();
 
+  /**
+   * @return a list of all matched actual items, ordered so that each item is at the same position as the corresponding
+   *         expected item
+   */
   List<T> getMatchedActual();
 
+  /**
+   * @return a list of all expected items for which no matching actual item was found
+   */
   List<T> getRemovedExpected();
 
+  /**
+   * @return a list of all actual items for which no matching expected item was found
+   */
   List<T> getAddedActual();
 
+  /**
+   * @return true if one or more of the matched actual items were in a difference order than the corresponding
+   *         expected items
+   */
   boolean areMatchesReordered();
 
 }

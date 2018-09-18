@@ -34,23 +34,39 @@ import io.wcm.caravan.hal.comparison.HalDifference.EntityType;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
+/**
+ * Simplifies creating properly initialised {@link HalDifferenceImpl} instances.
+ */
 public class HalDifferenceListBuilder {
 
   private final List<HalDifference> differences = new ArrayList<>();
   private final HalComparisonContext context;
 
+  /**
+   * @param context specifies in which part of the tree the comparison is currently being executed
+   */
   public HalDifferenceListBuilder(HalComparisonContext context) {
     this.context = context;
   }
 
+  /**
+   * @return the list of differences that were previously reported to this instance
+   */
   public List<HalDifference> build() {
     return ImmutableList.copyOf(differences);
   }
 
+  /**
+   * Clear the list of differences that were previously reported to this instance
+   */
   public void clearPreviouslyReported() {
     differences.clear();
   }
 
+  /**
+   * Merges the differences reported to this and another builder
+   * @param other another builder
+   */
   public void addAllFrom(HalDifferenceListBuilder other) {
     differences.addAll(other.build());
   }
@@ -66,76 +82,123 @@ public class HalDifferenceListBuilder {
     differences.add(diff);
   }
 
+  /**
+   * @param description
+   * @param actual the link that was added
+   */
   public void reportAdditionalLink(String description, Link actual) {
     addDifference(ChangeType.ADDITIONAL, EntityType.LINK, description, null, asJson(actual));
   }
 
-  public void reportAdditionalLinks(String description, Iterable<Link> expected, Iterable<Link> actual) {
-    addDifference(ChangeType.ADDITIONAL, EntityType.LINK, description, asJson(expected), asJson(actual));
-  }
-
+  /**
+   * @param description
+   * @param expected the link that was removed
+   */
   public void reportMissingLink(String description, Link expected) {
     addDifference(ChangeType.MISSING, EntityType.LINK, description, asJson(expected), null);
   }
 
-  public void reportMissingLinks(String description, Iterable<Link> expected, Iterable<Link> actual) {
-    addDifference(ChangeType.MISSING, EntityType.LINK, description, asJson(expected), asJson(actual));
-  }
-
+  /**
+   * @param description
+   * @param expected the link found in the ground truth resource
+   * @param actual the link that was found instead
+   */
   public void reportModifiedLink(String description, Link expected, Link actual) {
     addDifference(ChangeType.MODIFIED, EntityType.LINK, description, asJson(expected), asJson(actual));
   }
 
+  /**
+   * @param description
+   * @param expected the links in their original order
+   * @param actual the links in their new order
+   */
   public void reportReorderedLinks(String description, Iterable<Link> expected, Iterable<Link> actual) {
     addDifference(ChangeType.REORDERED, EntityType.LINK, description, asJson(expected), asJson(actual));
   }
 
 
+  /**
+   * @param description
+   * @param actual the embedded resource that was added
+   */
   public void reportAdditionalEmbedded(String description, HalResource actual) {
     addDifference(ChangeType.ADDITIONAL, EntityType.EMBEDDED, description, null, asJson(actual));
   }
 
-  public void reportAdditionalEmbedded(String description, Iterable<HalResource> expected, Iterable<HalResource> actual) {
-    addDifference(ChangeType.ADDITIONAL, EntityType.EMBEDDED, description, asJson(expected), asJson(actual));
-  }
-
+  /**
+   * @param description
+   * @param expected the embedded resource that was removed
+   */
   public void reportMissingEmbedded(String description, HalResource expected) {
     addDifference(ChangeType.MISSING, EntityType.EMBEDDED, description, asJson(expected), null);
   }
 
-  public void reportMissingEmbedded(String description, Iterable<HalResource> expected, Iterable<HalResource> actual) {
-    addDifference(ChangeType.MISSING, EntityType.EMBEDDED, description, asJson(expected), asJson(actual));
-  }
-
+  /**
+   * @param description
+   * @param expected the embedded resource in the ground truth resource
+   * @param actual the embedded resource that was found instead
+   */
   public void reportModifiedEmbedded(String description, HalResource expected, HalResource actual) {
     addDifference(ChangeType.MODIFIED, EntityType.EMBEDDED, description, asJson(expected), asJson(actual));
   }
 
+  /**
+   * @param description
+   * @param expected the embedded resources in their original order
+   * @param actual the embedded resources in their new order
+   */
   public void reportReorderedEmbedded(String description, Iterable<HalResource> expected, Iterable<HalResource> actual) {
     addDifference(ChangeType.REORDERED, EntityType.EMBEDDED, description, asJson(expected), asJson(actual));
   }
 
-
+  /**
+   * @param description
+   * @param actual the property that was added
+   */
   public void reportAdditionalProperty(String description, JsonNode actual) {
     addDifference(ChangeType.ADDITIONAL, EntityType.PROPERTY, description, null, actual);
   }
 
+  /**
+   * @param description
+   * @param expected the parent property that does not contain the additional child
+   * @param actual thh parent property from the actual resource
+   */
   public void reportAdditionalProperty(String description, JsonNode expected, JsonNode actual) {
     addDifference(ChangeType.ADDITIONAL, EntityType.PROPERTY, description, expected, actual);
   }
 
+  /**
+   * @param description
+   * @param expected the property that was removed
+   */
   public void reportMissingProperty(String description, JsonNode expected) {
     addDifference(ChangeType.MISSING, EntityType.PROPERTY, description, expected, null);
   }
 
+  /**
+   * @param description
+   * @param expected the parent property that contains the missing child
+   * @param actual the corresponding property that does not include that child
+   */
   public void reportMissingProperty(String description, JsonNode expected, JsonNode actual) {
     addDifference(ChangeType.MISSING, EntityType.PROPERTY, description, expected, actual);
   }
 
+  /**
+   * @param description
+   * @param expected the property from the ground truth resource
+   * @param actual the property that was found instead
+   */
   public void reportModifiedProperty(String description, JsonNode expected, JsonNode actual) {
     addDifference(ChangeType.MODIFIED, EntityType.PROPERTY, description, expected, actual);
   }
 
+  /**
+   * @param description
+   * @param expected the properties in their original order
+   * @param actual the properties in their new order
+   */
   public void reportReorderedProperty(String description, JsonNode expected, JsonNode actual) {
     addDifference(ChangeType.REORDERED, EntityType.PROPERTY, description, expected, actual);
   }

@@ -43,6 +43,7 @@ import io.wcm.caravan.hal.resource.Link;
 public interface HalComparisonStrategy {
 
   /**
+   * Can be implemented by the service consumer to exclude specific embedded resources from comparison.
    * @param halContext the relational location of the embedded resource to be compared
    * @return true if that resource (and everything below) should not be compared
    */
@@ -51,6 +52,7 @@ public interface HalComparisonStrategy {
   }
 
   /**
+   * Can be implemented by the service consumer to exclude specific links from crawling and comparison.
    * @param halContext the relational location of a linked resource to be followed
    * @return true if that resource (and everything below) should not be followed &amp; compared
    */
@@ -59,6 +61,9 @@ public interface HalComparisonStrategy {
   }
 
   /**
+   * Can be implemented by the service consumer to expand specific link templates, so that the expanded link is then
+   * crawled and included in the comparison. By default, link templates are not expanded and won't be
+   * crawled (only the template variables will be compared).
    * @param context the relational location of a link template
    * @param expectedLink the full link template as found in the expected resource tree
    * @param actualLink the full link template as found in the actual resource tree
@@ -69,11 +74,17 @@ public interface HalComparisonStrategy {
     return Collections.emptyList();
   }
 
+  /**
+   * Can be implemented by the service consumer to improve the detection of additional, removed and re-ordered embedded
+   * resources. By default, the "title" property of the embedded resources is used to find matching pairs. If your
+   * resources have some property that is unique in the context (and unlikely to change between environments),
+   * you should return a function that extracts that property's value.
+   * @param context the relational location of an embedded resource
+   * @return a function to extract an id that can be used to determine whether a specific resource was
+   *         added/removed/reordered. If null is returned, the matching algorithm will use the title property
+   */
   default Function<HalResource, String> getIdProvider(HalComparisonContext context) {
     return null;
   }
 
-  // TODO: add more configuration options
-  // - limit the maximum depth of crawling
-  // - allow to specify for which links/resources can be found in random order
 }

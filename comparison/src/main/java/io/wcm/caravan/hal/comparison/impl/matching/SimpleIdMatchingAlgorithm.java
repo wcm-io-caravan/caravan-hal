@@ -27,11 +27,17 @@ import java.util.stream.Collectors;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 
-public class SimpleIdentityMatchingAlgorithm<T> implements MatchingAlgorithm<T> {
+/**
+ * An algorithm that finds matching items by comparing an id.
+ */
+public class SimpleIdMatchingAlgorithm<T> implements MatchingAlgorithm<T> {
 
   private final Function<T, String> idProvider;
 
-  public SimpleIdentityMatchingAlgorithm(Function<T, String> idProvider) {
+  /**
+   * @param idProvider the function to generate/extract an id for a given item
+   */
+  public SimpleIdMatchingAlgorithm(Function<T, String> idProvider) {
     this.idProvider = idProvider;
   }
 

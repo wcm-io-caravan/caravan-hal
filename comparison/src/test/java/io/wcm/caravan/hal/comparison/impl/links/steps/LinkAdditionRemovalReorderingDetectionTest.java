@@ -64,7 +64,7 @@ public class LinkAdditionRemovalReorderingDetectionTest {
         .withAppendedHalPath(StandardRelations.ITEM, new HalResource());
   }
 
-  private List<Link> createLinks(String... names) {
+  private List<Link> createNamedLinks(String... names) {
 
     return Stream.of(names)
         .map(name -> {
@@ -115,8 +115,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void no_results_and_no_exceptions_if_both_lists_are_empty() throws Exception {
 
-    List<Link> expected = createLinks();
-    List<Link> actual = createLinks();
+    List<Link> expected = createNamedLinks();
+    List<Link> actual = createNamedLinks();
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -127,8 +127,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void all_actual_items_are_added_if_expected_list_is_empty() throws Exception {
 
-    List<Link> expected = createLinks();
-    List<Link> actual = createLinks("a1", "a2");
+    List<Link> expected = createNamedLinks();
+    List<Link> actual = createNamedLinks("a1", "a2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -138,8 +138,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void all_expected_items_are_missing_if_actual_list_is_empty() throws Exception {
 
-    List<Link> expected = createLinks("e1", "e2");
-    List<Link> actual = createLinks();
+    List<Link> expected = createNamedLinks("e1", "e2");
+    List<Link> actual = createNamedLinks();
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -149,8 +149,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void item_added_at_the_beginning_is_detected() throws Exception {
 
-    List<Link> expected = createLinks("c1", "c2");
-    List<Link> actual = createLinks("a1", "c1", "c2");
+    List<Link> expected = createNamedLinks("c1", "c2");
+    List<Link> actual = createNamedLinks("a1", "c1", "c2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -160,8 +160,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void item_added_in_the_middle_is_detected() throws Exception {
 
-    List<Link> expected = createLinks("c1", "c2");
-    List<Link> actual = createLinks("c1", "a1", "c2");
+    List<Link> expected = createNamedLinks("c1", "c2");
+    List<Link> actual = createNamedLinks("c1", "a1", "c2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -171,8 +171,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void item_added_at_the_end_is_detected() throws Exception {
 
-    List<Link> expected = createLinks("c1", "c2");
-    List<Link> actual = createLinks("c1", "c2", "a1");
+    List<Link> expected = createNamedLinks("c1", "c2");
+    List<Link> actual = createNamedLinks("c1", "c2", "a1");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -182,8 +182,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void item_removed_at_the_beginning_is_detected() throws Exception {
 
-    List<Link> expected = createLinks("e1", "c1", "c2");
-    List<Link> actual = createLinks("c1", "c2");
+    List<Link> expected = createNamedLinks("e1", "c1", "c2");
+    List<Link> actual = createNamedLinks("c1", "c2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -193,8 +193,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void item_removed_in_the_middle_is_detected() throws Exception {
 
-    List<Link> expected = createLinks("c1", "e1", "c2");
-    List<Link> actual = createLinks("c1", "c2");
+    List<Link> expected = createNamedLinks("c1", "e1", "c2");
+    List<Link> actual = createNamedLinks("c1", "c2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -204,8 +204,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void item_removed_at_the_end_is_detected() throws Exception {
 
-    List<Link> expected = createLinks("c1", "c2", "e1");
-    List<Link> actual = createLinks("c1", "c2");
+    List<Link> expected = createNamedLinks("c1", "c2", "e1");
+    List<Link> actual = createNamedLinks("c1", "c2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -215,8 +215,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void item_replaced_at_the_beginning_is_detected() throws Exception {
 
-    List<Link> expected = createLinks("e1", "c1", "c2");
-    List<Link> actual = createLinks("a1", "c1", "c2");
+    List<Link> expected = createNamedLinks("e1", "c1", "c2");
+    List<Link> actual = createNamedLinks("a1", "c1", "c2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -226,8 +226,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void item_replaced_in_the_middle_is_detected() throws Exception {
 
-    List<Link> expected = createLinks("c1", "e1", "c2");
-    List<Link> actual = createLinks("c1", "a1", "c2");
+    List<Link> expected = createNamedLinks("c1", "e1", "c2");
+    List<Link> actual = createNamedLinks("c1", "a1", "c2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -237,8 +237,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
   @Test
   public void item_replaced_at_the_end_is_detected() throws Exception {
 
-    List<Link> expected = createLinks("c1", "c2", "e1");
-    List<Link> actual = createLinks("c1", "c2", "a1");
+    List<Link> expected = createNamedLinks("c1", "c2", "e1");
+    List<Link> actual = createNamedLinks("c1", "c2", "a1");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -247,8 +247,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
   @Test
   public void item_replacement_with_non_unique_name_in_expected_is_detected() throws Exception {
-    List<Link> expected = createLinks("foo", "foo");
-    List<Link> actual = createLinks("foo", "bar");
+    List<Link> expected = createNamedLinks("foo", "foo");
+    List<Link> actual = createNamedLinks("foo", "bar");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -258,8 +258,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
   @Test
   public void item_replacement_with_non_unique_name_in_actual_is_detected() throws Exception {
-    List<Link> expected = createLinks("foo", "bar");
-    List<Link> actual = createLinks("foo", "foo");
+    List<Link> expected = createNamedLinks("foo", "bar");
+    List<Link> actual = createNamedLinks("foo", "foo");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -269,8 +269,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
   @Test
   public void removal_of_unnamed_item_should_be_detected() throws Exception {
-    List<Link> expected = createLinks("c1", null, "c2");
-    List<Link> actual = createLinks("c1", "c2");
+    List<Link> expected = createNamedLinks("c1", null, "c2");
+    List<Link> actual = createNamedLinks("c1", "c2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
@@ -279,11 +279,31 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
   @Test
   public void addition_of_unnamed_item_should_be_detected() throws Exception {
-    List<Link> expected = createLinks("c1", "c2");
-    List<Link> actual = createLinks("c1", null, "c2");
+    List<Link> expected = createNamedLinks("c1", "c2");
+    List<Link> actual = createNamedLinks("c1", null, "c2");
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertOnlyOneDifference(diffs, ADDITIONAL, LINK, "/item");
+  }
+
+  @Test
+  public void ignore_names_if_only_used_in_expected() throws Exception {
+    List<Link> expected = createNamedLinks("c1", "c2", "c3");
+    List<Link> actual = createNamedLinks(null, null);
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    assertOnlyOneDifference(diffs, MISSING, LINK, "/item");
+  }
+
+  @Test
+  public void ignore_names_if_only_used_in_actual() throws Exception {
+    List<Link> expected = createNamedLinks(null, null, null);
+    List<Link> actual = createNamedLinks("c1", "c2");
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    assertOnlyOneDifference(diffs, MISSING, LINK, "/item");
   }
 }
