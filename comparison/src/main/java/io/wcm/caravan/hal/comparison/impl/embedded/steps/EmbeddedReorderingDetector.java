@@ -21,7 +21,6 @@ package io.wcm.caravan.hal.comparison.impl.embedded.steps;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
@@ -57,13 +56,6 @@ public class EmbeddedReorderingDetector implements EmbeddedProcessingStep {
   public List<HalDifference> apply(HalComparisonContext context, List<HalResource> expected, List<HalResource> actual) {
 
     MatchingResult<HalResource> matchingResult = applyMatchingAlgorithm(context, expected, actual);
-
-    // if not a single match that was found, then either one of the lists is empty, or all items
-    // are considered to be different. In that case it's better to compare them in the original order,
-    // then just to treat them all as added and removed, so we return early without reporting any diff
-    if (matchingResult.getMatchedActual().isEmpty()) {
-      return Collections.emptyList();
-    }
 
     // collect the re-ordering, addition and removal differences
     HalDifferenceListBuilder diffs = findDifferences(context, expected, actual, matchingResult);

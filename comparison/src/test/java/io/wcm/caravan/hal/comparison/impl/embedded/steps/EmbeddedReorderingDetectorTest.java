@@ -23,6 +23,7 @@ import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.ADDITIONAL;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MISSING;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.REORDERED;
 import static io.wcm.caravan.hal.comparison.HalDifference.EntityType.EMBEDDED;
+import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertDifference;
 import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -155,53 +157,43 @@ public class EmbeddedReorderingDetectorTest {
 
 
   @Test
-  public void should_skip_reordering_detection_if_there_is_only_one_item_in_both_lists() {
+  public void should_detect_if_the_only_item_has_been_replaced() {
 
     List<HalResource> expected = createUniqueResources(1);
     List<HalResource> actual = createUniqueResources(1);
 
-    List<Integer> expectedOrdering = getOrdering(expected);
-    List<Integer> actualOrdering = getOrdering(actual);
-
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertThat(diffs, hasSize(0));
-    assertThat(getOrdering(expected), equalTo(expectedOrdering));
-    assertThat(getOrdering(actual), equalTo(actualOrdering));
+    assertThat(diffs, hasSize(2));
+    assertDifference(diffs.get(1), ADDITIONAL, EMBEDDED, "/item");
+    assertDifference(diffs.get(0), MISSING, EMBEDDED, "/item");
   }
 
   @Test
-  public void should_skip_reordering_detection_if_there_is_only_one_item_in_actual_list() {
+  public void should_detect_if_all_items_were_removed() {
 
-    List<HalResource> expected = createUniqueResources(5);
-    List<HalResource> actual = createUniqueResources(1);
-
-    List<Integer> expectedOrdering = getOrdering(expected);
-    List<Integer> actualOrdering = getOrdering(actual);
+    List<HalResource> expected = createUniqueResources(2);
+    List<HalResource> actual = Collections.emptyList();
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertThat(diffs, hasSize(0));
-    assertThat(getOrdering(expected), equalTo(expectedOrdering));
-    assertThat(getOrdering(actual), equalTo(actualOrdering));
+    assertThat(diffs, hasSize(2));
+    assertDifference(diffs.get(0), MISSING, EMBEDDED, "/item");
+    assertDifference(diffs.get(1), MISSING, EMBEDDED, "/item");
   }
 
   @Test
-  public void should_skip_reordering_detection_if_there_is_only_one_item_in_expected_list() {
+  public void should_detect_if_all_items_were_added() {
 
-    List<HalResource> expected = createUniqueResources(1);
-    List<HalResource> actual = createUniqueResources(5);
-
-    List<Integer> expectedOrdering = getOrdering(expected);
-    List<Integer> actualOrdering = getOrdering(actual);
+    List<HalResource> expected = Collections.emptyList();
+    List<HalResource> actual = createUniqueResources(2);
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertThat(diffs, hasSize(0));
-    assertThat(getOrdering(expected), equalTo(expectedOrdering));
-    assertThat(getOrdering(actual), equalTo(actualOrdering));
+    assertThat(diffs, hasSize(2));
+    assertDifference(diffs.get(0), ADDITIONAL, EMBEDDED, "/item");
+    assertDifference(diffs.get(1), ADDITIONAL, EMBEDDED, "/item");
   }
-
 
   @Test
   public void should_detect_that_ordering_is_the_only_difference() {
