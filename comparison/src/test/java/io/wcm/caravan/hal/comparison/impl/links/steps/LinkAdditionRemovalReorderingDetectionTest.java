@@ -19,11 +19,13 @@
  */
 package io.wcm.caravan.hal.comparison.impl.links.steps;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.ADDITIONAL;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MISSING;
 import static io.wcm.caravan.hal.comparison.HalDifference.EntityType.LINK;
 import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertDifference;
 import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertOnlyOneDifference;
+import static io.wcm.caravan.hal.comparison.testing.StandardRelations.ITEM;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -31,6 +33,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -39,6 +42,7 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -305,5 +309,50 @@ public class LinkAdditionRemovalReorderingDetectionTest {
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertOnlyOneDifference(diffs, MISSING, LINK, "/item");
+  }
+
+
+  @Test
+  public void description_should_contain_link_name_if_available() {
+
+    Link link = new Link("/").setTitle("link title").setName("link name");
+
+    List<Link> expected = newArrayList(link);
+    List<Link> actual = Collections.emptyList();
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    String desc = diffs.get(0).getDescription();
+    assertThat(desc, Matchers.containsString(ITEM));
+    assertThat(desc, Matchers.containsString("link name"));
+  }
+
+  @Test
+  public void description_should_contain_link_title_if_name_unavailable() {
+
+    Link link = new Link("/").setTitle("link title");
+
+    List<Link> expected = newArrayList(link);
+    List<Link> actual = Collections.emptyList();
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    String desc = diffs.get(0).getDescription();
+    assertThat(desc, Matchers.containsString(ITEM));
+    assertThat(desc, Matchers.containsString("link title"));
+  }
+
+  @Test
+  public void description_should_contain_relation_if_title_and_name_not_available() {
+
+    Link link = new Link("/");
+
+    List<Link> expected = newArrayList(link);
+    List<Link> actual = Collections.emptyList();
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    String desc = diffs.get(0).getDescription();
+    assertThat(desc, Matchers.containsString(ITEM));
   }
 }

@@ -95,12 +95,16 @@ public class LinkAdditionRemovalReorderingDetection implements LinkProcessingSte
 
   private static String getLinkNameOrTitle(Link link) {
 
-    if (link.getName() != null) {
-      return " with name '" + link.getName() + "'";
+    String name = link.getName();
+    if (name != null) {
+      return " with name '" + name + "'";
     }
-    else if (link.getTitle() != null) {
-      return " with title '" + link.getName() + "'";
+
+    String title = link.getTitle();
+    if (title != null) {
+      return " with title '" + title + "'";
     }
+
     return "";
   }
 
