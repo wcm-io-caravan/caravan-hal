@@ -144,6 +144,15 @@ public class HalComparisonContextImpl implements HalComparisonContext {
   }
 
   /**
+   * @param indexInArray the index of the next array entry to be compared
+   * @return a new instance with an updated {@link HalPathImpl} that contains array indices
+   */
+  public HalComparisonContextImpl withHalPathIndex(int indexInArray) {
+    HalPathImpl newHalPath = halPath.replaceHalPathIndex(indexInArray);
+    return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl, parentResources);
+  }
+
+  /**
    * @param fieldName the name of the JSON property to be compared
    * @return a new instance with an updated {@link HalPathImpl}
    */

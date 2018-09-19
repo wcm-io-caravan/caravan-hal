@@ -31,6 +31,7 @@ import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
 import io.wcm.caravan.hal.comparison.HalDifference.EntityType;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -40,12 +41,12 @@ import io.wcm.caravan.hal.resource.Link;
 public class HalDifferenceListBuilder {
 
   private final List<HalDifference> differences = new ArrayList<>();
-  private final HalComparisonContext context;
+  private final HalComparisonContextImpl context;
 
   /**
    * @param context specifies in which part of the tree the comparison is currently being executed
    */
-  public HalDifferenceListBuilder(HalComparisonContext context) {
+  public HalDifferenceListBuilder(HalComparisonContextImpl context) {
     this.context = context;
   }
 
@@ -89,20 +90,34 @@ public class HalDifferenceListBuilder {
     differences.add(diff);
   }
 
+  private void addDifferenceWithNewContext(HalComparisonContext newContext, HalDifference.ChangeType changeType, HalDifference.EntityType entityType,
+      String description, JsonNode expectedJson, JsonNode actualJson) {
+
+    HalDifference diff = new HalDifferenceImpl(newContext,
+        changeType, entityType,
+        expectedJson, actualJson, description);
+
+    differences.add(diff);
+  }
+
   /**
    * @param description
    * @param actual the link that was added
+   * @param index within the actual array
    */
-  public void reportAdditionalLink(String description, Link actual) {
-    addDifference(ChangeType.ADDITIONAL, EntityType.LINK, description, null, asJson(actual));
+  public void reportAdditionalLink(String description, Link actual, int index) {
+    HalComparisonContext newContext = context.withHalPathIndex(index);
+    addDifferenceWithNewContext(newContext, ChangeType.ADDITIONAL, EntityType.LINK, description, null, asJson(actual));
   }
 
   /**
    * @param description
    * @param expected the link that was removed
+   * @param index within the expected array
    */
-  public void reportMissingLink(String description, Link expected) {
-    addDifference(ChangeType.MISSING, EntityType.LINK, description, asJson(expected), null);
+  public void reportMissingLink(String description, Link expected, int index) {
+    HalComparisonContext newContext = context.withHalPathIndex(index);
+    addDifferenceWithNewContext(newContext, ChangeType.MISSING, EntityType.LINK, description, asJson(expected), null);
   }
 
   /**
@@ -123,21 +138,24 @@ public class HalDifferenceListBuilder {
     addDifference(ChangeType.REORDERED, EntityType.LINK, description, asJson(expected), asJson(actual));
   }
 
-
   /**
    * @param description
    * @param actual the embedded resource that was added
+   * @param index within the actual array
    */
-  public void reportAdditionalEmbedded(String description, HalResource actual) {
-    addDifference(ChangeType.ADDITIONAL, EntityType.EMBEDDED, description, null, asJson(actual));
+  public void reportAdditionalEmbedded(String description, HalResource actual, int index) {
+    HalComparisonContext newContext = context.withHalPathIndex(index);
+    addDifferenceWithNewContext(newContext, ChangeType.ADDITIONAL, EntityType.EMBEDDED, description, null, asJson(actual));
   }
 
   /**
    * @param description
    * @param expected the embedded resource that was removed
+   * @param index within the actual array
    */
-  public void reportMissingEmbedded(String description, HalResource expected) {
-    addDifference(ChangeType.MISSING, EntityType.EMBEDDED, description, asJson(expected), null);
+  public void reportMissingEmbedded(String description, HalResource expected, int index) {
+    HalComparisonContext newContext = context.withHalPathIndex(index);
+    addDifferenceWithNewContext(newContext, ChangeType.MISSING, EntityType.EMBEDDED, description, asJson(expected), null);
   }
 
   /**
@@ -168,10 +186,30 @@ public class HalDifferenceListBuilder {
 
   /**
    * @param description
+   * @param actual the property that was added
+   * @param index within the actual array
+   */
+  public void reportAdditionalProperty(String description, JsonNode actual, int index) {
+    HalComparisonContext newContext = context.withJsonPathIndex(index);
+    addDifferenceWithNewContext(newContext, ChangeType.ADDITIONAL, EntityType.PROPERTY, description, null, actual);
+  }
+
+  /**
+   * @param description
    * @param expected the property that was removed
    */
   public void reportMissingProperty(String description, JsonNode expected) {
     addDifference(ChangeType.MISSING, EntityType.PROPERTY, description, expected, null);
+  }
+
+  /**
+   * @param description
+   * @param expected the property that was removed
+   * @param index within the expected array
+   */
+  public void reportMissingProperty(String description, JsonNode expected, int index) {
+    HalComparisonContext newContext = context.withJsonPathIndex(index);
+    addDifferenceWithNewContext(newContext, ChangeType.MISSING, EntityType.PROPERTY, description, expected, null);
   }
 
   /**
@@ -191,4 +229,5 @@ public class HalDifferenceListBuilder {
   public void reportReorderedProperty(String description, JsonNode expected, JsonNode actual) {
     addDifference(ChangeType.REORDERED, EntityType.PROPERTY, description, expected, actual);
   }
+
 }

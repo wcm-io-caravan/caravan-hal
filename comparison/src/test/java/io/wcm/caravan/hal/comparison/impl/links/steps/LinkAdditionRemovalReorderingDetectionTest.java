@@ -256,8 +256,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertDifference(diffs.get(0), MISSING, LINK, "/item");
-    assertDifference(diffs.get(1), ADDITIONAL, LINK, "/item");
+    assertDifference(diffs.get(0), MISSING, LINK, "/item[1]");
+    assertDifference(diffs.get(1), ADDITIONAL, LINK, "/item[1]");
   }
 
   @Test
@@ -267,8 +267,8 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertDifference(diffs.get(0), MISSING, LINK, "/item");
-    assertDifference(diffs.get(1), ADDITIONAL, LINK, "/item");
+    assertDifference(diffs.get(0), MISSING, LINK, "/item[1]");
+    assertDifference(diffs.get(1), ADDITIONAL, LINK, "/item[1]");
   }
 
   @Test
@@ -278,7 +278,7 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertOnlyOneDifference(diffs, MISSING, LINK, "/item");
+    assertOnlyOneDifference(diffs, MISSING, LINK, "/item[1]");
   }
 
   @Test
@@ -288,7 +288,7 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertOnlyOneDifference(diffs, ADDITIONAL, LINK, "/item");
+    assertOnlyOneDifference(diffs, ADDITIONAL, LINK, "/item[1]");
   }
 
   @Test
@@ -298,7 +298,7 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertOnlyOneDifference(diffs, MISSING, LINK, "/item");
+    assertOnlyOneDifference(diffs, MISSING, LINK, "/item[2]");
   }
 
   @Test
@@ -308,7 +308,7 @@ public class LinkAdditionRemovalReorderingDetectionTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertOnlyOneDifference(diffs, MISSING, LINK, "/item");
+    assertOnlyOneDifference(diffs, MISSING, LINK, "/item[2]");
   }
 
 

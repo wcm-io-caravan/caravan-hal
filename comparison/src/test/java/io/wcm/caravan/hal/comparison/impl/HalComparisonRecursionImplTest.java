@@ -53,7 +53,6 @@ import org.mockito.stubbing.Answer;
 
 import com.google.common.collect.ImmutableList;
 
-import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
@@ -117,7 +116,7 @@ public class HalComparisonRecursionImplTest {
 
           @Override
           public List<HalDifference> answer(InvocationOnMock invocation) throws Throwable {
-            HalComparisonContext context = contextCaptor.getValue();
+            HalComparisonContextImpl context = contextCaptor.getValue();
             HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
             diffs.reportModifiedProperty("mocked comparison error", null, null);
             return diffs.build();

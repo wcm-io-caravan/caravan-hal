@@ -69,7 +69,7 @@ public class LinkAdditionRemovalReorderingDetection implements LinkProcessingSte
     return algorithm.findMatchingItems(expected, actual);
   }
 
-  private HalDifferenceListBuilder findDifferences(HalComparisonContext context, List<Link> expected, List<Link> actual,
+  private HalDifferenceListBuilder findDifferences(HalComparisonContextImpl context, List<Link> expected, List<Link> actual,
       MatchingResult<Link> matchingResult) {
 
     HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
@@ -83,12 +83,12 @@ public class LinkAdditionRemovalReorderingDetection implements LinkProcessingSte
 
     for (Link removed : matchingResult.getRemovedExpected()) {
       String msg = "A " + relation + " link" + getLinkNameOrTitle(removed) + " is missing in the actual resource";
-      diffs.reportMissingLink(msg, removed);
+      diffs.reportMissingLink(msg, removed, expected.indexOf(removed));
     }
 
     for (Link added : matchingResult.getAddedActual()) {
       String msg = "An additional " + relation + " link" + getLinkNameOrTitle(added) + " is present in the actual resource";
-      diffs.reportAdditionalLink(msg, added);
+      diffs.reportAdditionalLink(msg, added, actual.indexOf(added));
     }
 
     return diffs;

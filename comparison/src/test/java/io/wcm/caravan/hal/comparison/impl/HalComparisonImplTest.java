@@ -108,7 +108,7 @@ public class HalComparisonImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertOnlyOneDifference(diff, MISSING, EMBEDDED, "/item");
+    assertOnlyOneDifference(diff, MISSING, EMBEDDED, "/item[1]");
   }
 
   @Test
@@ -121,7 +121,7 @@ public class HalComparisonImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertOnlyOneDifference(diff, ADDITIONAL, EMBEDDED, "/item");
+    assertOnlyOneDifference(diff, ADDITIONAL, EMBEDDED, "/item[1]");
   }
 
   @Test
@@ -146,7 +146,7 @@ public class HalComparisonImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertOnlyOneDifference(diff, MISSING, LINK, "/item");
+    assertOnlyOneDifference(diff, MISSING, LINK, "/item[1]");
   }
 
   @Test
@@ -159,7 +159,7 @@ public class HalComparisonImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertOnlyOneDifference(diff, ADDITIONAL, LINK, "/item");
+    assertOnlyOneDifference(diff, ADDITIONAL, LINK, "/item[1]");
   }
 
   @Test
@@ -184,7 +184,7 @@ public class HalComparisonImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertOnlyOneDifference(diff, MISSING, LINK, "/item");
+    assertOnlyOneDifference(diff, MISSING, LINK, "/item[0]");
   }
 
   @Test
@@ -197,7 +197,7 @@ public class HalComparisonImplTest {
 
     List<HalDifference> diff = findDifferences();
 
-    assertOnlyOneDifference(diff, ADDITIONAL, LINK, "/item");
+    assertOnlyOneDifference(diff, ADDITIONAL, LINK, "/item[0]");
   }
 
   @Test

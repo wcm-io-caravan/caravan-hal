@@ -168,8 +168,8 @@ public class EmbeddedAdditionRemovalReorderingDetectionTest {
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(2));
-    assertDifference(diffs.get(1), ADDITIONAL, EMBEDDED, "/item");
-    assertDifference(diffs.get(0), MISSING, EMBEDDED, "/item");
+    assertDifference(diffs.get(1), ADDITIONAL, EMBEDDED, "/item[0]");
+    assertDifference(diffs.get(0), MISSING, EMBEDDED, "/item[0]");
   }
 
   @Test
@@ -181,8 +181,8 @@ public class EmbeddedAdditionRemovalReorderingDetectionTest {
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(2));
-    assertDifference(diffs.get(0), MISSING, EMBEDDED, "/item");
-    assertDifference(diffs.get(1), MISSING, EMBEDDED, "/item");
+    assertDifference(diffs.get(0), MISSING, EMBEDDED, "/item[0]");
+    assertDifference(diffs.get(1), MISSING, EMBEDDED, "/item[1]");
   }
 
   @Test
@@ -194,8 +194,8 @@ public class EmbeddedAdditionRemovalReorderingDetectionTest {
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(2));
-    assertDifference(diffs.get(0), ADDITIONAL, EMBEDDED, "/item");
-    assertDifference(diffs.get(1), ADDITIONAL, EMBEDDED, "/item");
+    assertDifference(diffs.get(0), ADDITIONAL, EMBEDDED, "/item[0]");
+    assertDifference(diffs.get(1), ADDITIONAL, EMBEDDED, "/item[1]");
   }
 
   @Test

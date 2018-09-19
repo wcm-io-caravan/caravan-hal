@@ -73,6 +73,17 @@ public class HalPathImpl {
 
   /**
    * @param index of an element within an array
+   * @return a new instance with an updated HAL path suffix
+   */
+  public HalPathImpl replaceHalPathIndex(int index) {
+    List<Token> newTokens = new ArrayList<>(halTokens);
+    Token lastToken = newTokens.remove(newTokens.size() - 1);
+    newTokens.add(new Token(lastToken.getName(), index, lastToken.identifier));
+    return new HalPathImpl(newTokens, jsonTokens);
+  }
+
+  /**
+   * @param index of an element within an array
    * @return a new instance with an updated JSON path suffix
    */
   public HalPathImpl replaceJsonPathIndex(int index) {

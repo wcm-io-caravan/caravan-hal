@@ -82,7 +82,7 @@ public class EmbeddedAdditionRemovalReorderingDetection implements EmbeddedProce
     return algorithm.findMatchingItems(expected, actual);
   }
 
-  private HalDifferenceListBuilder findDifferences(HalComparisonContext context, List<HalResource> expected, List<HalResource> actual,
+  private HalDifferenceListBuilder findDifferences(HalComparisonContextImpl context, List<HalResource> expected, List<HalResource> actual,
       MatchingResult<HalResource> matchingResult) {
 
     HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
@@ -96,12 +96,12 @@ public class EmbeddedAdditionRemovalReorderingDetection implements EmbeddedProce
 
     for (HalResource removed : matchingResult.getRemovedExpected()) {
       String msg = "An embedded " + relation + getResourceTitle(removed) + "is missing in the actual resource";
-      diffs.reportMissingEmbedded(msg, removed);
+      diffs.reportMissingEmbedded(msg, removed, expected.indexOf(removed));
     }
 
     for (HalResource added : matchingResult.getAddedActual()) {
       String msg = "An additional embedded " + relation + getResourceTitle(added) + "is present in the actual resource";
-      diffs.reportAdditionalEmbedded(msg, added);
+      diffs.reportAdditionalEmbedded(msg, added, actual.indexOf(added));
     }
 
     return diffs;
