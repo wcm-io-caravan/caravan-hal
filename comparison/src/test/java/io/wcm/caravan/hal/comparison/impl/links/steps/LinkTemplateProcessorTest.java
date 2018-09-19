@@ -34,9 +34,9 @@ import java.util.stream.Stream;
 import org.junit.Before;
 import org.junit.Test;
 
-import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonContext;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonStrategy;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -46,7 +46,7 @@ import io.wcm.caravan.hal.resource.Link;
 public class LinkTemplateProcessorTest {
 
   private LinkTemplateProcessor processor;
-  private HalComparisonContext context;
+  private HalComparisonContextImpl context;
   private HalComparisonStrategy strategy;
 
   @Before

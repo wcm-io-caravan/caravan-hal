@@ -22,8 +22,8 @@ package io.wcm.caravan.hal.comparison.testing.processing;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -33,7 +33,7 @@ public final class ReportAllEmbeddedResources implements EmbeddedProcessingStep 
   private List<HalDifference> diffsForAllRelations = new ArrayList<>();
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, List<HalResource> e, List<HalResource> a) {
+  public List<HalDifference> apply(HalComparisonContextImpl context, List<HalResource> e, List<HalResource> a) {
     HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
 
     for (HalResource hal : e) {

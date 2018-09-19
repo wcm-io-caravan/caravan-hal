@@ -79,7 +79,7 @@ public class HalComparisonContextImpl implements HalComparisonContext {
    * @param relation of the linked or embedded resource that is about to be processed
    * @return a new instance with an updated {@link HalPathImpl}
    */
-  public HalComparisonContext withAppendedHalPath(String relation, HalResource contextResource) {
+  public HalComparisonContextImpl withAppendedHalPath(String relation, HalResource contextResource) {
 
     HalPathImpl newHalPath = halPath.append(relation, null, null);
     return new HalComparisonContextImpl(newHalPath, expectedUrl, actualUrl, createNewParentResourceMap(contextResource));

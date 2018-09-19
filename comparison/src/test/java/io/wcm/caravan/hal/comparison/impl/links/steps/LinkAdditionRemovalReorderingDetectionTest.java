@@ -48,9 +48,9 @@ import org.junit.Test;
 
 import com.google.common.collect.ImmutableMap;
 
-import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.HalDifference.ChangeType;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.testing.StandardRelations;
 import io.wcm.caravan.hal.comparison.testing.TestHalComparisonContext;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -59,7 +59,7 @@ import io.wcm.caravan.hal.resource.Link;
 public class LinkAdditionRemovalReorderingDetectionTest {
 
   private LinkAdditionRemovalReorderingDetection processor;
-  private HalComparisonContext context;
+  private HalComparisonContextImpl context;
 
   @Before
   public void setUp() {

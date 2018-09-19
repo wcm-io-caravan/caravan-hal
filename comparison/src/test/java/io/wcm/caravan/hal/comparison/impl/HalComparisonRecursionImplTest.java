@@ -393,7 +393,7 @@ public class HalComparisonRecursionImplTest {
     mockLinkProcessing(new LinkProcessingStep() {
 
       @Override
-      public List<HalDifference> apply(HalComparisonContext context, List<Link> expectedLinks, List<Link> actualLinks) {
+      public List<HalDifference> apply(HalComparisonContextImpl context, List<Link> expectedLinks, List<Link> actualLinks) {
 
         if (SELF.equals(context.getLastRelation())) {
 
@@ -440,7 +440,7 @@ public class HalComparisonRecursionImplTest {
     mockEmbeddedProcessing(new EmbeddedProcessingStep() {
 
       @Override
-      public List<HalDifference> apply(HalComparisonContext context, List<HalResource> expectedEmbedded, List<HalResource> actualEmbedded) {
+      public List<HalDifference> apply(HalComparisonContextImpl context, List<HalResource> expectedEmbedded, List<HalResource> actualEmbedded) {
         stepCalledForItem.incrementAndGet();
 
         assertThat(context.getLastRelation(), equalTo(ITEM));

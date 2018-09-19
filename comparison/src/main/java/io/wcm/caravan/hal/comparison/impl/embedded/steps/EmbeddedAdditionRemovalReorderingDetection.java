@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalComparisonStrategy;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.comparison.impl.matching.MatchingAlgorithm;
@@ -56,7 +57,7 @@ public class EmbeddedAdditionRemovalReorderingDetection implements EmbeddedProce
   }
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, List<HalResource> expected, List<HalResource> actual) {
+  public List<HalDifference> apply(HalComparisonContextImpl context, List<HalResource> expected, List<HalResource> actual) {
 
     MatchingResult<HalResource> matchingResult = applyMatchingAlgorithm(context, expected, actual);
 

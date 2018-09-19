@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
 import io.wcm.caravan.hal.comparison.impl.links.LinkProcessingStep;
 import io.wcm.caravan.hal.comparison.impl.matching.MatchingAlgorithm;
@@ -40,7 +41,7 @@ import io.wcm.caravan.hal.resource.Link;
 public class LinkAdditionRemovalReorderingDetection implements LinkProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, List<Link> expected, List<Link> actual) {
+  public List<HalDifference> apply(HalComparisonContextImpl context, List<Link> expected, List<Link> actual) {
 
     MatchingResult<Link> matchingResult = applyMatchingAlgorithm(context, expected, actual);
 

@@ -22,15 +22,15 @@ package io.wcm.caravan.hal.comparison.testing.processing;
 import java.util.Collections;
 import java.util.List;
 
-import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
+import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.embedded.EmbeddedProcessingStep;
 import io.wcm.caravan.hal.resource.HalResource;
 
 public final class IgnoreAllEmbeddedResources implements EmbeddedProcessingStep {
 
   @Override
-  public List<HalDifference> apply(HalComparisonContext context, List<HalResource> expectedEmbedded, List<HalResource> actualEmbedded) {
+  public List<HalDifference> apply(HalComparisonContextImpl context, List<HalResource> expectedEmbedded, List<HalResource> actualEmbedded) {
     expectedEmbedded.clear();
     actualEmbedded.clear();
 
