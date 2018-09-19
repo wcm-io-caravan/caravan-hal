@@ -35,7 +35,7 @@ public interface PropertyProcessing {
    * @param context specifies the 'relational' location of the given resources (and provides access to configuration)
    * @param expected the "ground truth" resource
    * @param actual the resource to be compared against the ground truth
-   * @return TODO:
+   * @return a list of all {@link HalDifference} that were detected
    */
   List<HalDifference> process(HalComparisonContextImpl context, HalResource expected, HalResource actual);
 

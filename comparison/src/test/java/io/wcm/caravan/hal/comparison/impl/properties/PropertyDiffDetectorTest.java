@@ -199,7 +199,7 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertDifference(diffs.get(0), MODIFIED, PROPERTY, "/$.name");
+    assertOnlyOneDifference(diffs, MODIFIED, PROPERTY, "/$.name");
   }
 
   @Test
@@ -214,7 +214,22 @@ public class PropertyDiffDetectorTest {
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertDifference(diffs.get(0), MISSING, PROPERTY, "/$.name");
+    assertOnlyOneDifference(diffs, MISSING, PROPERTY, "/$.name");
+  }
+
+  @Test
+  public void single_result_for_additional_property() throws Exception {
+
+    TestPojo pojo = new TestPojo().withName("foo").withNumber(123);
+
+    HalResource expected = new HalResource(pojo);
+    ObjectNode modifiedClone = expected.getModel().deepCopy();
+    modifiedClone.put("added", "value");
+    HalResource actual = new HalResource(modifiedClone);
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    assertOnlyOneDifference(diffs, ADDITIONAL, PROPERTY, "/$.added");
   }
 
   public static class TestPojo {

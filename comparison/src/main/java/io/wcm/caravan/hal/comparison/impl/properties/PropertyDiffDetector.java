@@ -19,8 +19,10 @@
  */
 package io.wcm.caravan.hal.comparison.impl.properties;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang3.StringUtils;
@@ -69,6 +71,8 @@ public class PropertyDiffDetector implements PropertyProcessing {
   private void compareObjects(HalComparisonContextImpl context, ObjectNode expectedJson, ObjectNode actualJson, AtomicInteger nodeCounter,
       HalDifferenceListBuilder diffs) {
 
+    Set<String> comparedFieldNames = new HashSet<>();
+
     Iterator<String> fieldNameIt = expectedJson.fieldNames();
     while (fieldNameIt.hasNext()) {
       String fieldName = fieldNameIt.next();
@@ -80,7 +84,22 @@ public class PropertyDiffDetector implements PropertyProcessing {
       HalDifferenceListBuilder newDiffs = new HalDifferenceListBuilder(newContext);
       compareValues(newContext, expectedValue, actualValue, nodeCounter, newDiffs);
       diffs.addAllFrom(newDiffs);
+
+      comparedFieldNames.add(fieldName);
     }
+
+    Iterator<String> actualFieldNameIt = actualJson.fieldNames();
+    while (actualFieldNameIt.hasNext()) {
+      String fieldName = actualFieldNameIt.next();
+      if (!comparedFieldNames.contains(fieldName)) {
+        HalComparisonContextImpl newContext = context.withAppendedJsonPath(fieldName);
+        HalDifferenceListBuilder newDiffs = new HalDifferenceListBuilder(newContext);
+
+        newDiffs.reportAdditionalProperty("An unexpected property " + fieldName + " was found in the actual resource", actualJson.get(fieldName));
+        diffs.addAllFrom(newDiffs);
+      }
+    }
+
   }
 
   private void compareValues(HalComparisonContextImpl context, JsonNode expectedValue, JsonNode actualValue, AtomicInteger nodeCounter,
