@@ -82,23 +82,33 @@ public class HalPathImpl {
     return new HalPathImpl(halTokens, newTokens);
   }
 
-  /**
-   * @return the last relation that was followed
-   */
-  public String getLastRelation() {
-    if (halTokens.isEmpty()) {
+  private static String getLastOf(List<Token> tokens) {
+    if (tokens.isEmpty()) {
       return "";
     }
-    return Iterables.getLast(halTokens).getName();
+    return Iterables.getLast(tokens).getName();
   }
 
-  /**
-   * @return all relations that were followed to get to the context resources
-   */
-  List<String> getAllRelations() {
-    return halTokens.stream()
+  private static List<String> getAllOf(List<Token> tokens) {
+    return tokens.stream()
         .map(Token::getName)
         .collect(Collectors.toList());
+  }
+
+  String getLastRelation() {
+    return getLastOf(halTokens);
+  }
+
+  List<String> getAllRelations() {
+    return getAllOf(halTokens);
+  }
+
+  String getLastProperyName() {
+    return getLastOf(jsonTokens);
+  }
+
+  List<String> getAllPropertyNames() {
+    return getAllOf(jsonTokens);
   }
 
   @Override

@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.comparison.impl.properties;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -29,10 +30,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
 
+import io.wcm.caravan.hal.comparison.HalComparisonContext;
 import io.wcm.caravan.hal.comparison.HalDifference;
 import io.wcm.caravan.hal.comparison.impl.context.HalComparisonContextImpl;
 import io.wcm.caravan.hal.comparison.impl.difference.HalDifferenceListBuilder;
+import io.wcm.caravan.hal.comparison.impl.matching.MatchingResult;
+import io.wcm.caravan.hal.comparison.impl.matching.SimpleIdMatchingAlgorithm;
 import io.wcm.caravan.hal.comparison.impl.util.HalJsonConversion;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -92,10 +97,10 @@ public class PropertyDiffDetector implements PropertyProcessing {
     while (actualFieldNameIt.hasNext()) {
       String fieldName = actualFieldNameIt.next();
       if (!comparedFieldNames.contains(fieldName)) {
-        HalComparisonContextImpl newContext = context.withAppendedJsonPath(fieldName);
+        HalComparisonContext newContext = context.withAppendedJsonPath(fieldName);
         HalDifferenceListBuilder newDiffs = new HalDifferenceListBuilder(newContext);
 
-        newDiffs.reportAdditionalProperty("An unexpected property " + fieldName + " was found in the actual resource", actualJson.get(fieldName));
+        newDiffs.reportAdditionalProperty("An additional property " + fieldName + " was found in the actual resource", actualJson.get(fieldName));
         diffs.addAllFrom(newDiffs);
       }
     }
@@ -118,23 +123,14 @@ public class PropertyDiffDetector implements PropertyProcessing {
       compareObjects(context, (ObjectNode)expectedValue, (ObjectNode)actualValue, nodeCounter, diffs);
     }
     else if (expectedValue.isArray()) {
-      int numExpected = expectedValue.size();
-      int numActual = actualValue.size();
+      List<HalDifference> diffWithMatching = compareArrayValuesWithMatching(context, expectedValue, actualValue);
+      List<HalDifference> diffInplace = compareArrayValuesInplace(context, expectedValue, actualValue, nodeCounter);
 
-      if (numExpected != numActual) {
-        String msg = "Expected array with " + numExpected + " elements, but found " + numActual;
-        if (numExpected > numActual) {
-          diffs.reportMissingProperty(msg, expectedValue, actualValue);
-        }
-        else {
-          diffs.reportAdditionalProperty(msg, expectedValue, actualValue);
-        }
+      if (diffWithMatching.size() < diffInplace.size()) {
+        diffs.addAll(diffWithMatching);
       }
-      for (int i = 0; i < numExpected && i < numActual; i++) {
-        HalComparisonContextImpl newContext = context.withJsonPathIndex(i);
-        HalDifferenceListBuilder newDiffs = new HalDifferenceListBuilder(newContext);
-        compareValues(newContext, expectedValue.get(i), actualValue.get(i), nodeCounter, newDiffs);
-        diffs.addAllFrom(newDiffs);
+      else {
+        diffs.addAll(diffInplace);
       }
     }
     else if (!expectedValue.equals(actualValue)) {
@@ -144,4 +140,83 @@ public class PropertyDiffDetector implements PropertyProcessing {
     }
   }
 
+  private List<HalDifference> compareArrayValuesInplace(HalComparisonContextImpl context, JsonNode expectedValue, JsonNode actualValue,
+      AtomicInteger nodeCounter) {
+
+    HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
+    int numExpected = expectedValue.size();
+    int numActual = actualValue.size();
+
+    for (int i = 0; i < numExpected && i < numActual; i++) {
+      HalComparisonContextImpl newContext = context.withJsonPathIndex(i);
+      HalDifferenceListBuilder newDiffs = new HalDifferenceListBuilder(newContext);
+      compareValues(newContext, expectedValue.get(i), actualValue.get(i), nodeCounter, newDiffs);
+      diffs.addAllFrom(newDiffs);
+    }
+
+    if (numExpected != numActual) {
+      if (numExpected > numActual) {
+        for (int i = numActual; i < numExpected; i++) {
+          reportMissingArrayElement(context, diffs, expectedValue.get(i), i);
+        }
+      }
+      else {
+        for (int i = numExpected; i < numActual; i++) {
+          reportAdditionalArrayElement(context, diffs, actualValue.get(i), i);
+        }
+      }
+    }
+
+    return diffs.build();
+  }
+
+  private List<HalDifference> compareArrayValuesWithMatching(HalComparisonContextImpl context, JsonNode expected, JsonNode actual) {
+
+    HalDifferenceListBuilder diffs = new HalDifferenceListBuilder(context);
+
+    SimpleIdMatchingAlgorithm<JsonNode> algorithm = new SimpleIdMatchingAlgorithm<>(json -> json.toString());
+
+    ArrayList<JsonNode> expectedList = Lists.newArrayList(expected);
+    ArrayList<JsonNode> actualList = Lists.newArrayList(actual);
+
+    MatchingResult<JsonNode> matchingResult = algorithm.findMatchingItems(expectedList, actualList);
+
+    boolean reorderingRequired = matchingResult.areMatchesReordered();
+
+    if (reorderingRequired) {
+      String msg = "The array elements have a different order in the actual resource";
+      diffs.reportReorderedProperty(msg, expected, actual);
+    }
+
+    for (JsonNode removed : matchingResult.getRemovedExpected()) {
+      int index = expectedList.indexOf(removed);
+      reportMissingArrayElement(context, diffs, removed, index);
+    }
+
+    for (JsonNode added : matchingResult.getAddedActual()) {
+      int index = actualList.indexOf(added);
+      reportAdditionalArrayElement(context, diffs, added, index);
+    }
+
+    return diffs.build();
+  }
+
+  private void reportAdditionalArrayElement(HalComparisonContextImpl context, HalDifferenceListBuilder diffs, JsonNode added, int index) {
+    String msg = "An additional array element " + added.toString() + " is present in the actual resource";
+    HalDifferenceListBuilder newDiffs = newDiffWithArrayIndex(context, index);
+    newDiffs.reportAdditionalProperty(msg, added);
+    diffs.addAllFrom(newDiffs);
+  }
+
+  private void reportMissingArrayElement(HalComparisonContextImpl context, HalDifferenceListBuilder diffs, JsonNode removed, int index) {
+    String msg = "An array element " + removed.toString() + " is missing in the actual resource";
+    HalDifferenceListBuilder newDiffs = newDiffWithArrayIndex(context, index);
+    newDiffs.reportMissingProperty(msg, removed);
+    diffs.addAllFrom(newDiffs);
+  }
+
+  private HalDifferenceListBuilder newDiffWithArrayIndex(HalComparisonContextImpl context, int index) {
+    HalComparisonContext newContext = context.withJsonPathIndex(index);
+    return new HalDifferenceListBuilder(newContext);
+  }
 }

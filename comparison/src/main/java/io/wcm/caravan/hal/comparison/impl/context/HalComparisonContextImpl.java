@@ -188,6 +188,16 @@ public class HalComparisonContextImpl implements HalComparisonContext {
   }
 
   @Override
+  public String getLastProperyName() {
+    return halPath.getLastProperyName();
+  }
+
+  @Override
+  public List<String> getAllPropertyNames() {
+    return halPath.getAllPropertyNames();
+  }
+
+  @Override
   public HalResource getParentResourceWithRelation(String relation) {
     return parentResources.entrySet().stream()
         .filter(entry -> entry.getKey().getLastRelation().equals(relation))

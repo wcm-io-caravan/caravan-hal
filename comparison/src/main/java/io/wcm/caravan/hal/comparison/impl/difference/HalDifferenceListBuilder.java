@@ -71,6 +71,13 @@ public class HalDifferenceListBuilder {
     differences.addAll(other.build());
   }
 
+  /**
+   * Merges the differences reported to this and another builder
+   * @param other list of results
+   */
+  public void addAll(List<HalDifference> other) {
+    differences.addAll(other);
+  }
 
   private void addDifference(HalDifference.ChangeType changeType, HalDifference.EntityType entityType,
       String description, JsonNode expectedJson, JsonNode actualJson) {
@@ -161,28 +168,10 @@ public class HalDifferenceListBuilder {
 
   /**
    * @param description
-   * @param expected the parent property that does not contain the additional child
-   * @param actual thh parent property from the actual resource
-   */
-  public void reportAdditionalProperty(String description, JsonNode expected, JsonNode actual) {
-    addDifference(ChangeType.ADDITIONAL, EntityType.PROPERTY, description, expected, actual);
-  }
-
-  /**
-   * @param description
    * @param expected the property that was removed
    */
   public void reportMissingProperty(String description, JsonNode expected) {
     addDifference(ChangeType.MISSING, EntityType.PROPERTY, description, expected, null);
-  }
-
-  /**
-   * @param description
-   * @param expected the parent property that contains the missing child
-   * @param actual the corresponding property that does not include that child
-   */
-  public void reportMissingProperty(String description, JsonNode expected, JsonNode actual) {
-    addDifference(ChangeType.MISSING, EntityType.PROPERTY, description, expected, actual);
   }
 
   /**
@@ -202,5 +191,4 @@ public class HalDifferenceListBuilder {
   public void reportReorderedProperty(String description, JsonNode expected, JsonNode actual) {
     addDifference(ChangeType.REORDERED, EntityType.PROPERTY, description, expected, actual);
   }
-
 }

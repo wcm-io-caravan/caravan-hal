@@ -22,10 +22,13 @@ package io.wcm.caravan.hal.comparison.impl.properties;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.ADDITIONAL;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MISSING;
 import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.MODIFIED;
+import static io.wcm.caravan.hal.comparison.HalDifference.ChangeType.REORDERED;
 import static io.wcm.caravan.hal.comparison.HalDifference.EntityType.PROPERTY;
 import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertDifference;
 import static io.wcm.caravan.hal.comparison.testing.HalDifferenceAssertions.assertOnlyOneDifference;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -149,43 +152,79 @@ public class PropertyDiffDetectorTest {
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertThat(diffs, hasSize(2));
+
     assertDifference(diffs.get(0), MODIFIED, PROPERTY, "/$.array[1]");
     assertDifference(diffs.get(1), MODIFIED, PROPERTY, "/$.array[2]");
   }
 
   @Test
-  public void single_result_for_arrays_with_one_missing_item() throws Exception {
+  public void single_result_for_arrays_with_one_missing_item_at_the_end() throws Exception {
 
     HalResource expected = new HalResource(new TestPojo().withArray("a", "b", "c"));
     HalResource actual = new HalResource(new TestPojo().withArray("a", "b"));
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertOnlyOneDifference(diffs, MISSING, PROPERTY, "/$.array");
+    assertOnlyOneDifference(diffs, MISSING, PROPERTY, "/$.array[2]");
   }
 
   @Test
-  public void single_result_for_arrays_with_one_additional_item() throws Exception {
+  public void single_result_for_arrays_with_one_missing_item_at_the_beginning() throws Exception {
+
+    HalResource expected = new HalResource(new TestPojo().withArray("a", "b", "c", "d", "e"));
+    HalResource actual = new HalResource(new TestPojo().withArray("b", "c", "d", "e"));
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    assertOnlyOneDifference(diffs, MISSING, PROPERTY, "/$.array[0]");
+  }
+
+  @Test
+  public void single_result_for_arrays_with_one_additional_item_at_the_end() throws Exception {
 
     HalResource expected = new HalResource(new TestPojo().withArray("a", "b"));
     HalResource actual = new HalResource(new TestPojo().withArray("a", "b", "c"));
 
     List<HalDifference> diffs = findDifferences(expected, actual);
 
-    assertOnlyOneDifference(diffs, ADDITIONAL, PROPERTY, "/$.array");
+    assertOnlyOneDifference(diffs, ADDITIONAL, PROPERTY, "/$.array[2]");
   }
 
   @Test
-  public void multiple_result_for_arrays_with_one_missing_and_one_different_item() throws Exception {
+  public void single_result_for_arrays_with_one_additional_item_at_the_beginning() throws Exception {
+
+    HalResource expected = new HalResource(new TestPojo().withArray("b", "c"));
+    HalResource actual = new HalResource(new TestPojo().withArray("a", "b", "c"));
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    assertOnlyOneDifference(diffs, ADDITIONAL, PROPERTY, "/$.array[0]");
+  }
+
+
+  @Test
+  public void multiple_result_for_arrays_with_one_missing_and_one_modified_item() throws Exception {
 
     HalResource expected = new HalResource(new TestPojo().withArray("a", "b", "c"));
     HalResource actual = new HalResource(new TestPojo().withArray("a", "1"));
 
     List<HalDifference> diffs = findDifferences(expected, actual);
-    assertThat(diffs, hasSize(2));
 
-    assertDifference(diffs.get(0), MISSING, PROPERTY, "/$.array");
-    assertDifference(diffs.get(1), MODIFIED, PROPERTY, "/$.array[1]");
+    assertThat(diffs, hasSize(2));
+    assertDifference(diffs.get(0), MODIFIED, PROPERTY, "/$.array[1]");
+    assertDifference(diffs.get(1), MISSING, PROPERTY, "/$.array[2]");
+  }
+
+
+  @Test
+  public void single_result_for_arrays_with_reordered_items() throws Exception {
+
+    HalResource expected = new HalResource(new TestPojo().withArray("a", "b", "c", "d"));
+    HalResource actual = new HalResource(new TestPojo().withArray("d", "c", "b", "a"));
+
+    List<HalDifference> diffs = findDifferences(expected, actual);
+
+    assertOnlyOneDifference(diffs, REORDERED, PROPERTY, "/$.array");
   }
 
   @Test
@@ -230,6 +269,27 @@ public class PropertyDiffDetectorTest {
     List<HalDifference> diffs = findDifferences(expected, actual);
 
     assertOnlyOneDifference(diffs, ADDITIONAL, PROPERTY, "/$.added");
+  }
+
+  @Test
+  public void properties_should_be_tracked_by_context() throws Exception {
+
+    TestPojo nestedExpected = new TestPojo().withName("foo");
+    TestPojo expected = new TestPojo().withRelated(nestedExpected).withName("foo");
+
+    TestPojo nestedActual = new TestPojo().withName("bar");
+    TestPojo actual = new TestPojo().withRelated(nestedActual).withName("bar");
+
+    List<HalDifference> diffs = findDifferences(new HalResource(expected), new HalResource(actual));
+
+    assertThat(diffs, hasSize(2));
+    assertDifference(diffs.get(0), MODIFIED, PROPERTY, "/$.name");
+    assertThat(diffs.get(0).getHalContext().getLastProperyName(), equalTo("name"));
+    assertThat(diffs.get(0).getHalContext().getAllPropertyNames(), contains("name"));
+
+    assertDifference(diffs.get(1), MODIFIED, PROPERTY, "/$.related.name");
+    assertThat(diffs.get(1).getHalContext().getLastProperyName(), equalTo("name"));
+    assertThat(diffs.get(1).getHalContext().getAllPropertyNames(), contains("related", "name"));
   }
 
   public static class TestPojo {

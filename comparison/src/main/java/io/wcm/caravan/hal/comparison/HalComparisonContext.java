@@ -48,6 +48,18 @@ public interface HalComparisonContext {
    */
   HalResource getParentResourceWithRelation(String relation);
 
+
+  /**
+   * @return the name of the JSON property where a difference was detected (or empty string, if the difference was not
+   *         in a JSON property)
+   */
+  String getLastProperyName();
+
+  /**
+   * @return the names of all JSON properties contained in the HAL path (as returned by {@link #toString()}
+   */
+  List<String> getAllPropertyNames();
+
   /**
    * @return the URL where the resource that contains the expected value can be loaded from
    */
@@ -64,4 +76,5 @@ public interface HalComparisonContext {
    */
   @Override
   String toString();
+
 }
