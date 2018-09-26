@@ -10,6 +10,7 @@
 * [Docs Annotations](docs-annotations/): HAL Documentation Annotations
 * [Docs Maven Plugin](docs-maven-plugin/): HAL Documentation Maven Plugin
 * [Resource](resource/): Library for building and reading JSON HAL resources.
+* [Comparison](comparison/): Library for recursively comparing a tree of JSON HAL resources.
 
 
 ### GitHub Repository
