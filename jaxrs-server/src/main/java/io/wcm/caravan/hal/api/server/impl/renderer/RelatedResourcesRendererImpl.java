@@ -25,9 +25,10 @@ import static io.wcm.caravan.hal.api.server.impl.reflection.RxJavaReflectionUtil
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.server.EmbeddableResource;
@@ -35,8 +36,6 @@ import io.wcm.caravan.hal.api.server.LinkableResource;
 import io.wcm.caravan.hal.api.server.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
-import rx.Observable;
-import rx.Single;
 
 class RelatedResourcesRendererImpl {
 
@@ -62,7 +61,7 @@ class RelatedResourcesRendererImpl {
         // create a RelatedContent instance with the links and embedded resources returned by each method
         .concatMap(method -> createRelatedContentForMethod(resourceImplInstance, method).toObservable())
         // and collect the results for each method in a single list
-        .toList().toSingle();
+        .toList();
   }
 
   private Single<RelationRenderResult> createRelatedContentForMethod(Object resourceImplInstance, Method method) {
@@ -106,10 +105,9 @@ class RelatedResourcesRendererImpl {
 
     // and let each resource create a link to itself
     Observable<Link> rxLinks = rxLinkedResourceImpls
-        .map(r -> r.createLink())
-        .filter(Objects::nonNull);
+        .map(r -> r.createLink());
 
-    return rxLinks.toList().toSingle();
+    return rxLinks.toList();
   }
 
   private Single<List<HalResource>> renderEmbeddedResources(Method method, Observable<?> rxRelatedResources) {
@@ -128,7 +126,7 @@ class RelatedResourcesRendererImpl {
       Observable<HalResource> rxHalResources = rxEmbeddedResourceImpls
           .concatMap(r -> renderFunction.apply(r).toObservable());
 
-      return rxHalResources.toList().toSingle();
+      return rxHalResources.toList();
     }
 
     return Single.just(Collections.emptyList());

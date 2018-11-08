@@ -28,12 +28,13 @@ import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.reactivex.Single;
+import io.reactivex.SingleObserver;
+import io.reactivex.disposables.Disposable;
 import io.wcm.caravan.hal.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.api.server.LinkableResource;
 import io.wcm.caravan.hal.api.server.jaxrs.AsyncHalResponseHandler;
 import io.wcm.caravan.hal.resource.HalResource;
-import rx.Single;
-import rx.SingleSubscriber;
 
 @Component(service = { AsyncHalResponseHandler.class })
 public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
@@ -48,7 +49,12 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
 
     Single<HalResource> rxHalResource = renderer.renderResource(resourceImpl);
 
-    rxHalResource.subscribe(new SingleSubscriber<HalResource>() {
+    rxHalResource.subscribe(new SingleObserver<HalResource>() {
+
+      @Override
+      public void onSubscribe(Disposable d) {
+        // nothing to do here
+      }
 
       @Override
       public void onSuccess(HalResource value) {
@@ -63,6 +69,7 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
         String stackTrace = ExceptionUtils.getStackTrace(error);
         asyncResponse.resume(Response.serverError().entity(stackTrace).build());
       }
+
     });
   }
 

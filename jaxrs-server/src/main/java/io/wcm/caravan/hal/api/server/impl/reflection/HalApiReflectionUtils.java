@@ -22,17 +22,16 @@ package io.wcm.caravan.hal.api.server.impl.reflection;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
-import rx.Observable;
-import rx.Single;
 
 /**
  * Utility methods to inspect method signatures
@@ -104,24 +103,21 @@ public final class HalApiReflectionUtils {
   public static Single<?> getResourceStateObservable(Class<?> apiInterface, Object instance) {
 
     // find the first method annotated with @ResourceState
-    Observable<Object> rxResourceState = Observable.from(apiInterface.getMethods())
+    Observable<Object> rxResourceState = Observable.fromArray(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(ResourceState.class) != null)
-        .limit(1)
+        .take(1)
         // invoke the method to get the state object and re-throw any exceptions that might be thrown
         .flatMap(method -> RxJavaReflectionUtils.invokeMethodAndReturnObservable(instance, method));
 
     // use an empty JSON object if no method is annotated with @ResourceState (or if the instance returned null)
     return rxResourceState
-        .filter(Objects::nonNull)
-        .defaultIfEmpty(JsonNodeFactory.instance.objectNode())
-        .toSingle();
+        .single(JsonNodeFactory.instance.objectNode());
   }
 
   public static Observable<Method> getSortedRelatedResourceMethods(Class<?> apiInterface) {
 
-    return Observable.from(apiInterface.getMethods())
+    return Observable.fromArray(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(RelatedResource.class) != null)
-        .toSortedList((m1, m2) -> HalApiReflectionUtils.methodRelationComparator.compare(m1, m2))
-        .flatMapIterable(l -> l);
+        .sorted((m1, m2) -> HalApiReflectionUtils.methodRelationComparator.compare(m1, m2));
   }
 }

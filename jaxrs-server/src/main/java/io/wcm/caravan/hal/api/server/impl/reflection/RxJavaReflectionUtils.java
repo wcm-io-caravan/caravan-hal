@@ -26,8 +26,9 @@ import java.lang.reflect.Type;
 
 import com.google.common.base.Preconditions;
 
-import rx.Observable;
-import rx.Single;
+import io.reactivex.Maybe;
+import io.reactivex.Observable;
+import io.reactivex.Single;
 
 public class RxJavaReflectionUtils {
 
@@ -46,6 +47,10 @@ public class RxJavaReflectionUtils {
 
       if (returnValue instanceof Observable) {
         return (Observable<?>)returnValue;
+      }
+
+      if (returnValue instanceof Maybe) {
+        return ((Maybe<?>)returnValue).toObservable();
       }
 
       if (returnValue instanceof Single) {
@@ -71,13 +76,14 @@ public class RxJavaReflectionUtils {
     Type returnType = method.getGenericReturnType();
 
     Preconditions.checkArgument(returnType instanceof ParameterizedType,
-        "return types must be Observable<Class>, but " + method + " has a return type " + returnType.getTypeName());
+        "return types must be Observable/Single/Maybe<Class>, but " + method + " has a return type " + returnType.getTypeName());
 
     ParameterizedType observableType = (ParameterizedType)returnType;
 
     Type resourceType = observableType.getActualTypeArguments()[0];
 
-    Preconditions.checkArgument(resourceType instanceof Class, "return types must be Observables of Class type, but found " + resourceType.getTypeName());
+    Preconditions.checkArgument(resourceType instanceof Class,
+        "return types must be Observable/Single/Maybe of Class type, but found " + resourceType.getTypeName());
 
     return (Class)resourceType;
   }
@@ -86,7 +92,7 @@ public class RxJavaReflectionUtils {
    * @param method the method to check
    * @return true if this method returns a {@link Observable}
    */
-  public static boolean hasObservableReturnType(Method method) {
+  private static boolean hasObservableReturnType(Method method) {
 
     Class returnType = method.getReturnType();
 

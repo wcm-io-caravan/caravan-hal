@@ -30,12 +30,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 
+import io.reactivex.Single;
 import io.wcm.caravan.hal.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.api.server.LinkableResource;
 import io.wcm.caravan.hal.api.server.impl.renderer.RelatedResourcesRendererImpl.RelationRenderResult;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
-import rx.Single;
 
 /**
  * Contains methods to generate a HalResource or JAX-RS response from a given server-side HAL resource implementation

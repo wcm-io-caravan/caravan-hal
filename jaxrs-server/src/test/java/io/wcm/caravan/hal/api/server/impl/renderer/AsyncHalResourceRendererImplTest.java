@@ -25,16 +25,15 @@ import java.util.List;
 
 import org.junit.Test;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.api.server.LinkableResource;
-import io.wcm.caravan.hal.api.server.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
-import rx.Observable;
-import rx.Single;
 
 
 public class AsyncHalResourceRendererImplTest {
@@ -45,7 +44,7 @@ public class AsyncHalResourceRendererImplTest {
     AsyncHalResourceRendererImpl renderer = new AsyncHalResourceRendererImpl();
     Single<HalResource> rxResource = renderer.renderLinkedOrEmbeddedResource(resourceImplInstance);
 
-    return rxResource.toObservable().toBlocking().single();
+    return rxResource.toObservable().blockingFirst();
   }
 
   static class TestRelations {
