@@ -51,7 +51,7 @@ import io.wcm.caravan.jaxrs.publisher.JaxRsComponent;
 }, serviceFactory = true)
 @Property(name = JaxRsComponent.PROPERTY_GLOBAL_COMPONENT, value = "true")
 @Provider
-@Produces(HalResource.CONTENT_TYPE)
+@Produces({ HalResource.CONTENT_TYPE, MediaType.WILDCARD })
 public class HalResourceMessageBodyWriter implements MessageBodyWriter<HalResource>, JaxRsComponent {
 
   private ObjectMapper objectMapper = new ObjectMapper();
