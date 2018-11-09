@@ -27,6 +27,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+import org.apache.commons.lang3.NotImplementedException;
+
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
@@ -51,7 +53,8 @@ class RelatedResourcesRendererImpl {
   /**
    * @param apiInterface an interface annotated with {@link HalApiInterface}
    * @param resourceImplInstance the context resource for which the related resources should be discovered and rendered
-   * @return a {@link Single} that emits a list with one {@link RelationRenderResult} instance for each method annotated with
+   * @return a {@link Single} that emits a list with one {@link RelationRenderResult} instance for each method annotated
+   *         with
    *         {@link RelatedResource}
    */
   Single<List<RelationRenderResult>> render(Class<?> apiInterface, Object resourceImplInstance) {
@@ -105,7 +108,13 @@ class RelatedResourcesRendererImpl {
 
     // and let each resource create a link to itself
     Observable<Link> rxLinks = rxLinkedResourceImpls
-        .map(r -> r.createLink());
+        .map(r -> {
+          Link link = r.createLink();
+          if (link == null) {
+            throw new NotImplementedException(r.getClass().getName() + "#createLink" + " returned a null value");
+          }
+          return link;
+        });
 
     return rxLinks.toList();
   }

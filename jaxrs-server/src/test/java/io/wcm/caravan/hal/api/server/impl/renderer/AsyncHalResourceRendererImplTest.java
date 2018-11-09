@@ -25,13 +25,16 @@ import java.util.List;
 
 import org.junit.Test;
 
+import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.api.server.EmbeddableResource;
-import io.wcm.caravan.hal.api.server.LinkableResource;
+import io.wcm.caravan.hal.api.server.testing.EmbeddableTestResource;
+import io.wcm.caravan.hal.api.server.testing.LinkableEmbeddableTestResource;
+import io.wcm.caravan.hal.api.server.testing.LinkableTestResource;
+import io.wcm.caravan.hal.api.server.testing.TestRelations;
+import io.wcm.caravan.hal.api.server.testing.TestResource;
+import io.wcm.caravan.hal.api.server.testing.TestResourceWithObservableState;
+import io.wcm.caravan.hal.api.server.testing.TestState;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -47,70 +50,6 @@ public class AsyncHalResourceRendererImplTest {
     return rxResource.toObservable().blockingFirst();
   }
 
-  static class TestRelations {
-
-    static final String LINKED = "test:linked";
-
-    static final String EMBEDDED = "test:embedded";
-  }
-
-  static class TestState {
-
-    public String string;
-    public Integer number;
-
-    public TestState() {
-
-    }
-
-    TestState(String s) {
-      this.string = s;
-    }
-
-    TestState(int number) {
-      this.number = number;
-    }
-
-  }
-
-  @HalApiInterface
-  public interface TestResource {
-
-    @ResourceState
-    default Single<TestState> getState() {
-      return null;
-    };
-
-    @RelatedResource(relation = TestRelations.LINKED)
-    default Observable<TestResource> getLinked() {
-      return Observable.empty();
-    }
-
-    @RelatedResource(relation = TestRelations.EMBEDDED)
-    default Observable<TestResource> getEmbedded() {
-      return Observable.empty();
-    }
-  }
-
-  @HalApiInterface
-  public interface TestResourceWithObservableState {
-
-    @ResourceState
-    Observable<TestState> getState();
-  }
-
-  public interface LinkableTestResource extends TestResource, LinkableResource {
-
-  }
-
-  public interface EmbeddableTestResource extends TestResource, EmbeddableResource {
-
-  }
-
-  public interface LinkableEmbeddableTestResource extends LinkableResource, EmbeddableTestResource {
-
-  }
-
   @Test
   public void createResource_supports_single_resource_state() {
 
@@ -119,9 +58,9 @@ public class AsyncHalResourceRendererImplTest {
     TestResource resourceImpl = new TestResource() {
 
       @Override
-      public Single<TestState> getState() {
+      public Maybe<TestState> getState() {
 
-        return Single.just(state);
+        return Maybe.just(state);
       }
 
     };
@@ -228,8 +167,8 @@ public class AsyncHalResourceRendererImplTest {
             .map(i -> new EmbeddableTestResource() {
 
               @Override
-              public Single<TestState> getState() {
-                return Single.just(new TestState(i));
+              public Maybe<TestState> getState() {
+                return Maybe.just(new TestState(i));
               }
 
               @Override
@@ -259,8 +198,8 @@ public class AsyncHalResourceRendererImplTest {
             .map(i -> new LinkableEmbeddableTestResource() {
 
               @Override
-              public Single<TestState> getState() {
-                return Single.just(new TestState(i));
+              public Maybe<TestState> getState() {
+                return Maybe.just(new TestState(i));
               }
 
               @Override
