@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.damnhandy.uri.template.UriTemplate;
 import com.google.common.collect.Sets;
 
@@ -73,6 +75,7 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
         // return a result when there is a difference in the template parameters
         findTemplateDifferences(context, expectedLink, actualLink, diffs);
 
+        // expand the templates if the strategy provides a map of variables for them
         List<Map<String, Object>> variables = strategy.getVariablesToExpandLinkTemplate(context, expectedLink, actualLink);
         if (variables != null) {
           for (Map<String, Object> map : variables) {
@@ -98,13 +101,13 @@ public class LinkTemplateProcessor implements LinkProcessingStep {
   }
 
   private static Link createExpandedLink(Link linkTemplate, Map<String, Object> variables) {
-    String name = linkTemplate.getName();
+
     UriTemplate template = UriTemplate.fromTemplate(linkTemplate.getHref());
     String expandedUrl = template.expand(variables);
+
     Link expandedLink = new Link(expandedUrl);
-    if (name == null) {
-      expandedLink.setName(variables.toString());
-    }
+    expandedLink.setName(StringUtils.trimToEmpty(linkTemplate.getName()) + variables.toString());
+
     return expandedLink;
   }
 
