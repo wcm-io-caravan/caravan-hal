@@ -269,12 +269,10 @@ public class HalComparisonImplTest {
   @Test
   public void configuration_for_ignored_embedded_relations_should_be_respected() throws Exception {
 
-    expected.getEntryPoint()
-        .createEmbedded(SECTION).setNumber(123)
+    expected.createEmbedded(SECTION).setNumber(123)
         .createEmbedded(ITEM).setText("foo");
 
-    actual.getEntryPoint()
-        .createEmbedded(SECTION).setNumber(456)
+    actual.createEmbedded(SECTION).setNumber(456)
         .createEmbedded(ITEM).setText("bar");
 
     strategy = new TestHalComparisonStrategy().addEmbeddedRelationToIgnore(ITEM);
@@ -288,12 +286,10 @@ public class HalComparisonImplTest {
   @Test
   public void configuration_for_ignored_link_relations_should_be_respected() throws Exception {
 
-    expected.getEntryPoint()
-        .createLinked(SECTION).setNumber(123)
+    expected.createLinked(SECTION).setNumber(123)
         .createLinked(ITEM).setText("foo");
 
-    actual.getEntryPoint()
-        .createLinked(SECTION).setNumber(456)
+    actual.createLinked(SECTION).setNumber(456)
         .createLinked(ITEM).setText("bar");
 
     strategy = new TestHalComparisonStrategy().addLinkRelationToIgnore(ITEM);
@@ -307,15 +303,13 @@ public class HalComparisonImplTest {
   @Test
   public void indices_should_be_included_in_halpath_for_multiple_embedded_resources_with_same_relation() {
 
-    TestResource expectedEntryPoint = expected.getEntryPoint();
-    expectedEntryPoint.createEmbedded(ITEM).setText("foo");
-    expectedEntryPoint.createEmbedded(ITEM).setText("foo");
-    expectedEntryPoint.createEmbedded(ITEM).setText("foo");
+    expected.createEmbedded(ITEM).setText("foo");
+    expected.createEmbedded(ITEM).setText("foo");
+    expected.createEmbedded(ITEM).setText("foo");
 
-    TestResource actualEntryPoint = actual.getEntryPoint();
-    actualEntryPoint.createEmbedded(ITEM).setText("foo");
-    actualEntryPoint.createEmbedded(ITEM).setText("bar");
-    actualEntryPoint.createEmbedded(ITEM).setText("foo");
+    actual.createEmbedded(ITEM).setText("foo");
+    actual.createEmbedded(ITEM).setText("bar");
+    actual.createEmbedded(ITEM).setText("foo");
 
     List<HalDifference> diff = findDifferences();
 
@@ -325,15 +319,13 @@ public class HalComparisonImplTest {
   @Test
   public void indices_should_be_included_in_halpath_for_multiple_unnamed_linked_resources_with_same_relation() {
 
-    TestResource expectedEntryPoint = expected.getEntryPoint();
-    expectedEntryPoint.createLinked(ITEM).setText("foo");
-    expectedEntryPoint.createLinked(ITEM).setText("foo");
-    expectedEntryPoint.createLinked(ITEM).setText("foo");
+    expected.createLinked(ITEM).setText("foo");
+    expected.createLinked(ITEM).setText("foo");
+    expected.createLinked(ITEM).setText("foo");
 
-    TestResource actualEntryPoint = actual.getEntryPoint();
-    actualEntryPoint.createLinked(ITEM).setText("foo");
-    actualEntryPoint.createLinked(ITEM).setText("bar");
-    actualEntryPoint.createLinked(ITEM).setText("foo");
+    actual.createLinked(ITEM).setText("foo");
+    actual.createLinked(ITEM).setText("bar");
+    actual.createLinked(ITEM).setText("foo");
 
     List<HalDifference> diff = findDifferences();
 
@@ -343,15 +335,13 @@ public class HalComparisonImplTest {
   @Test
   public void name_should_be_included_in_halpath_for_multiple_named_linked_resources_with_same_relation() {
 
-    TestResource expectedEntryPoint = expected.getEntryPoint();
-    expectedEntryPoint.createLinked(ITEM, "name1").setText("foo");
-    expectedEntryPoint.createLinked(ITEM, "name2").setText("foo");
-    expectedEntryPoint.createLinked(ITEM, "name3").setText("foo");
+    expected.createLinked(ITEM, "name1").setText("foo");
+    expected.createLinked(ITEM, "name2").setText("foo");
+    expected.createLinked(ITEM, "name3").setText("foo");
 
-    TestResource actualEntryPoint = actual.getEntryPoint();
-    actualEntryPoint.createLinked(ITEM, "name1").setText("foo");
-    actualEntryPoint.createLinked(ITEM, "name2").setText("bar");
-    actualEntryPoint.createLinked(ITEM, "name3").setText("foo");
+    actual.createLinked(ITEM, "name1").setText("foo");
+    actual.createLinked(ITEM, "name2").setText("bar");
+    actual.createLinked(ITEM, "name3").setText("foo");
 
     List<HalDifference> diff = findDifferences();
 
