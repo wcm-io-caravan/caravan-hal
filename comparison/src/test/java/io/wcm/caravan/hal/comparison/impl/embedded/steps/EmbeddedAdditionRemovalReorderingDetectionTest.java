@@ -295,6 +295,10 @@ public class EmbeddedAdditionRemovalReorderingDetectionTest {
       removed.add(removedResource);
     }
 
+    // the order in the removed array is from the actual resources that might be re-ordered.
+    // the diff algorithm results however will be in the original (natural) order
+    removed.sort(Ordering.natural().onResultOf(hal -> hal.getModel().path("id").asInt()));
+
     List<Integer> expectedOrdering = getOrdering(actual);
     expectedOrdering.sort(Ordering.natural());
 
@@ -329,12 +333,12 @@ public class EmbeddedAdditionRemovalReorderingDetectionTest {
 
   @Test
   public void should_find_removed_item_at_end_when_ordering_hasnt_changed() {
-    checkDetectionOfAddedItems(false, 9);
+    checkDetectionOfRemovedItems(false, 9);
   }
 
   @Test
   public void should_find_multiple_removed_items_when_ordering_hasnt_changed() {
-    checkDetectionOfAddedItems(false, 0, 3, 7);
+    checkDetectionOfRemovedItems(false, 0, 3, 7);
   }
 
   @Test
@@ -349,12 +353,12 @@ public class EmbeddedAdditionRemovalReorderingDetectionTest {
 
   @Test
   public void should_find_removed_item_at_end_when_ordering_has_changed() {
-    checkDetectionOfAddedItems(true, 9);
+    checkDetectionOfRemovedItems(true, 9);
   }
 
   @Test
   public void should_find_multiple_removed_items_when_ordering_has_changed() {
-    checkDetectionOfAddedItems(true, 0, 3, 7);
+    checkDetectionOfRemovedItems(true, 0, 3, 7);
   }
 
   @Test
