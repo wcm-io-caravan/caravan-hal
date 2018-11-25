@@ -24,8 +24,6 @@ import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionU
 
 import java.util.List;
 
-import org.osgi.service.component.annotations.Component;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
@@ -38,26 +36,18 @@ import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 /**
- * Contains methods to generate a HalResource or JAX-RS response from a given server-side HAL resource implementation
+ * Asynchronously generate a {@link HalResource} instance from the given server-side HAL resource implementation
  */
-@Component(service = AsyncHalResourceRenderer.class)
 public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRenderer {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
-  private final RelatedResourcesRendererImpl relatedResources;
-
-  public AsyncHalResourceRendererImpl() {
-    // give the RelatedContentRendererImpl a reference to the internal render function for recursion
-    this.relatedResources = new RelatedResourcesRendererImpl(this::renderLinkedOrEmbeddedResource);
-  }
 
   @Override
   public Single<HalResource> renderResource(LinkableResource resourceImpl) {
     return renderLinkedOrEmbeddedResource(resourceImpl);
   }
 
-  Single<HalResource> renderLinkedOrEmbeddedResource(Object resourceImplInstance) {
+  static Single<HalResource> renderLinkedOrEmbeddedResource(Object resourceImplInstance) {
 
     Preconditions.checkNotNull(resourceImplInstance, "Cannot create a HalResource from a null reference");
 
@@ -68,7 +58,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     Single<ObjectNode> rxState = getResourceStateAndConvertToJson(apiInterface, resourceImplInstance);
 
     // render links and embedded resources for each method annotated with @RelatedResource
-    Single<List<RelationRenderResult>> rxRelated = relatedResources.render(apiInterface, resourceImplInstance);
+    Single<List<RelationRenderResult>> rxRelated = RelatedResourcesRendererImpl.renderRelated(apiInterface, resourceImplInstance);
 
     // wait until all this is available...
     Single<HalResource> rxHalResource = Single.zip(rxState, rxRelated,
@@ -87,6 +77,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
   }
 
   private static HalResource createHalResource(Object resourceImplInstance, ObjectNode stateNode, List<RelationRenderResult> listOfRelated) {
+
     HalResource hal = new HalResource(stateNode);
 
     if (resourceImplInstance instanceof LinkableResource) {

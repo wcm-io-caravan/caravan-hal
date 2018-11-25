@@ -24,7 +24,6 @@ import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +32,7 @@ import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 import io.wcm.caravan.hal.api.server.jaxrs.AsyncHalResponseHandler;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
+import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.HalResource;
 
 @Component(service = { AsyncHalResponseHandler.class })
@@ -40,11 +40,10 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
 
   private static final Logger log = LoggerFactory.getLogger(AsyncHalResponseHandlerImpl.class);
 
-  @Reference
-  private AsyncHalResourceRenderer renderer;
+  private AsyncHalResourceRenderer renderer = AsyncHalResourceRenderer.create();
 
   @Override
-  public void respondWith(io.wcm.caravan.hal.microservices.api.server.LinkableResource resourceImpl, AsyncResponse asyncResponse) {
+  public void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse) {
 
     Single<HalResource> rxHalResource = renderer.renderResource(resourceImpl);
 
