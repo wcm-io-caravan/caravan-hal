@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.microservices.jaxrs;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
+import io.wcm.caravan.hal.microservices.caravan.CaravanHalApiClient;
 
 public interface JaxRsHalServerSupport {
 
@@ -27,5 +28,8 @@ public interface JaxRsHalServerSupport {
 
   AsyncHalResponseHandler getResponseHandler();
 
+  CaravanHalApiClient getHalApiClient();
+
   LinkBuilder getLinkBuilder();
+
 }

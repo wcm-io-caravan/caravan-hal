@@ -19,9 +19,21 @@
  */
 package io.wcm.caravan.hal.microservices.api.common;
 
+import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadata;
+import io.wcm.caravan.hal.resource.HalResource;
+
 public interface RequestMetricsCollector {
 
   void onResponseRetrieved(String resourceUri, String resourceTitle, int maxAgeSeconds, long responseTimeMicros);
 
   void onMethodInvocationFinished(String methodDescription, long invocationDurationMicros);
+
+  int getOutputMaxAge();
+
+  HalResource createMetadataResource(LinkableResource resourceImpl);
+
+  static RequestMetricsCollector create() {
+    return new ResponseMetadata();
+  }
 }

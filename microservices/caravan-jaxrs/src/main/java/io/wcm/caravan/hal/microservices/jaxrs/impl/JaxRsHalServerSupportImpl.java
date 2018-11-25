@@ -26,6 +26,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ServiceScope;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
+import io.wcm.caravan.hal.microservices.caravan.CaravanHalApiClient;
 import io.wcm.caravan.hal.microservices.jaxrs.AsyncHalResponseHandler;
 import io.wcm.caravan.hal.microservices.jaxrs.JaxRsHalServerSupport;
 import io.wcm.caravan.hal.microservices.jaxrs.JaxRsLinkBuilder;
@@ -40,6 +41,9 @@ public class JaxRsHalServerSupportImpl implements JaxRsComponent, JaxRsHalServer
   @Reference
   private AsyncHalResponseHandler responseHandler;
 
+  @Reference
+  private CaravanHalApiClient halApiClient;
+
   @Activate
   void activate(ComponentContext componentCtx) {
     contextPath = ApplicationPath.get(componentCtx.getUsingBundle());
@@ -47,7 +51,7 @@ public class JaxRsHalServerSupportImpl implements JaxRsComponent, JaxRsHalServer
 
   @Override
   public String getContextPath() {
-    return this.contextPath;
+    return contextPath;
   }
 
   @Override
@@ -56,8 +60,14 @@ public class JaxRsHalServerSupportImpl implements JaxRsComponent, JaxRsHalServer
   }
 
   @Override
+  public CaravanHalApiClient getHalApiClient() {
+    return halApiClient;
+  }
+
+  @Override
   public LinkBuilder getLinkBuilder() {
     return new JaxRsLinkBuilder(contextPath);
   }
+
 
 }

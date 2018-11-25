@@ -23,11 +23,12 @@ import javax.ws.rs.container.AsyncResponse;
 
 import org.osgi.annotation.versioning.ProviderType;
 
+import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 
 @ProviderType
 public interface AsyncHalResponseHandler {
 
-  void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse);
+  void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse, RequestMetricsCollector metrics);
 
 }

@@ -92,11 +92,11 @@ public class RxJavaReflectionUtils {
    * @param method the method to check
    * @return true if this method returns a {@link Observable}
    */
-  private static boolean hasObservableReturnType(Method method) {
+  public static boolean hasReactiveReturnType(Method method) {
 
     Class returnType = method.getReturnType();
 
-    return Observable.class.isAssignableFrom(returnType);
+    return Observable.class.isAssignableFrom(returnType) || Single.class.isAssignableFrom(returnType) || Maybe.class.isAssignableFrom(returnType);
   }
 
 }
