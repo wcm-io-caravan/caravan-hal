@@ -64,6 +64,18 @@
     </dependency>
     <dependency>
       <groupId>io.wcm.caravan</groupId>
+      <artifactId>io.wcm.caravan.io.http</artifactId>
+      <version>0.10.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.wcm.caravan</groupId>
+      <artifactId>io.wcm.caravan.pipeline.api</artifactId>
+      <version>0.7.0</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.wcm.caravan</groupId>
       <artifactId>io.wcm.caravan.jaxrs.publisher</artifactId>
       <version>1.2.0-SNAPSHOT</version>
       <scope>compile</scope>
@@ -94,6 +106,11 @@
       <groupId>io.reactivex.rxjava2</groupId>
       <artifactId>rxjava</artifactId>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.akarnokd</groupId>
+      <artifactId>rxjava2-interop</artifactId>
+      <scope>provided</scope>
     </dependency>
     
     <!-- URI Templates -->
