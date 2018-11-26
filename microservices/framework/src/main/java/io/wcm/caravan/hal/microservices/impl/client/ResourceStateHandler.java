@@ -41,7 +41,7 @@ class ResourceStateHandler {
     log.trace(invocation + " was invoked, method is annotated with @ResourceState and returns type " + returnType.getSimpleName());
 
     if (!invocation.returnsReactiveType()) {
-      throw new RuntimeException("the method annotated with " + ResourceState.class.getSimpleName() + " must return a reactive type");
+      throw new RuntimeException("the method " + invocation + " annotated with " + ResourceState.class.getSimpleName() + " must return a reactive type");
     }
 
     // if the interface is using Maybe as return type, and the HAL resource does not containy any

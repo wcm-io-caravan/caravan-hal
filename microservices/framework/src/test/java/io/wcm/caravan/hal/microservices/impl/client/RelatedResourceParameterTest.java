@@ -94,23 +94,25 @@ public class RelatedResourceParameterTest {
 
     mockHalResponseWithNumber("/item/1", 1);
 
-    ResourceWithSimpleLinkTemplate proxy = createClientProxy(ResourceWithSimpleLinkTemplate.class);
-    TestResourceState state = proxy.getLinked(1).flatMap(ResourceWithSingleState::getProperties).blockingGet();
+    TestResourceState state = createClientProxy(ResourceWithSimpleLinkTemplate.class)
+        .getLinked(1)
+        .flatMap(ResourceWithSingleState::getProperties)
+        .blockingGet();
 
     assertThat(state.number).isEqualTo(1);
   }
 
-  @Test
-  public void link_template_should_be_expanded_if_only_parameter_is_missing() {
+  @Test(expected = UnsupportedOperationException.class)
+  public void link_template_should_not_be_expanded_if_only_parameter_is_missing() {
 
     entryPoint.addLinks(ITEM, new Link("/item/{number}"));
 
     mockHalResponseWithNumber("/item/", 0);
 
-    ResourceWithSimpleLinkTemplate proxy = createClientProxy(ResourceWithSimpleLinkTemplate.class);
-    TestResourceState state = proxy.getLinked(null).flatMap(ResourceWithSingleState::getProperties).blockingGet();
-
-    assertThat(state.number).isEqualTo(0);
+    createClientProxy(ResourceWithSimpleLinkTemplate.class)
+        .getLinked(null)
+        .flatMap(ResourceWithSingleState::getProperties)
+        .blockingGet();
   }
 
   @HalApiInterface
@@ -121,28 +123,33 @@ public class RelatedResourceParameterTest {
   }
 
   @Test
-  public void link_template_should_be_expanded_if_optional_parameter_is_missing() {
+  public void link_template_should_be_expanded_if_one_of_multiple_parameters_is_missing() {
 
     entryPoint.addLinks(ITEM, new Link("/item/{number}{?optionalFlag}"));
 
     mockHalResponseWithNumber("/item/1", 1);
 
-    ResourceWithComplexLinkTemplate proxy = createClientProxy(ResourceWithComplexLinkTemplate.class);
-    TestResourceState state = proxy.getLinked(1, null).flatMap(ResourceWithSingleState::getProperties).blockingGet();
+    TestResourceState state = createClientProxy(ResourceWithComplexLinkTemplate.class)
+        .getLinked(1, null)
+        .flatMap(ResourceWithSingleState::getProperties)
+        .blockingGet();
 
     assertThat(state.number).isEqualTo(1);
   }
 
   @Test
-  public void link_template_should_be_expanded_if_optional_parameter_is_present() {
+  public void link_template_should_be_expanded_if_all_of_multiple_parameters_are_present() {
 
     entryPoint.addLinks(ITEM, new Link("/item/{number}{?optionalFlag}"));
 
     mockHalResponseWithNumber("/item/1?optionalFlag=true", 1);
 
-    ResourceWithComplexLinkTemplate proxy = createClientProxy(ResourceWithComplexLinkTemplate.class);
-    TestResourceState state = proxy.getLinked(1, true).flatMap(ResourceWithSingleState::getProperties).blockingGet();
+    TestResourceState state = createClientProxy(ResourceWithComplexLinkTemplate.class)
+        .getLinked(1, true)
+        .flatMap(ResourceWithSingleState::getProperties)
+        .blockingGet();
 
     assertThat(state.number).isEqualTo(1);
   }
+
 }

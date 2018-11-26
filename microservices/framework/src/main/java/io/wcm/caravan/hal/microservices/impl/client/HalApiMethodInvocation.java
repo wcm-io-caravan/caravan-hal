@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import com.google.common.base.Preconditions;
 
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
@@ -32,50 +33,36 @@ class HalApiMethodInvocation {
     }
   }
 
+  String getRelation() {
+    RelatedResource relatedResourceAnnotation = method.getAnnotation(RelatedResource.class);
+
+    Preconditions.checkNotNull(relatedResourceAnnotation, this + " does not have a @" + RelatedResource.class.getSimpleName() + " annotation");
+
+    return relatedResourceAnnotation.relation();
+  }
+
   boolean isRelatedResource() {
     return method.getAnnotation(RelatedResource.class) != null;
   }
 
-  //  boolean isSelectedLinkedResource() {
-  //    return method.getAnnotation(SelectedLinkedResource.class) != null;
-  //  }
+  boolean isResourceLink() {
+    return method.getAnnotation(ResourceLink.class) != null;
+  }
 
   boolean isResourceProperties() {
     return method.getAnnotation(ResourceState.class) != null;
-  }
-
-  boolean isCreateLink() {
-    return method.getName().equals("createLink") && method.getParameterCount() == 0;
   }
 
   boolean isResourceRepresentation() {
     return method.getAnnotation(ResourceRepresentation.class) != null;
   }
 
-  public boolean returnsReactiveType() {
+  boolean returnsReactiveType() {
     return RxJavaReflectionUtils.hasReactiveReturnType(method);
   }
 
-  public Class<?> getReturnType() {
+  Class<?> getReturnType() {
     return method.getReturnType();
-  }
-
-  String getRelation() {
-    String relation = null;
-    RelatedResource relatedResourceAnnotation = method.getAnnotation(RelatedResource.class);
-    if (relatedResourceAnnotation != null) {
-      relation = relatedResourceAnnotation.relation();
-    }
-
-    // TODO: enable support for SelectedLinkedResource
-    //    SelectedLinkedResource selectedLinkedResourceAnnotation = method.getAnnotation(SelectedLinkedResource.class);
-    //    if (selectedLinkedResourceAnnotation != null) {
-    //      relation = selectedLinkedResourceAnnotation.relation();
-    //    }
-
-    Preconditions.checkNotNull(relation, this + " does not have a @RelatedResource or @SelectedLinkedResource annotation");
-
-    return relation;
   }
 
   Class<?> getEmissionType() {
@@ -83,7 +70,7 @@ class HalApiMethodInvocation {
   }
 
   Map<String, Object> getParameters() {
-    return this.parameters;
+    return parameters;
   }
 
   @Override

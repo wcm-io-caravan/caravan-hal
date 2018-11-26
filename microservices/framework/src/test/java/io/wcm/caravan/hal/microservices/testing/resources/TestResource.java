@@ -61,11 +61,6 @@ public class TestResource {
     return embeddedResource;
   }
 
-  public void createLinkTemplate(String relation) {
-    asHalResource().addLinks(relation, new Link(TestResourceTree.LINKED_URL_TEMPLATE));
-  }
-
-
   public void addLinkTo(String relation, TestResource other) {
     String otherUrl = other.getUrl();
     assertThat(otherUrl).isNotNull();

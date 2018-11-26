@@ -19,9 +19,6 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
-import com.google.common.base.Preconditions;
-
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
@@ -48,13 +45,8 @@ public class HalApiClientImpl implements HalApiClient {
   @Override
   public <T> T getEntryPoint(String uri, Class<T> halApiInterface) {
 
-    // check that the given class is indeed a HAL api interface
-    HalApiInterface annotation = halApiInterface.getAnnotation(HalApiInterface.class);
-    Preconditions.checkNotNull(annotation,
-        "The given entry point class " + halApiInterface.getName() + " does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
-
     // load the entry point JSON, parse it as a HalResource and emit a proxy instance
-    return HalClientProxyFactory.createProxyFromUrl(halApiInterface, uri, jsonLoader, collector, null);
+    return HalApiClientProxyFactory.createProxyFromUrl(halApiInterface, uri, jsonLoader, collector);
   }
 
 }

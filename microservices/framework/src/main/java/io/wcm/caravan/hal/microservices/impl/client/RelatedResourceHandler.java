@@ -19,11 +19,10 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -36,7 +35,6 @@ import io.reactivex.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -61,28 +59,20 @@ class RelatedResourceHandler {
     Class<?> relatedResourceType = invocation.getEmissionType();
 
     if (relatedResourceType.getAnnotation(HalApiInterface.class) == null) {
-      // BYI-1693 HAL-API-Interfaces can contain related links that just point to an URL (i.e. a LinkableResource, not a specific resource instance)
-      // in that case, we just want to forward that link information, similar to how we handle SDL binary resources
-      if (relatedResourceType.equals(LinkableResource.class)) {
-        List<Link> links = contextResource.getLinks(relation);
-        return createObservableFromLinkedExternalResources(relatedResourceType, links, Collections.emptyMap());
-      }
 
-      throw new RuntimeException("The method " + invocation + " has an invalid return an Observable of " + relatedResourceType.getName() +
+      throw new RuntimeException("The method " + invocation + " has an invalid emission type " + relatedResourceType.getName() +
           " which does not have a @" + HalApiInterface.class + " annotation.");
     }
 
     log.trace(invocation + " was invoked, method is annotated with @RelatedResources cur=" + relation + " and returns an Observable<"
         + relatedResourceType.getSimpleName() + ">");
 
-
     // the related resource might be already embedded in the context HAL resource
     if (contextResource.hasEmbedded(relation)) {
       List<HalResource> embeddedResources = contextResource.getEmbedded(relation);
       log.trace(embeddedResources.size() + " embedded resources with relation " + relation + " were found in the context resource");
 
-      Observable<?> rxEmbedded = createObservableFromEmbeddedResources(relatedResourceType, embeddedResources);
-      return rxEmbedded;
+      return createObservableFromEmbeddedResources(relatedResourceType, embeddedResources);
     }
     // if it's not then it must be linked
     else if (contextResource.hasLink(relation)) {
@@ -94,7 +84,7 @@ class RelatedResourceHandler {
       boolean hasParameters = parameters.size() > 0;
 
       if (hasParameters) {
-        // verify that the names of the parametrs could be extracted through reflection
+        // verify that the names of the parameters could be extracted through reflection
         // (assuming that developers don't  use arg0, arg1, arg2 as parameter names in their APIs)
         long numUnnamedParameters = parameters.keySet().stream()
             .filter(argName -> argName.startsWith("arg"))
@@ -106,11 +96,15 @@ class RelatedResourceHandler {
               + " Please ensure that parameter names are not stripped from the class files in your API bundles"
               + " (e.g. by using <arg>-parameters</arg> for the maven-compiler-plugin)");
         }
+
+        // if all parameters are null, we assume that the caller is only interested in the link templates
+        boolean allParametersAreNull = parameters.values().stream().noneMatch(Objects::nonNull);
+        if (allParametersAreNull) {
+          return createObservableFromLinkTemplates(relatedResourceType, links);
+        }
       }
 
-      Observable<?> rxLinkedResource = createObservableFromLinkedHalResources(relatedResourceType, links, parameters);
-
-      return rxLinkedResource;
+      return createObservableFromLinkedHalResources(relatedResourceType, links, parameters);
 
     }
     // if it's not linked and not embedded then just return an empty observable
@@ -123,37 +117,33 @@ class RelatedResourceHandler {
   private Observable<?> createObservableFromEmbeddedResources(Class<?> relatedResourceType, List<HalResource> embeddedResources) {
     // if the HAL resources are already embedded then creating the proxy is very simple
     return Observable.fromIterable(embeddedResources)
-        .map(hal -> HalClientProxyFactory.createProxyFromHalResource(relatedResourceType, hal, jsonLoader, metrics));
-  }
-
-  private Observable<?> createObservableFromLinkedExternalResources(Class<?> relatedResourceType, List<Link> links, Map<String, Object> parameters) {
-
-    List<Link> resolvedLinks = links.stream()
-        .map(link -> {
-          Map<String, Object> effectiveParameters = getEffectiveParameters(parameters);
-          String newHref = UriTemplate.expand(link.getHref(), effectiveParameters);
-          return new Link(newHref).setName(link.getName()).setTitle(link.getTitle());
-        })
-        .collect(Collectors.toList());
-
-    return Observable.fromIterable(resolvedLinks)
-        .map(link -> HalClientProxyFactory.createProxyFromUrl(relatedResourceType, link.getHref(), jsonLoader, metrics, link.getTitle()));
+        .map(hal -> HalApiClientProxyFactory.createProxyFromHalResource(relatedResourceType, hal, jsonLoader, metrics));
   }
 
   private Observable<?> createObservableFromLinkedHalResources(Class<?> relatedResourceType, List<Link> links, Map<String, Object> parameters) {
 
     // if the resources are linked, then we have to fetch those resources first
-
     return Observable.fromIterable(links)
         .map(link -> expandLinkTemplates(link, parameters))
-        .map(url -> HalClientProxyFactory.createProxyFromUrl(relatedResourceType, url, jsonLoader, metrics, null));
+        .map(link -> HalApiClientProxyFactory.createProxyFromLink(relatedResourceType, link, jsonLoader, metrics));
   }
 
+  private Observable<?> createObservableFromLinkTemplates(Class<?> relatedResourceType, List<Link> links) {
 
-  private String expandLinkTemplates(Link link, Map<String, Object> parameters) {
+    // do not expand the link templates
+    return Observable.fromIterable(links)
+        .map(link -> HalApiClientProxyFactory.createProxyFromLink(relatedResourceType, link, jsonLoader, metrics));
+  }
+
+  private Link expandLinkTemplates(Link link, Map<String, Object> parameters) {
     Map<String, Object> effectiveParameters = getEffectiveParameters(parameters);
 
-    return UriTemplate.expand(link.getHref(), effectiveParameters);
+    String uri = UriTemplate.expand(link.getHref(), effectiveParameters);
+
+    Link clonedLink = new Link(link.getModel().deepCopy());
+    clonedLink.setTemplated(false);
+    clonedLink.setHref(uri);
+    return clonedLink;
   }
 
   /**

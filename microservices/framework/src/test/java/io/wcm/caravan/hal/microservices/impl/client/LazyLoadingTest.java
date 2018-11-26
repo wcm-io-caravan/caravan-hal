@@ -36,6 +36,7 @@ import io.reactivex.observers.TestObserver;
 import io.reactivex.subjects.SingleSubject;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
@@ -160,5 +161,62 @@ public class LazyLoadingTest {
     // and then when the linked resource is emitted, the state observer will be notified
     mockLinkedResource.onSuccess(new HalResource());
     stateObserver.assertComplete();
+  }
+
+
+  @HalApiInterface
+  interface LinkableResource {
+
+    @ResourceLink
+    Link createLink();
+  }
+
+  @Test
+  public void lazy_loading_should_not_be_triggered_by_calling_resource_link_proxy_method_on_entry_point() throws Exception {
+
+    SingleSubject<HalResource> mockJsonResponse = mockHalResponseWithSubject(ENTRY_POINT_URI);
+
+    // calling createLink on the proxy should return the link
+    Link link = createClientProxy(LinkableResource.class).createLink();
+    assertThat(link.getHref()).isEqualTo(ENTRY_POINT_URI);
+
+    // but no subscriber should have been added yet to to the subject providing the JSON
+    assertThat(mockJsonResponse.hasObservers()).isFalse();
+  }
+
+  @HalApiInterface
+  interface LinkingEntryPoint {
+
+    @RelatedResource(relation = ITEM)
+    Single<LinkableResource> getLinked();
+  }
+
+  @Test
+  public void only_entrypoint_should_be_lazily_loaded_when_calling_resource_link_proxy_method() throws Exception {
+
+    SingleSubject<HalResource> mockEntryPoint = mockHalResponseWithSubject(ENTRY_POINT_URI);
+    SingleSubject<HalResource> mockLinkedResource = mockHalResponseWithSubject(RESOURCE_URI);
+
+    // calling createLink on the linked resource proxy should return the single
+    Single<Link> link = createClientProxy(LinkingEntryPoint.class).getLinked()
+        .map(LinkableResource::createLink);
+
+    // but no subscriber should have been added yet to to the subjects providing the JSON
+    assertThat(mockEntryPoint.hasObservers()).isFalse();
+    assertThat(mockLinkedResource.hasObservers()).isFalse();
+
+    // verify that subscribing to the link single will only add an observer to the entry point
+    TestObserver<Link> observer = TestObserver.create();
+    link.subscribe(observer);
+    assertThat(mockEntryPoint.hasObservers()).isTrue();
+    assertThat(mockLinkedResource.hasObservers()).isFalse();
+
+    // even after emitting the entry point, the mocked resource shouldn't be fetched
+    HalResource entryPoint = new HalResource(ENTRY_POINT_URI).addLinks(ITEM, new Link(RESOURCE_URI));
+    mockEntryPoint.onSuccess(entryPoint);
+    assertThat(mockLinkedResource.hasObservers()).isFalse();
+
+    // but the subscription to the resource link should be completed
+    observer.assertComplete();
   }
 }
