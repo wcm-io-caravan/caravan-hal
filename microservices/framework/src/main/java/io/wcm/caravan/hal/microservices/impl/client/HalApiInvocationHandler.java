@@ -86,6 +86,16 @@ final class HalApiInvocationHandler implements InvocationHandler {
         return handler.handleMethodInvocation(invocation);
       }
 
+      // handling of methods annotated with @ResourceAnnotation
+      if (invocation.isResourceRepresentation()) {
+
+        Single<Object> rxRepresentation = rxResource
+            .map(hal -> new ResourceRepresentationHandler(hal))
+            .flatMap(handler -> handler.handleMethodInvocation(invocation));
+
+        return RxJavaReflectionUtils.convertReactiveType(rxRepresentation, invocation.getReturnType());
+      }
+
       // unsupported operation
       String annotationNames = ImmutableList.of(RelatedResource.class, ResourceState.class, ResourceLink.class, ResourceRepresentation.class).stream()
           .map(Class::getSimpleName)
