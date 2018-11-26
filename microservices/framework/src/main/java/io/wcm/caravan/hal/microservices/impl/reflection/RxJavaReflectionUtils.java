@@ -24,8 +24,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
+import org.reactivestreams.Publisher;
+
 import com.google.common.base.Preconditions;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -45,20 +48,11 @@ public class RxJavaReflectionUtils {
         return Observable.empty();
       }
 
-      if (returnValue instanceof Observable) {
-        return (Observable<?>)returnValue;
+      if (hasReactiveReturnType(method)) {
+        return convertToObservable(returnValue);
       }
 
-      if (returnValue instanceof Maybe) {
-        return ((Maybe<?>)returnValue).toObservable();
-      }
-
-      if (returnValue instanceof Single) {
-        return ((Single<?>)returnValue).toObservable();
-      }
-
-      throw new RuntimeException("The method " + fullMethodName + " returned an objected type "
-          + returnValue.getClass().getName());
+      return Observable.just(returnValue);
     }
     catch (InvocationTargetException ex) {
       throw new RuntimeException("Failed to invoke method " + fullMethodName, ex.getTargetException());
@@ -99,4 +93,54 @@ public class RxJavaReflectionUtils {
     return Observable.class.isAssignableFrom(returnType) || Single.class.isAssignableFrom(returnType) || Maybe.class.isAssignableFrom(returnType);
   }
 
+  public static Object convertReactiveType(Object reactiveInstance, Class<?> targetType) {
+
+    Observable<?> observable = convertToObservable(reactiveInstance);
+
+    return convertObservableTo(observable, targetType);
+  }
+
+  private static Object convertObservableTo(Observable<?> observable, Class<?> targetType) {
+
+    Preconditions.checkNotNull(targetType, "A target type must be provided");
+
+    if (targetType.isAssignableFrom(Observable.class)) {
+      return observable;
+    }
+    if (targetType.isAssignableFrom(Single.class)) {
+      return observable.singleOrError();
+    }
+    if (targetType.isAssignableFrom(Maybe.class)) {
+      return observable.singleElement();
+    }
+    if (targetType.isAssignableFrom(Publisher.class)) {
+      return observable.toFlowable(BackpressureStrategy.BUFFER);
+    }
+
+    throw new RuntimeException("The given target type of " + targetType.getName() + " is not a supported reactive type");
+  }
+
+  private static Observable<?> convertToObservable(Object reactiveInstance) {
+
+    Preconditions.checkNotNull(reactiveInstance, "Cannot convert null objects");
+
+    Observable<?> observable = null;
+    if (reactiveInstance instanceof Observable) {
+      observable = (Observable)reactiveInstance;
+    }
+    else if (reactiveInstance instanceof Single) {
+      observable = ((Single)reactiveInstance).toObservable();
+    }
+    else if (reactiveInstance instanceof Maybe) {
+      observable = ((Maybe)reactiveInstance).toObservable();
+    }
+    else if (reactiveInstance instanceof Publisher) {
+      observable = Observable.fromPublisher((Publisher<?>)reactiveInstance);
+    }
+    else {
+      throw new RuntimeException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");
+    }
+
+    return observable;
+  }
 }

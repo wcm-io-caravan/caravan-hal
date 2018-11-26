@@ -49,14 +49,13 @@ public class HalApiClientImpl implements HalApiClient {
   @Override
   public <T> Single<T> getEntryPoint(String uri, Class<T> halApiInterface) {
 
-
     // check that the given class is indeed a HAL api interface
-    io.wcm.caravan.hal.api.annotations.HalApiInterface annotation = halApiInterface.getAnnotation(HalApiInterface.class);
-    Preconditions.checkArgument(annotation != null,
+    HalApiInterface annotation = halApiInterface.getAnnotation(HalApiInterface.class);
+    Preconditions.checkNotNull(annotation,
         "The given entry point class " + halApiInterface.getName() + " does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
 
-    // load the entry point JSON and parse it as a HalResource
-    return Single.just(HalClientProxyFactory.createProxyFromUrl(halApiInterface, uri, jsonLoader, collector, null));
+    // load the entry point JSON, parse it as a HalResource and emit a proxy instance
+    return HalClientProxyFactory.createProxyFromUrl(halApiInterface, uri, jsonLoader, collector, null);
   }
 
 }

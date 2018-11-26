@@ -56,7 +56,7 @@ class HalApiMethodInvocation {
     return RxJavaReflectionUtils.hasReactiveReturnType(method);
   }
 
-  public Class getReturnType() {
+  public Class<?> getReturnType() {
     return method.getReturnType();
   }
 
@@ -78,12 +78,8 @@ class HalApiMethodInvocation {
     return relation;
   }
 
-  Class<?> getRelatedResourceType() {
+  Class<?> getEmissionType() {
     return RxJavaReflectionUtils.getObservableEmissionType(method);
-  }
-
-  Class<?> getResourcePropertiesType() {
-    return method.getReturnType();
   }
 
   Map<String, Object> getParameters() {

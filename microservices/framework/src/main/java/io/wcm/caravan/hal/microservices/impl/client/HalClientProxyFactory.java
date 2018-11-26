@@ -5,6 +5,8 @@ import java.lang.reflect.Proxy;
 import java.util.LinkedList;
 import java.util.List;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -14,7 +16,7 @@ import io.wcm.caravan.hal.resource.HalResource;
 /**
  * Contains static factory methods to create proxy implementations of a given HAL Api interface
  */
-public final class HalClientProxyFactory {
+final class HalClientProxyFactory {
 
   private HalClientProxyFactory() {
     // only static methods
@@ -26,14 +28,24 @@ public final class HalClientProxyFactory {
    * @param jsonLoader the function used to retrieve and parse that resource
    * @param responseMetadata of the current request
    * @param linkTitle the link title to use if {@link LinkableResource#createLink()} is called on the proxy
-   * @return a new dynamic proxy implementation that will fetch the HAL resource when it is subscribed to
+   * @return an {@link Observable} that will emit the proxy when the resource has been retrieved
    */
-  public static <T> T createProxyFromUrl(Class<T> relatedResourceType, String url, JsonResourceLoader jsonLoader, RequestMetricsCollector responseMetadata,
+  static <T> Single<T> createProxyFromUrl(Class<T> relatedResourceType, String url, JsonResourceLoader jsonLoader,
+      RequestMetricsCollector responseMetadata,
       String linkTitle) {
 
-    AsyncHalApiInvocationHandler invocationHandler = new AsyncHalApiInvocationHandler(relatedResourceType, url, jsonLoader, responseMetadata, linkTitle);
+    return jsonLoader.loadJsonResource(url, responseMetadata)
+        .map(json -> new HalResource(json))
+        .map(hal -> createProxyFromHalResource(relatedResourceType, hal, jsonLoader, responseMetadata));
+  }
+
+  static <T> T createProxyFromHalResource(Class<T> relatedResourceType, HalResource contextResource, JsonResourceLoader jsonLoader,
+      RequestMetricsCollector responseMetadata) {
 
     Class[] interfaces = getInterfacesToImplement(relatedResourceType);
+
+    // the main logic of the proxy is implemented in this InvocationHandler
+    HalApiInvocationHandler invocationHandler = new HalApiInvocationHandler(contextResource, relatedResourceType, jsonLoader, responseMetadata);
 
     @SuppressWarnings("unchecked")
     T proxy = (T)Proxy.newProxyInstance(relatedResourceType.getClassLoader(), interfaces, invocationHandler);
@@ -53,22 +65,4 @@ public final class HalClientProxyFactory {
 
     return interfaces.toArray(new Class[interfaces.size()]);
   }
-
-  public static <T> T createProxyFromHalResource(Class<T> relatedResourceType, HalResource contextResource, JsonResourceLoader jsonLoader,
-      RequestMetricsCollector responseMetadata) {
-
-    // the dynamic proxy only needs to implement the given HAL API interface, and the HalApiResourceProxy , so that the HalApiClient is also able to extract the source JSON
-    Class[] interfaces = new Class[] {
-        relatedResourceType
-    };
-
-    // the main logic of the proxy is implemented in this InvocationHandler
-    HalApiInvocationHandler invocationHandler = new HalApiInvocationHandler(contextResource, relatedResourceType, jsonLoader, responseMetadata);
-
-    @SuppressWarnings("unchecked")
-    T proxy = (T)Proxy.newProxyInstance(relatedResourceType.getClassLoader(), interfaces, invocationHandler);
-
-    return proxy;
-  }
-
 }

@@ -30,6 +30,7 @@ import io.wcm.caravan.hal.api.annotations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -114,22 +115,28 @@ final class HalApiInvocationHandler implements InvocationHandler {
 
 
   private Object handleGetResourceProperties(HalApiMethodInvocation invocation) {
-    Class<?> resourcePropertiesType = invocation.getResourcePropertiesType();
-    log.trace(invocation + " was invoked, method is annotated with @ResourceProperties and returns type " + resourcePropertiesType.getSimpleName());
-
+    Class<?> returnType = invocation.getReturnType();
+    log.trace(invocation + " was invoked, method is annotated with @ResourceState and returns type " + returnType.getSimpleName());
 
     // the signature determines whether this object should be wrapped in an Observable
     if (invocation.returnsReactiveType()) {
 
-      // if it is an observable then we have to use the emission type as target of the conversion
-      resourcePropertiesType = invocation.getRelatedResourceType();
+      // if the interface is using Maybe as return type, and the HAL resource does not containy any
+      // state properties, then an empty maybe should be returned
+      if (Maybe.class.isAssignableFrom(returnType) && contextResource.getStateFieldNames().isEmpty()) {
+        return Maybe.empty();
+      }
 
-      // and also wrap the properties in a Single
-      return Single.just(convertResourceProperties(resourcePropertiesType));
+      // if it is an observable then we have to use the emission type as target of the conversion
+      Object properties = convertResourceProperties(invocation.getEmissionType());
+
+      // and also put the properties in a reactive wrapper according to the return type of the method
+      Observable<Object> rxProperties = Observable.just(properties);
+      return RxJavaReflectionUtils.convertReactiveType(rxProperties, returnType);
     }
 
     // the resource properties are already available in the context resource
-    return convertResourceProperties(resourcePropertiesType);
+    return convertResourceProperties(returnType);
   }
 
   private Object convertResourceProperties(Class<?> resourcePropertiesType) {
@@ -141,7 +148,8 @@ final class HalApiInvocationHandler implements InvocationHandler {
 
     // check which relation should be followed and what type of objects the Observable emits
     String relation = invocation.getRelation();
-    Class<?> relatedResourceType = invocation.getRelatedResourceType();
+    Class<?> reactiveType = invocation.getReturnType();
+    Class<?> relatedResourceType = invocation.getEmissionType();
 
     if (relatedResourceType.getAnnotation(HalApiInterface.class) == null) {
       // BYI-1693 HAL-API-Interfaces can contain related links that just point to an URL (i.e. a LinkableResource, not a specific resource instance)
@@ -164,7 +172,8 @@ final class HalApiInvocationHandler implements InvocationHandler {
       List<HalResource> embeddedResources = contextResource.getEmbedded(relation);
       log.trace(embeddedResources.size() + " embedded resources with relation " + relation + " were found in the context resource");
 
-      return createObservableFromEmbeddedResources(relatedResourceType, embeddedResources);
+      Observable<?> rxEmbedded = createObservableFromEmbeddedResources(relatedResourceType, embeddedResources);
+      return RxJavaReflectionUtils.convertReactiveType(rxEmbedded, reactiveType);
     }
     // if it's not then it must be linked
     else if (contextResource.hasLink(relation)) {
@@ -205,24 +214,15 @@ final class HalApiInvocationHandler implements InvocationHandler {
       else {
         Observable<?> rxLinkedResource = createObservableFromLinkedHalResources(relatedResourceType, links, parameters);
 
-        return convertTo(rxLinkedResource, invocation.getReturnType());
+        return RxJavaReflectionUtils.convertReactiveType(rxLinkedResource, invocation.getReturnType());
       }
     }
     // if it's not linked and not embedded then just return an empty observable
     else {
-      return Observable.empty();
+      return RxJavaReflectionUtils.convertReactiveType(Observable.empty(), reactiveType);
     }
   }
 
-  private static Object convertTo(Observable<?> observable, Class<?> otherType) {
-    if (otherType.isAssignableFrom(Single.class)) {
-      return observable.singleOrError();
-    }
-    if (otherType.isAssignableFrom(Maybe.class)) {
-      return observable.singleElement();
-    }
-    return observable;
-  }
 
   /*
 
@@ -290,7 +290,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
         .collect(Collectors.toList());
 
     return Observable.fromIterable(resolvedLinks)
-        .map(link -> HalClientProxyFactory.createProxyFromUrl(relatedResourceType, link.getHref(), jsonLoader, responseMetadata, link.getTitle()));
+        .concatMapSingle(link -> HalClientProxyFactory.createProxyFromUrl(relatedResourceType, link.getHref(), jsonLoader, responseMetadata, link.getTitle()));
   }
 
   private Observable<?> createObservableFromLinkedHalResources(Class<?> relatedResourceType, List<Link> links, Map<String, Object> parameters) {
