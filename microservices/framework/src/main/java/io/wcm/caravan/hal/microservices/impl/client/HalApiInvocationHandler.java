@@ -86,11 +86,11 @@ final class HalApiInvocationHandler implements InvocationHandler {
         return handler.handleMethodInvocation(invocation);
       }
 
+      // unsupported operation
       String annotationNames = ImmutableList.of(RelatedResource.class, ResourceState.class, ResourceLink.class, ResourceRepresentation.class).stream()
           .map(Class::getSimpleName)
           .map(name -> "@" + name)
           .collect(Collectors.joining(", ", "(", ")"));
-
       throw new RuntimeException("The method must be annotated with one of the HAL API annotations " + annotationNames);
 
     }

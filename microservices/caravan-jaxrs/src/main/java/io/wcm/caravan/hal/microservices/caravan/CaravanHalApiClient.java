@@ -19,10 +19,9 @@
  */
 package io.wcm.caravan.hal.microservices.caravan;
 
-import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
 public interface CaravanHalApiClient {
 
-  <T> Single<T> getEntryPoint(String serviceId, String uri, Class<T> halApiInterface, RequestMetricsCollector metrics);
+  <T> T getEntryPoint(String serviceId, String uri, Class<T> halApiInterface, RequestMetricsCollector metrics);
 }
