@@ -64,7 +64,8 @@ public class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
     return rxPipelineOutput
         .map(pipelineOutput -> {
 
-          log.debug("Received JSON response from {} with status code {} and max-age {}", uri, pipelineOutput.getStatusCode(), pipelineOutput.getMaxAge());
+          log.debug("Received JSON response from {} with status code {} and max-age {} in {}ms",
+              uri, pipelineOutput.getStatusCode(), pipelineOutput.getMaxAge(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
           JsonNode payload = pipelineOutput.getPayload();
 

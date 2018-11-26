@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.impl.metadata;
 
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -202,6 +203,8 @@ public class ResponseMetadata implements RequestMetricsCollector {
     metadataResource.getModel().put("sumOfResponseAndParseTimes", getSumOfResponseTimeMillis() + "ms");
     metadataResource.getModel().put("metadataGenerationTime", stopwatch.elapsed(TimeUnit.MILLISECONDS) + "ms");
     metadataResource.getModel().put("overallServerSideResponseTime", getOverallResponseTimeMillis() + "ms");
+
+    metadataResource.getModel().put("threadCount", ManagementFactory.getThreadMXBean().getThreadCount());
 
     return metadataResource;
   }

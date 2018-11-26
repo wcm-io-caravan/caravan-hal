@@ -56,7 +56,7 @@ final class RelatedResourcesRendererImpl {
     // find all methods annotated with @RelatedResource
     return getSortedRelatedResourceMethods(apiInterface)
         // create a RelatedContent instance with the links and embedded resources returned by each method
-        .concatMap(method -> createRelatedContentForMethod(resourceImplInstance, method).toObservable())
+        .concatMapEager(method -> createRelatedContentForMethod(resourceImplInstance, method).toObservable())
         // and collect the results for each method in a single list
         .toList();
   }
@@ -127,7 +127,7 @@ final class RelatedResourcesRendererImpl {
 
       // and render them by recursively calling the render function from AsyncHalresourceRendererImpl
       Observable<HalResource> rxHalResources = rxEmbeddedResourceImpls
-          .concatMap(r -> AsyncHalResourceRendererImpl.renderLinkedOrEmbeddedResource(r).toObservable());
+          .concatMapEager(r -> AsyncHalResourceRendererImpl.renderLinkedOrEmbeddedResource(r).toObservable());
 
       return rxHalResources.toList();
     }
