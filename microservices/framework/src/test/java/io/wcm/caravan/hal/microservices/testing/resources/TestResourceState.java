@@ -28,5 +28,13 @@ public class TestResourceState {
   public Integer number;
   public List<String> array;
 
+  public TestResourceState() {
+
+  }
+
+  public TestResourceState withText(String value) {
+    this.text = value;
+    return this;
+  }
 }
 

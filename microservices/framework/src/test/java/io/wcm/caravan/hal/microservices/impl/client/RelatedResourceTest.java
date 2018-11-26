@@ -35,89 +35,37 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
+import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 
 
-public class HalApiClientImplTest {
+public class RelatedResourceTest {
 
-  private RequestMetricsCollector metrics = RequestMetricsCollector.create();
-
+  private RequestMetricsCollector metrics;
   private BinaryResourceLoader binaryLoader;
-
-  private TestResourceTree tree;
+  private JsonResourceLoader jsonLoader;
   private TestResource entryPoint;
-
 
   @Before
   public void setUp() {
-
+    metrics = RequestMetricsCollector.create();
     binaryLoader = Mockito.mock(BinaryResourceLoader.class);
 
-    tree = new TestResourceTree();
-    entryPoint = tree.getEntryPoint();
+    TestResourceTree testResourceTree = new TestResourceTree();
+    jsonLoader = testResourceTree;
+    entryPoint = testResourceTree.getEntryPoint();
   }
 
   private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClientImpl client = new HalApiClientImpl(tree, binaryLoader, metrics);
-    T clientProxy = client.getEntryPoint(tree.getEntryPoint().getUrl(), halApiInterface).blockingGet();
+    HalApiClientImpl client = new HalApiClientImpl(jsonLoader, binaryLoader, metrics);
+    T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
     assertThat(clientProxy).isNotNull();
     return clientProxy;
-  }
-
-
-  @HalApiInterface
-  interface ResourceWithSingleState {
-
-    @ResourceState
-    Single<TestResourceState> getProperties();
-  }
-
-  @Test
-  public void single_resource_state_should_be_emitted() throws Exception {
-
-    entryPoint.setText("test");
-
-    ResourceWithSingleState proxy = createClientProxy(ResourceWithSingleState.class);
-
-    TestResourceState properties = proxy.getProperties().blockingGet();
-    assertThat(properties).isNotNull();
-    assertThat(properties.text).isEqualTo("test");
-  }
-
-
-  @HalApiInterface
-  interface ResourceWithOptionalState {
-
-    @ResourceState
-    Maybe<TestResourceState> getProperties();
-  }
-
-  @Test
-  public void maybe_resource_state_should_be_emitted() throws Exception {
-
-    entryPoint.setText("test");
-
-    ResourceWithOptionalState proxy = createClientProxy(ResourceWithOptionalState.class);
-
-    TestResourceState properties = proxy.getProperties().blockingGet();
-    assertThat(properties).isNotNull();
-    assertThat(properties.text).isEqualTo("test");
-  }
-
-  @Test
-  public void maybe_resource_state_should_be_empty_if_no_properties_are_set() throws Exception {
-
-    // not calling any method on the entry point to get a resource with no properties
-
-    ResourceWithOptionalState proxy = createClientProxy(ResourceWithOptionalState.class);
-
-    TestResourceState properties = proxy.getProperties().blockingGet();
-    assertThat(properties).isNull();
   }
 
 
@@ -273,9 +221,9 @@ public class HalApiClientImplTest {
 
     ResourceWithMultipleRelated proxy = createClientProxy(ResourceWithMultipleRelated.class);
 
-    Observable<ResourceWithSingleState> rxLinkedResource = proxy.getItems();
+    Observable<ResourceWithSingleState> rxLinkedResources = proxy.getItems();
 
-    assertThat(rxLinkedResource.isEmpty().blockingGet()).isTrue();
+    assertThat(rxLinkedResources.isEmpty().blockingGet()).isTrue();
   }
 
   @Test
@@ -295,7 +243,6 @@ public class HalApiClientImplTest {
       assertThat(linkedStates.get(i).number).isEqualTo(i);
     }
   }
-
 
   @Test
   public void observable_embedded_resource_should_emitted_single_item() throws Exception {
@@ -320,9 +267,9 @@ public class HalApiClientImplTest {
 
     ResourceWithMultipleRelated proxy = createClientProxy(ResourceWithMultipleRelated.class);
 
-    Observable<ResourceWithSingleState> rxEmbeddedResource = proxy.getItems();
+    Observable<ResourceWithSingleState> rxEmbeddedResources = proxy.getItems();
 
-    assertThat(rxEmbeddedResource.isEmpty().blockingGet()).isTrue();
+    assertThat(rxEmbeddedResources.isEmpty().blockingGet()).isTrue();
   }
 
   @Test

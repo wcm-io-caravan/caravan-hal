@@ -21,7 +21,6 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import com.google.common.base.Preconditions;
 
-import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
@@ -47,7 +46,7 @@ public class HalApiClientImpl implements HalApiClient {
   }
 
   @Override
-  public <T> Single<T> getEntryPoint(String uri, Class<T> halApiInterface) {
+  public <T> T getEntryPoint(String uri, Class<T> halApiInterface) {
 
     // check that the given class is indeed a HAL api interface
     HalApiInterface annotation = halApiInterface.getAnnotation(HalApiInterface.class);

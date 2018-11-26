@@ -26,7 +26,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.damnhandy.uri.template.UriTemplate;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableMap;
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
@@ -36,6 +38,7 @@ import io.wcm.caravan.hal.resource.Link;
 
 public class TestResourceTree implements JsonResourceLoader {
 
+  static final String LINKED_URL_TEMPLATE = "/linked/{index}";
   private static final String ENTRY_POINT_URL = "/";
   private final TestResource entryPoint;
 
@@ -51,7 +54,7 @@ public class TestResourceTree implements JsonResourceLoader {
 
   void assignSelfLink(TestResource resource) {
 
-    String url = linkCounter == 0 ? ENTRY_POINT_URL : "/linked/" + linkCounter;
+    String url = linkCounter == 0 ? ENTRY_POINT_URL : UriTemplate.expand(LINKED_URL_TEMPLATE, ImmutableMap.of("index", linkCounter));
     linkCounter++;
 
     HalResource hal = resource.asHalResource();

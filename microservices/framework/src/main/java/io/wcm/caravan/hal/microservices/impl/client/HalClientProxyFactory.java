@@ -30,22 +30,29 @@ final class HalClientProxyFactory {
    * @param linkTitle the link title to use if {@link LinkableResource#createLink()} is called on the proxy
    * @return an {@link Observable} that will emit the proxy when the resource has been retrieved
    */
-  static <T> Single<T> createProxyFromUrl(Class<T> relatedResourceType, String url, JsonResourceLoader jsonLoader,
-      RequestMetricsCollector responseMetadata,
-      String linkTitle) {
+  static <T> T createProxyFromUrl(Class<T> relatedResourceType, String url, JsonResourceLoader jsonLoader,
+      RequestMetricsCollector responseMetadata, String linkTitle) {
 
-    return jsonLoader.loadJsonResource(url, responseMetadata)
-        .map(json -> new HalResource(json))
-        .map(hal -> createProxyFromHalResource(relatedResourceType, hal, jsonLoader, responseMetadata));
+    Single<HalResource> rxHal = jsonLoader.loadJsonResource(url, responseMetadata)
+        .map(json -> new HalResource(json));
+
+    return createProxy(relatedResourceType, rxHal, jsonLoader, responseMetadata);
   }
 
   static <T> T createProxyFromHalResource(Class<T> relatedResourceType, HalResource contextResource, JsonResourceLoader jsonLoader,
       RequestMetricsCollector responseMetadata) {
 
+    Single<HalResource> rxHal = Single.just(contextResource);
+
+    return createProxy(relatedResourceType, rxHal, jsonLoader, responseMetadata);
+  }
+
+  private static <T> T createProxy(Class<T> relatedResourceType, Single<HalResource> rxHal, JsonResourceLoader jsonLoader,
+      RequestMetricsCollector responseMetadata) {
     Class[] interfaces = getInterfacesToImplement(relatedResourceType);
 
     // the main logic of the proxy is implemented in this InvocationHandler
-    HalApiInvocationHandler invocationHandler = new HalApiInvocationHandler(contextResource, relatedResourceType, jsonLoader, responseMetadata);
+    HalApiInvocationHandler invocationHandler = new HalApiInvocationHandler(rxHal, relatedResourceType, jsonLoader, responseMetadata);
 
     @SuppressWarnings("unchecked")
     T proxy = (T)Proxy.newProxyInstance(relatedResourceType.getClassLoader(), interfaces, invocationHandler);
