@@ -166,14 +166,14 @@ public class ResponseMetadata implements RequestMetricsCollector {
     metadataResource.getModel().put("class", resourceImpl.getClass().getName());
 
     HalResource linksResource = new HalResource();
-    linksResource.getModel().put("title", "Links to all SDL resources that were retrieved to generate this resource");
+    linksResource.getModel().put("title", "Links to all requested upstream HAL resources (in the order the responses have been retrieved)");
     linksResource.getModel().put("developerHint", "If you see lots of untitled resources here then free feel to add a title "
         + "to the self link in that resource in the upstream service.");
     linksResource.addLinks(StandardRelations.VIA, getSourceLinks());
     metadataResource.addEmbedded("sdl:sourceLinks", linksResource);
 
     HalResource responseTimeResource = createTimingResource(getSortedInputResponseTimes());
-    responseTimeResource.getModel().put("title", "The individual response & parse times of all retrieved SDL resources");
+    responseTimeResource.getModel().put("title", "The individual response & parse times of all retrieved HAL resources");
     responseTimeResource.getModel().put("developerHint", "Response times > ~20ms usually indicate that the resource was not found in cache"
         + " - a reload of this resource should then be much faser. "
         + "If you see many individual requests here then check if the upstream "
@@ -189,7 +189,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
     metadataResource.addEmbedded("metrics:invocationTimes", invocationTimeResource);
 
     HalResource maxAgeResource = createTimingResource(getSortedInputMaxAgeSeconds());
-    maxAgeResource.getModel().put("title", "The max-age cache header values of all retrieved SDL resources");
+    maxAgeResource.getModel().put("title", "The max-age cache header values of all retrieved resources");
     maxAgeResource.getModel().put("developerHint", "If the max-age in this response's cache headers is lower then you expected, "
         + "then check the resources at the very bottom of the list, because they will determine the overall max-age time.");
     metadataResource.addEmbedded("metrics:maxAge", maxAgeResource);
