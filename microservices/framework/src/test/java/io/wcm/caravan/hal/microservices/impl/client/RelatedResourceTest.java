@@ -289,4 +289,25 @@ public class RelatedResourceTest {
       assertThat(embeddedStates.get(i).number).isEqualTo(i);
     }
   }
+
+  @Test
+  public void duplicates_should_be_filtered_if_they_are_linked_and_embedded() throws Exception {
+
+    int numItems = 10;
+    Observable.range(0, numItems).forEach(i -> {
+      TestResource item = entryPoint.createLinked(ITEM).setNumber(i);
+      entryPoint.asHalResource().addEmbedded(ITEM, item.asHalResource());
+    });
+
+    ResourceWithMultipleRelated proxy = createClientProxy(ResourceWithMultipleRelated.class);
+
+    List<TestResourceState> embeddedStates = proxy.getItems()
+        .concatMapSingle(ResourceWithSingleState::getProperties)
+        .toList().blockingGet();
+
+    assertThat(embeddedStates).hasSize(10);
+    for (int i = 0; i < numItems; i++) {
+      assertThat(embeddedStates.get(i).number).isEqualTo(i);
+    }
+  }
 }

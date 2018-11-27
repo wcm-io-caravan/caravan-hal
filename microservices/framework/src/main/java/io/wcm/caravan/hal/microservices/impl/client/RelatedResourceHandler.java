@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -68,37 +69,53 @@ class RelatedResourceHandler {
 
     List<Link> links = applyLinkNameFilter(invocation, contextResource.getLinks(relation));
 
-    // the related resource might be already embedded in the context HAL resource
-    if (contextResource.hasEmbedded(relation)) {
-      List<HalResource> embeddedResources = contextResource.getEmbedded(relation);
-      log.trace(embeddedResources.size() + " embedded resources with relation " + relation + " were found in the context resource");
+    List<HalResource> embeddedResources = contextResource.getEmbedded(relation);
+    Observable<Object> rxEmbedded = getEmbedded(invocation, relation, relatedResourceType, embeddedResources, links);
 
-      return createObservableFromEmbeddedResources(relatedResourceType, embeddedResources, links, invocation);
-    }
+    List<Link> relevantLinks = findLinksToResourcesThatArentEmbedded(links, embeddedResources);
+    Observable<Object> rxLinked = getLinked(invocation, relation, relatedResourceType, relevantLinks);
+
+    return rxEmbedded.concatWith(rxLinked);
+  }
+
+  private static List<Link> findLinksToResourcesThatArentEmbedded(List<Link> links, List<HalResource> embeddedResources) {
+
+    Set<String> embeddedHrefs = embeddedResources.stream()
+        .map(HalResource::getLink)
+        .filter(Objects::nonNull)
+        .map(Link::getHref)
+        .collect(Collectors.toSet());
+
+    List<Link> relevantLinks = links.stream()
+        .filter(link -> !embeddedHrefs.contains(link.getHref()))
+        .collect(Collectors.toList());
+
+    return relevantLinks;
+  }
+
+  private Observable<Object> getEmbedded(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<HalResource> embeddedResources,
+      List<Link> links) {
+
+    log.trace(embeddedResources.size() + " embedded resources with relation " + relation + " were found in the context resource");
+
+    return createObservableFromEmbeddedResources(relatedResourceType, embeddedResources, links, invocation);
+  }
+
+  private Observable<Object> getLinked(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<Link> links) {
     // if it's not then it must be linked
-    else if (contextResource.hasLink(relation)) {
+    log.trace(links.size() + " links with relation " + relation + " were found in the context resource and will be fetched.");
 
-      log.trace(links.size() + " links with relation " + relation + " were found in the context resource and will be fetched.");
-
-      Map<String, Object> parameters = invocation.getParameters();
-
-      boolean hasParameters = parameters.size() > 0;
-
-      if (hasParameters) {
-        // if all parameters are null, we assume that the caller is only interested in the link templates
-        boolean allParametersAreNull = parameters.values().stream().noneMatch(Objects::nonNull);
-        if (allParametersAreNull) {
-          return createObservableFromLinkTemplates(relatedResourceType, links);
-        }
+    Map<String, Object> parameters = invocation.getParameters();
+    boolean hasParameters = parameters.size() > 0;
+    if (hasParameters) {
+      // if all parameters are null, we assume that the caller is only interested in the link templates
+      boolean allParametersAreNull = parameters.values().stream().noneMatch(Objects::nonNull);
+      if (allParametersAreNull) {
+        return createObservableFromLinkTemplates(relatedResourceType, links);
       }
-
-      return createObservableFromLinkedHalResources(relatedResourceType, links, parameters);
-
     }
-    // if it's not linked and not embedded then just return an empty observable
-    else {
-      return Observable.empty();
-    }
+
+    return createObservableFromLinkedHalResources(relatedResourceType, links, parameters);
   }
 
   private List<Link> applyLinkNameFilter(HalApiMethodInvocation invocation, List<Link> links) {
@@ -108,13 +125,15 @@ class RelatedResourceHandler {
       return links;
     }
 
-    return links.stream()
+    List<Link> filteredLinks = links.stream()
         .filter(link -> selectedLinkName.equals(link.getName()))
         .collect(Collectors.toList());
+
+    return filteredLinks;
   }
 
 
-  private Observable<?> createObservableFromEmbeddedResources(Class<?> relatedResourceType, List<HalResource> embeddedResources, List<Link> links,
+  private Observable<Object> createObservableFromEmbeddedResources(Class<?> relatedResourceType, List<HalResource> embeddedResources, List<Link> links,
       HalApiMethodInvocation invocation) {
 
     Map<String, Link> linksByHref = links.stream()
@@ -135,7 +154,7 @@ class RelatedResourceHandler {
         });
   }
 
-  private Observable<?> createObservableFromLinkedHalResources(Class<?> relatedResourceType, List<Link> links, Map<String, Object> parameters) {
+  private Observable<Object> createObservableFromLinkedHalResources(Class<?> relatedResourceType, List<Link> links, Map<String, Object> parameters) {
 
     // if the resources are linked, then we have to fetch those resources first
     return Observable.fromIterable(links)
@@ -143,7 +162,7 @@ class RelatedResourceHandler {
         .map(link -> HalApiClientProxyFactory.createProxyFromLink(relatedResourceType, link, jsonLoader, metrics));
   }
 
-  private Observable<?> createObservableFromLinkTemplates(Class<?> relatedResourceType, List<Link> links) {
+  private Observable<Object> createObservableFromLinkTemplates(Class<?> relatedResourceType, List<Link> links) {
 
     // do not expand the link templates
     return Observable.fromIterable(links)

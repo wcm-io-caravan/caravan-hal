@@ -40,6 +40,7 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
+import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 public class LinkNameTest {
@@ -126,6 +127,25 @@ public class LinkNameTest {
       String linkName = Integer.toString(i);
       TestResource itemResource = entryPoint.createLinked(ITEM, linkName).setNumber(i);
       entryPoint.asHalResource().addEmbedded(ITEM, itemResource.asHalResource());
+    });
+
+    String linkNameToFind = "5";
+
+    TestResourceState state = createClientProxy(ResourceWithNamedLinked.class)
+        .getLinkedByName(linkNameToFind)
+        .flatMapSingle(LinkedResource::getState)
+        .blockingGet();
+
+    assertThat(state.number).isEqualTo(5);
+  }
+
+  @Test
+  public void should_find_existing_named_linked_even_if_unnamed_embedded_items_are_present() {
+
+    Observable.range(0, 10).forEach(i -> {
+      String linkName = Integer.toString(i);
+      entryPoint.createLinked(ITEM, linkName).setNumber(i);
+      entryPoint.asHalResource().addEmbedded(ITEM, new HalResource());
     });
 
     String linkNameToFind = "5";
