@@ -13,6 +13,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.api.annotations.TemplateVariable;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 
 
@@ -29,7 +30,10 @@ class HalApiMethodInvocation {
 
     for (int i = 0; i < method.getParameterCount(); i++) {
       Parameter parameter = method.getParameters()[i];
-      parameters.put(parameter.getName(), args[i]);
+      TemplateVariable annotation = parameter.getAnnotation(TemplateVariable.class);
+      Preconditions.checkArgument(annotation != null,
+          "all parameters of " + toString() + " need to be annotated with @" + TemplateVariable.class.getSimpleName());
+      parameters.put(annotation.value(), args[i]);
     }
   }
 

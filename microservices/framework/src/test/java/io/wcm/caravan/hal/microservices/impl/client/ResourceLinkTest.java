@@ -32,6 +32,7 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
+import io.wcm.caravan.hal.api.annotations.TemplateVariable;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -141,7 +142,10 @@ public class ResourceLinkTest {
   interface ResourceWithLinkTemplate {
 
     @RelatedResource(relation = ITEM)
-    Single<LinkableResource> getLinked(Integer intParam, String stringParam, List<String> listParam);
+    Single<LinkableResource> getLinked(
+        @TemplateVariable("intParam") Integer intParam,
+        @TemplateVariable("stringParam") String stringParam,
+        @TemplateVariable("listParam") List<String> listParam);
   }
 
   @Test

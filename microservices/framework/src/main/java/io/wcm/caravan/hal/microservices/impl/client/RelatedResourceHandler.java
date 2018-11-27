@@ -24,8 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -84,19 +82,6 @@ class RelatedResourceHandler {
       boolean hasParameters = parameters.size() > 0;
 
       if (hasParameters) {
-        // verify that the names of the parameters could be extracted through reflection
-        // (assuming that developers don't  use arg0, arg1, arg2 as parameter names in their APIs)
-        long numUnnamedParameters = parameters.keySet().stream()
-            .filter(argName -> argName.startsWith("arg"))
-            .filter(argName -> NumberUtils.isNumber(StringUtils.substringAfter(argName, "arg")))
-            .count();
-
-        if (numUnnamedParameters == parameters.size()) {
-          throw new RuntimeException("Failed to call HAL API method " + invocation + ", because the parameter names are not available in the class files."
-              + " Please ensure that parameter names are not stripped from the class files in your API bundles"
-              + " (e.g. by using <arg>-parameters</arg> for the maven-compiler-plugin)");
-        }
-
         // if all parameters are null, we assume that the caller is only interested in the link templates
         boolean allParametersAreNull = parameters.values().stream().noneMatch(Objects::nonNull);
         if (allParametersAreNull) {
@@ -115,6 +100,7 @@ class RelatedResourceHandler {
 
 
   private Observable<?> createObservableFromEmbeddedResources(Class<?> relatedResourceType, List<HalResource> embeddedResources) {
+
     // if the HAL resources are already embedded then creating the proxy is very simple
     return Observable.fromIterable(embeddedResources)
         .map(hal -> HalApiClientProxyFactory.createProxyFromHalResource(relatedResourceType, hal, jsonLoader, metrics));

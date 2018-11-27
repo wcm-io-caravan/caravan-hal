@@ -31,6 +31,7 @@ import org.mockito.Mockito;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.api.annotations.TemplateVariable;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -84,7 +85,7 @@ public class RelatedResourceParameterTest {
   interface ResourceWithSimpleLinkTemplate {
 
     @RelatedResource(relation = ITEM)
-    Single<ResourceWithSingleState> getLinked(Integer number);
+    Single<ResourceWithSingleState> getLinked(@TemplateVariable("number") Integer number);
   }
 
   @Test
@@ -119,7 +120,9 @@ public class RelatedResourceParameterTest {
   interface ResourceWithComplexLinkTemplate {
 
     @RelatedResource(relation = ITEM)
-    Single<ResourceWithSingleState> getLinked(Integer number, Boolean optionalFlag);
+    Single<ResourceWithSingleState> getLinked(
+        @TemplateVariable("number") Integer number,
+        @TemplateVariable("optionalFlag") Boolean optionalFlag);
   }
 
   @Test
