@@ -22,13 +22,13 @@ class HalApiMethodInvocation {
 
   private final Class interfaze;
   private final Method method;
-  private final Map<String, Object> parameters;
+  private final Map<String, Object> templateVariables;
   private final String linkName;
 
   HalApiMethodInvocation(Class interfaze, Method method, Object[] args) {
     this.interfaze = interfaze;
     this.method = method;
-    this.parameters = new HashMap<>();
+    this.templateVariables = new HashMap<>();
 
     String foundLinkName = null;
     for (int i = 0; i < method.getParameterCount(); i++) {
@@ -41,7 +41,7 @@ class HalApiMethodInvocation {
               + TemplateVariable.class.getSimpleName() + " or @" + LinkName.class.getSimpleName());
 
       if (variable != null) {
-        parameters.put(variable.value(), args[i]);
+        templateVariables.put(variable.value(), args[i]);
       }
 
       if (name != null) {
@@ -95,8 +95,8 @@ class HalApiMethodInvocation {
     return RxJavaReflectionUtils.getObservableEmissionType(method);
   }
 
-  Map<String, Object> getParameters() {
-    return parameters;
+  Map<String, Object> getTemplateVariables() {
+    return templateVariables;
   }
 
   String getLinkName() {
@@ -106,7 +106,7 @@ class HalApiMethodInvocation {
   @Override
   public String toString() {
 
-    String parameterString = parameters.entrySet().stream()
+    String parameterString = templateVariables.entrySet().stream()
         .map(entry -> entry.getKey() + "=" + entry.getValue())
         .collect(Collectors.joining(","));
 

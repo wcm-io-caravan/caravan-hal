@@ -31,6 +31,10 @@ public class HalApiClientException extends RuntimeException {
     this.requestUrl = requestUrl;
   }
 
+  public HalApiClientException(String message, int statusCode, String requestUrl) {
+    this(message, statusCode, requestUrl, null);
+  }
+
   public int getStatusCode() {
     return this.statusCode;
   }

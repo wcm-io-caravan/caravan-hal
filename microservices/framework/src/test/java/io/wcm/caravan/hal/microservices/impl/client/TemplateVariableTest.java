@@ -24,10 +24,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import com.damnhandy.uri.template.UriTemplate;
+
+import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
@@ -155,4 +160,93 @@ public class TemplateVariableTest {
     assertThat(state.number).isEqualTo(1);
   }
 
+  @HalApiInterface
+  interface ResourceWithTemplateAndResolvedLinks {
+
+    @RelatedResource(relation = ITEM)
+    Single<ResourceWithSingleState> getLinked(@TemplateVariable("number") Integer number);
+
+    @RelatedResource(relation = ITEM)
+    Observable<ResourceWithSingleState> getAllLinked();
+  }
+
+  @Test
+  public void ignore_link_template_if_method_without_template_variable_is_called_and_there_are_resolved_links() {
+
+    entryPoint.addLinks(ITEM, new Link("/item/{number}"));
+
+    int numResolvedLinks = 5;
+    Observable.range(0, numResolvedLinks).forEach(i -> {
+      String url = "/item/" + i;
+      entryPoint.addLinks(ITEM, new Link(url));
+
+      mockHalResponseWithNumber(url, i);
+    });
+
+    List<TestResourceState> states = createClientProxy(ResourceWithTemplateAndResolvedLinks.class)
+        .getAllLinked()
+        .flatMapSingle(ResourceWithSingleState::getProperties)
+        .toList()
+        .blockingGet();
+
+    assertThat(states).hasSize(numResolvedLinks);
+  }
+
+  @Test
+  public void expand_link_template_if_method_without_template_variable_is_called_but_there_are_no_resolved_links() {
+
+    int numTemplates = 5;
+    Observable.range(0, numTemplates).forEach(i -> {
+      String template = "/item/" + i + "{?optionalFlag}";
+      entryPoint.addLinks(ITEM, new Link(template));
+
+      String uri = UriTemplate.fromTemplate(template).expand();
+      mockHalResponseWithNumber(uri, i);
+    });
+
+    List<TestResourceState> states = createClientProxy(ResourceWithTemplateAndResolvedLinks.class)
+        .getAllLinked()
+        .flatMapSingle(ResourceWithSingleState::getProperties)
+        .toList()
+        .blockingGet();
+
+    assertThat(states).hasSize(numTemplates);
+  }
+
+  @Test
+  public void resolved_links_should_be_ignored_if_method_with_template_variable_is_called() {
+
+    int numResolvedLinks = 5;
+    Observable.range(0, numResolvedLinks).forEach(i -> {
+      String url = "/item/" + i;
+      entryPoint.addLinks(ITEM, new Link(url));
+
+      mockHalResponseWithNumber(url, i);
+    });
+
+    entryPoint.addLinks(ITEM, new Link("/item/{number}"));
+
+    TestResourceState state = createClientProxy(ResourceWithTemplateAndResolvedLinks.class)
+        .getLinked(3)
+        .flatMap(ResourceWithSingleState::getProperties)
+        .blockingGet();
+
+    assertThat(state.number).isEqualTo(3);
+  }
+
+  @Test
+  public void resolved_links_should_be_followed_if_method_with_template_variable_is_called_but_there_is_no_template() {
+
+    String url = "/item/3";
+    entryPoint.addLinks(ITEM, new Link(url));
+
+    mockHalResponseWithNumber(url, 3);
+
+    TestResourceState state = createClientProxy(ResourceWithTemplateAndResolvedLinks.class)
+        .getLinked(3)
+        .flatMap(ResourceWithSingleState::getProperties)
+        .blockingGet();
+
+    assertThat(state.number).isEqualTo(3);
+  }
 }

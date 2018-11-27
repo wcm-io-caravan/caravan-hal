@@ -68,14 +68,55 @@ class RelatedResourceHandler {
         + relatedResourceType.getSimpleName() + ">");
 
     List<Link> links = applyLinkNameFilter(invocation, contextResource.getLinks(relation));
-
     List<HalResource> embeddedResources = contextResource.getEmbedded(relation);
-    Observable<Object> rxEmbedded = getEmbedded(invocation, relation, relatedResourceType, embeddedResources, links);
 
-    List<Link> relevantLinks = findLinksToResourcesThatArentEmbedded(links, embeddedResources);
-    Observable<Object> rxLinked = getLinked(invocation, relation, relatedResourceType, relevantLinks);
+    Observable<Object> rxEmbedded = getEmbedded(invocation, relation, relatedResourceType, embeddedResources, links);
+    Observable<Object> rxLinked = getLinked(invocation, relation, relatedResourceType, embeddedResources, links);
 
     return rxEmbedded.concatWith(rxLinked);
+  }
+
+
+  private Observable<Object> getEmbedded(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<HalResource> embeddedResources,
+      List<Link> links) {
+
+    log.trace(embeddedResources.size() + " embedded resources with relation " + relation + " were found in the context resource");
+
+    return createObservableFromEmbeddedResources(relatedResourceType, embeddedResources, links, invocation);
+  }
+
+  private Observable<Object> getLinked(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<HalResource> embeddedResources,
+      List<Link> links) {
+    // if it's not then it must be linked
+    log.trace(links.size() + " links with relation " + relation + " were found in the context resource and will be fetched.");
+
+    List<Link> relevantLinks = findLinksToResourcesThatArentEmbedded(links, embeddedResources);
+
+    long numTemplatedLinks = relevantLinks.stream().filter(Link::isTemplated).count();
+    Map<String, Object> variables = invocation.getTemplateVariables();
+
+    if (variables.size() > 0) {
+      // if null values were specified for all template variables, we assume that the caller is only interested in the link templates
+      boolean allParametersAreNull = variables.values().stream().noneMatch(Objects::nonNull);
+      if (allParametersAreNull) {
+        return createObservableFromLinkTemplates(relatedResourceType, relevantLinks);
+      }
+
+      // otherwise we ignore any resolved links, and only consider link templates that are resolved with the callers values
+      // (unless there are no link templates present)
+      if (numTemplatedLinks != 0) {
+        relevantLinks = relevantLinks.stream().filter(Link::isTemplated).collect(Collectors.toList());
+      }
+    }
+    else {
+      // if the method being called doesn't contain parameters for template variables, then link templates should be ignored
+      // (unless there are only link templates present)
+      if (numTemplatedLinks != relevantLinks.size()) {
+        relevantLinks = relevantLinks.stream().filter(link -> !link.isTemplated()).collect(Collectors.toList());
+      }
+    }
+
+    return createObservableFromLinkedHalResources(relatedResourceType, relevantLinks, variables);
   }
 
   private static List<Link> findLinksToResourcesThatArentEmbedded(List<Link> links, List<HalResource> embeddedResources) {
@@ -91,31 +132,6 @@ class RelatedResourceHandler {
         .collect(Collectors.toList());
 
     return relevantLinks;
-  }
-
-  private Observable<Object> getEmbedded(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<HalResource> embeddedResources,
-      List<Link> links) {
-
-    log.trace(embeddedResources.size() + " embedded resources with relation " + relation + " were found in the context resource");
-
-    return createObservableFromEmbeddedResources(relatedResourceType, embeddedResources, links, invocation);
-  }
-
-  private Observable<Object> getLinked(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<Link> links) {
-    // if it's not then it must be linked
-    log.trace(links.size() + " links with relation " + relation + " were found in the context resource and will be fetched.");
-
-    Map<String, Object> parameters = invocation.getParameters();
-    boolean hasParameters = parameters.size() > 0;
-    if (hasParameters) {
-      // if all parameters are null, we assume that the caller is only interested in the link templates
-      boolean allParametersAreNull = parameters.values().stream().noneMatch(Objects::nonNull);
-      if (allParametersAreNull) {
-        return createObservableFromLinkTemplates(relatedResourceType, links);
-      }
-    }
-
-    return createObservableFromLinkedHalResources(relatedResourceType, links, parameters);
   }
 
   private List<Link> applyLinkNameFilter(HalApiMethodInvocation invocation, List<Link> links) {

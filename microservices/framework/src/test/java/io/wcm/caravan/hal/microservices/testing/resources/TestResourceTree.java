@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -64,12 +65,19 @@ public class TestResourceTree implements JsonResourceLoader {
 
   @Override
   public Single<JsonNode> loadJsonResource(String uri, RequestMetricsCollector metrics) {
+
+    Link link = new Link(uri);
+    if (link.isTemplated()) {
+      return Single.error(new HalApiClientException("An unresolved link template was requested", 400, uri));
+    }
+
     TestResource requestedResource = urlResourceMap.get(uri);
     if (requestedResource == null) {
-      return Single.error(new RuntimeException("No resource with path " + uri + " was created by this " + getClass().getSimpleName()));
+      return Single.error(new HalApiClientException("No resource with path " + uri + " was created by this " + getClass().getSimpleName(), 404, uri));
     }
     if (urlsThatTriggerException.contains(uri)) {
-      return Single.error(new RuntimeException("An error loading resource with path " + uri + " as simulated by this " + getClass().getSimpleName()));
+      return Single
+          .error(new HalApiClientException("An error loading resource with path " + uri + " as simulated by this " + getClass().getSimpleName(), 500, uri));
     }
     return Single.just(requestedResource.asHalResource().getModel());
   }
