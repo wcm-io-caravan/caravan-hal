@@ -40,7 +40,7 @@ import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
-public class RelatedResourceParameterTest {
+public class TemplateVariableTest {
 
   private static final String ENTRYPOINT_URL = "/";
   private RequestMetricsCollector metrics;

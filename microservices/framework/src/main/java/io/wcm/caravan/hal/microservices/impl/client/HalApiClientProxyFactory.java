@@ -41,19 +41,20 @@ final class HalApiClientProxyFactory {
     return createProxy(relatedResourceType, rxHal, link, jsonLoader, metrics);
   }
 
-  static <T> T createProxyFromHalResource(Class<T> relatedResourceType, HalResource contextResource, JsonResourceLoader jsonLoader,
-      RequestMetricsCollector metrics) {
+  static <T> T createProxyFromHalResource(Class<T> relatedResourceType, HalResource contextResource, Link link,
+      JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
 
     Single<HalResource> rxHal = Single.just(contextResource);
 
-    return createProxy(relatedResourceType, rxHal, contextResource.getLink(), jsonLoader, metrics);
+    return createProxy(relatedResourceType, rxHal, link, jsonLoader, metrics);
   }
 
   private static Single<HalResource> loadHalResource(String resourceUrl, JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
 
     // this additional single is only required because we want to validate the URL only on subscription
     // (e.g. right before it is actually retrieved).
-    // It should still be possible to create a proxy just to get the uri template by calling a method annotated with @ResourceLink
+    // This is because i should still be possible to create a proxy just to get a URI template
+    // by calling a method annotated with @ResourceLink.
     return Single.just(resourceUrl)
         .flatMap(url -> {
           Link link = new Link(url);

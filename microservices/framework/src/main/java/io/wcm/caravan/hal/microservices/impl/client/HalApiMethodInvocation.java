@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.base.Preconditions;
 
+import io.wcm.caravan.hal.api.annotations.LinkName;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
@@ -22,19 +23,40 @@ class HalApiMethodInvocation {
   private final Class interfaze;
   private final Method method;
   private final Map<String, Object> parameters;
+  private final String linkName;
 
   HalApiMethodInvocation(Class interfaze, Method method, Object[] args) {
     this.interfaze = interfaze;
     this.method = method;
     this.parameters = new HashMap<>();
 
+    String foundLinkName = null;
     for (int i = 0; i < method.getParameterCount(); i++) {
       Parameter parameter = method.getParameters()[i];
-      TemplateVariable annotation = parameter.getAnnotation(TemplateVariable.class);
-      Preconditions.checkArgument(annotation != null,
-          "all parameters of " + toString() + " need to be annotated with @" + TemplateVariable.class.getSimpleName());
-      parameters.put(annotation.value(), args[i]);
+      TemplateVariable variable = parameter.getAnnotation(TemplateVariable.class);
+      LinkName name = parameter.getAnnotation(LinkName.class);
+
+      Preconditions.checkArgument(variable != null || name != null,
+          "all parameters of " + toString() + " need to be annotated with wither @"
+              + TemplateVariable.class.getSimpleName() + " or @" + LinkName.class.getSimpleName());
+
+      if (variable != null) {
+        parameters.put(variable.value(), args[i]);
+      }
+
+      if (name != null) {
+        if (foundLinkName != null) {
+          throw new IllegalArgumentException("More than one parameter of " + toString() + " is annotated with @" + LinkName.class.getSimpleName());
+        }
+        if (args[i] == null) {
+          throw new IllegalArgumentException(
+              "You must provide a non-null value for for the parameter annotated with @" + LinkName.class.getSimpleName() + " when calling " + toString());
+        }
+        foundLinkName = args[i] != null ? args[i].toString() : null;
+      }
     }
+
+    this.linkName = foundLinkName;
   }
 
   String getRelation() {
@@ -75,6 +97,10 @@ class HalApiMethodInvocation {
 
   Map<String, Object> getParameters() {
     return parameters;
+  }
+
+  String getLinkName() {
+    return linkName;
   }
 
   @Override

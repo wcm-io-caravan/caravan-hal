@@ -116,7 +116,7 @@ final class RelatedResourcesRendererImpl {
   private static Single<List<HalResource>> renderEmbeddedResources(Method method, Observable<?> rxRelatedResources) {
 
     // embedded resources can only occur for methods that don't have parameters
-    // (because of the method has parameters, it is a link template)
+    // (because if the method has parameters, it must be a link template)
     if (method.getParameterCount() == 0) {
 
       // filter only those resources that are actually embedded
