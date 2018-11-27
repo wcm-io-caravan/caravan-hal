@@ -19,11 +19,16 @@
  */
 package io.wcm.caravan.hal.microservices.impl.reflection;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
+
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
@@ -32,6 +37,7 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.api.annotations.TemplateVariables;
 
 /**
  * Utility methods to inspect method signatures
@@ -119,5 +125,32 @@ public final class HalApiReflectionUtils {
     return Observable.fromArray(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(RelatedResource.class) != null)
         .sorted((m1, m2) -> HalApiReflectionUtils.methodRelationComparator.compare(m1, m2));
+  }
+
+  public static Map<String, Object> getTemplateVariablesFrom(Object dto, Class dtoClass) {
+
+    return getFieldValuesAsMap(dto, dtoClass);
+  }
+
+  private static Map<String, Object> getFieldValuesAsMap(Object instance, Class dtoClass) {
+
+    Map<String, Object> map = new LinkedHashMap<>();
+
+    for (Field field : FieldUtils.getAllFields(dtoClass)) {
+      Object value = instance != null ? getFieldValue(field, instance) : null;
+      map.put(field.getName(), value);
+    }
+
+    return map;
+  }
+
+  private static Object getFieldValue(Field field, Object instance) {
+    try {
+      return field.get(instance);
+    }
+    catch (IllegalArgumentException | IllegalAccessException ex) {
+      throw new IllegalArgumentException("Failed to read value of field " + field.getName() + " from class " + instance.getClass().getSimpleName()
+          + ". Make sure that all fields in your classes annotated with @" + TemplateVariables.class.getSimpleName() + " are public");
+    }
   }
 }

@@ -15,6 +15,8 @@ import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
+import io.wcm.caravan.hal.api.annotations.TemplateVariables;
+import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 
 
@@ -22,42 +24,59 @@ class HalApiMethodInvocation {
 
   private final Class interfaze;
   private final Method method;
+
   private final Map<String, Object> templateVariables;
   private final String linkName;
+  private final boolean calledWithOnlyNullParameters;
 
   HalApiMethodInvocation(Class interfaze, Method method, Object[] args) {
     this.interfaze = interfaze;
     this.method = method;
     this.templateVariables = new HashMap<>();
 
+    boolean nonNullParameterFound = false;
     String foundLinkName = null;
     for (int i = 0; i < method.getParameterCount(); i++) {
       Parameter parameter = method.getParameters()[i];
+
       TemplateVariable variable = parameter.getAnnotation(TemplateVariable.class);
       LinkName name = parameter.getAnnotation(LinkName.class);
+      TemplateVariables variables = parameter.getType().getAnnotation(TemplateVariables.class);
 
-      Preconditions.checkArgument(variable != null || name != null,
-          "all parameters of " + toString() + " need to be annotated with wither @"
-              + TemplateVariable.class.getSimpleName() + " or @" + LinkName.class.getSimpleName());
+      Preconditions.checkArgument(variable != null || name != null || variables != null,
+          "all parameters of " + toString() + " need to be either annotated with @"
+              + TemplateVariable.class.getSimpleName() + " or @" + LinkName.class.getSimpleName() + ", "
+              + " or have class type annotated with @" + TemplateVariables.class.getSimpleName());
+
+      Object parameterValue = args[i];
+
+      nonNullParameterFound = nonNullParameterFound || parameterValue != null;
 
       if (variable != null) {
-        templateVariables.put(variable.value(), args[i]);
+        templateVariables.put(variable.value(), parameterValue);
+      }
+
+      if (variables != null) {
+        templateVariables.putAll(HalApiReflectionUtils.getTemplateVariablesFrom(parameterValue, parameter.getType()));
       }
 
       if (name != null) {
         if (foundLinkName != null) {
           throw new IllegalArgumentException("More than one parameter of " + toString() + " is annotated with @" + LinkName.class.getSimpleName());
         }
-        if (args[i] == null) {
+        if (parameterValue == null) {
           throw new IllegalArgumentException(
               "You must provide a non-null value for for the parameter annotated with @" + LinkName.class.getSimpleName() + " when calling " + toString());
         }
-        foundLinkName = args[i] != null ? args[i].toString() : null;
+        foundLinkName = parameterValue.toString();
       }
+
     }
 
     this.linkName = foundLinkName;
+    this.calledWithOnlyNullParameters = !nonNullParameterFound;
   }
+
 
   String getRelation() {
     RelatedResource relatedResourceAnnotation = method.getAnnotation(RelatedResource.class);
@@ -93,6 +112,10 @@ class HalApiMethodInvocation {
 
   Class<?> getEmissionType() {
     return RxJavaReflectionUtils.getObservableEmissionType(method);
+  }
+
+  boolean isCalledWithOnlyNullParameters() {
+    return calledWithOnlyNullParameters;
   }
 
   Map<String, Object> getTemplateVariables() {

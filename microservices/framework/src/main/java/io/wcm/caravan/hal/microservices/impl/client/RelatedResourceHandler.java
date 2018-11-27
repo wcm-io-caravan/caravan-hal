@@ -19,7 +19,6 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -67,7 +66,7 @@ class RelatedResourceHandler {
     log.trace(invocation + " was invoked, method is annotated with @RelatedResources cur=" + relation + " and returns an Observable<"
         + relatedResourceType.getSimpleName() + ">");
 
-    List<Link> links = applyLinkNameFilter(invocation, contextResource.getLinks(relation));
+    List<Link> links = filterLinksIfNamedLinkAnnotationWasUsed(invocation, contextResource.getLinks(relation));
     List<HalResource> embeddedResources = contextResource.getEmbedded(relation);
 
     Observable<Object> rxEmbedded = getEmbedded(invocation, relation, relatedResourceType, embeddedResources, links);
@@ -87,18 +86,17 @@ class RelatedResourceHandler {
 
   private Observable<Object> getLinked(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<HalResource> embeddedResources,
       List<Link> links) {
-    // if it's not then it must be linked
+
     log.trace(links.size() + " links with relation " + relation + " were found in the context resource and will be fetched.");
 
-    List<Link> relevantLinks = findLinksToResourcesThatArentEmbedded(links, embeddedResources);
+    List<Link> relevantLinks = filterLinksToResourcesThatAreAlreadyEmbedded(links, embeddedResources);
 
     long numTemplatedLinks = relevantLinks.stream().filter(Link::isTemplated).count();
     Map<String, Object> variables = invocation.getTemplateVariables();
 
     if (variables.size() > 0) {
-      // if null values were specified for all template variables, we assume that the caller is only interested in the link templates
-      boolean allParametersAreNull = variables.values().stream().noneMatch(Objects::nonNull);
-      if (allParametersAreNull) {
+      // if null values were specified for all method parameters, we assume that the caller is only interested in the link templates
+      if (invocation.isCalledWithOnlyNullParameters()) {
         return createObservableFromLinkTemplates(relatedResourceType, relevantLinks);
       }
 
@@ -119,7 +117,7 @@ class RelatedResourceHandler {
     return createObservableFromLinkedHalResources(relatedResourceType, relevantLinks, variables);
   }
 
-  private static List<Link> findLinksToResourcesThatArentEmbedded(List<Link> links, List<HalResource> embeddedResources) {
+  private static List<Link> filterLinksToResourcesThatAreAlreadyEmbedded(List<Link> links, List<HalResource> embeddedResources) {
 
     Set<String> embeddedHrefs = embeddedResources.stream()
         .map(HalResource::getLink)
@@ -134,7 +132,7 @@ class RelatedResourceHandler {
     return relevantLinks;
   }
 
-  private List<Link> applyLinkNameFilter(HalApiMethodInvocation invocation, List<Link> links) {
+  private static List<Link> filterLinksIfNamedLinkAnnotationWasUsed(HalApiMethodInvocation invocation, List<Link> links) {
 
     String selectedLinkName = invocation.getLinkName();
     if (selectedLinkName == null) {
@@ -147,7 +145,6 @@ class RelatedResourceHandler {
 
     return filteredLinks;
   }
-
 
   private Observable<Object> createObservableFromEmbeddedResources(Class<?> relatedResourceType, List<HalResource> embeddedResources, List<Link> links,
       HalApiMethodInvocation invocation) {
@@ -185,72 +182,14 @@ class RelatedResourceHandler {
         .map(link -> HalApiClientProxyFactory.createProxyFromLink(relatedResourceType, link, jsonLoader, metrics));
   }
 
-  private Link expandLinkTemplates(Link link, Map<String, Object> parameters) {
-    Map<String, Object> effectiveParameters = getEffectiveParameters(parameters);
+  private static Link expandLinkTemplates(Link link, Map<String, Object> parameters) {
 
-    String uri = UriTemplate.expand(link.getHref(), effectiveParameters);
+    String uri = UriTemplate.expand(link.getHref(), parameters);
 
     Link clonedLink = new Link(link.getModel().deepCopy());
     clonedLink.setTemplated(false);
     clonedLink.setHref(uri);
     return clonedLink;
   }
-
-  /**
-   * get the effective parameters including the fields of the DTO objects.
-   * if the parameter is DTO object, than put its felds also into the parameter maps
-   */
-  private Map<String, Object> getEffectiveParameters(Map<String, Object> parameters) {
-    Map<String, Object> effectiveParameters = new HashMap<>(parameters);
-
-    //    Map<String, Object> dtoObjects = getDtoObjects(effectiveParameters);
-    //
-    //    if (!dtoObjects.isEmpty()) {
-    //      // remove the dto parameters from the effective parameters
-    //      effectiveParameters.keySet().removeAll(dtoObjects.keySet());
-    //
-    //      // add all not-null fields of dto objects to effective parameters
-    //      Map<String, Object> dtoParameters = getQueryFieldAsParameters(dtoObjects);
-    //      effectiveParameters.putAll(dtoParameters);
-    //    }
-    return effectiveParameters;
-  }
-
-  //  /**
-  //   * get all not-null fields annotated with QueryParam or PathParam from the dto objects.
-  //   * Return a map of fieldName, fieldValue
-  //   */
-  //  private Map<String, Object> getQueryFieldAsParameters(Map<String, Object> dtoObjects) {
-  //    Map<String, Object> dtoParameters = new HashMap<>();
-  //    dtoObjects.values()
-  //        .forEach(dtoObject -> {
-  //
-  //          for (Field field : HalApiReflectionUtils.getDtoFields(dtoObject)) {
-  //            String fieldName = field.getName();
-  //
-  //            Object fieldValue = HalApiReflectionUtils.getParameterValueFromDtoObject(dtoObject, fieldName);
-  //
-  //            if (fieldValue != null) {
-  //              if (field.isEnumConstant()) {
-  //                dtoParameters.put(fieldName, fieldValue.toString());
-  //              }
-  //              else {
-  //                dtoParameters.put(fieldName, fieldValue);
-  //              }
-  //            }
-  //          }
-  //        });
-  //    return dtoParameters;
-  //  }
-
-  //  private Map<String, Object> getDtoObjects(Map<String, Object> effectiveParameters) {
-  //    return effectiveParameters.entrySet().stream()
-  //        .filter(paramEntry -> {
-  //          Object value = paramEntry.getValue();
-  //          // is the parameter class a DTO class(annotated with HalApiParamDto)
-  //          return value != null && HalApiReflectionUtils.isDtoObject(value.getClass());
-  //        })
-  //        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  //  }
 
 }
