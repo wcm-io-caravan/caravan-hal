@@ -80,7 +80,7 @@ public class TemplateVariablesTest {
     mockHalResponse(url, resource);
   }
 
-  private void mockHalResponseForTemplateExpandedWithDto(String template, SimpleDto dto) {
+  private void mockHalResponseForTemplateExpandedWithDto(String template, VariablesDto dto) {
 
     Map<String, Object> map = new LinkedHashMap<>();
     map.put("id", dto.id);
@@ -88,6 +88,15 @@ public class TemplateVariablesTest {
 
     String uri = UriTemplate.expand(template, map);
     mockHalResponseWithNumberAndText(uri, dto.id, dto.text);
+  }
+
+  private void mockHalResponseForTemplateExpandedWithInterface(String template, VariablesInterface variables) {
+    Map<String, Object> map = new LinkedHashMap<>();
+    map.put("id", variables.getId());
+    map.put("text", variables.getText());
+
+    String uri = UriTemplate.expand(template, map);
+    mockHalResponseWithNumberAndText(uri, variables.getId(), variables.getText());
   }
 
   private <T> T createClientProxy(Class<T> halApiInterface) {
@@ -110,32 +119,32 @@ public class TemplateVariablesTest {
   }
 
   @TemplateVariables
-  public static class SimpleDto {
+  public static class VariablesDto {
 
     public Integer id;
     public String text;
   }
 
   @HalApiInterface
-  interface ResourceWithTemplateVariables {
+  interface ResourceWithTemplateVariablesDto {
 
     @RelatedResource(relation = ITEM)
-    Single<LinkedResourceWithSingleState> getItem(SimpleDto dto);
+    Single<LinkedResourceWithSingleState> getItem(VariablesDto dto);
   }
 
   @Test
-  public void should_expand_template_with_simple_dto() throws Exception {
+  public void should_expand_template_with_variables_from_dto() throws Exception {
 
     String template = new String("/item/{id}{?text*}");
     entryPoint.addLinks(ITEM, new Link(template));
 
-    SimpleDto dto = new SimpleDto();
+    VariablesDto dto = new VariablesDto();
     dto.id = 123;
     dto.text = "text";
 
     mockHalResponseForTemplateExpandedWithDto(template, dto);
 
-    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariables.class)
+    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariablesDto.class)
         .getItem(dto)
         .flatMap(LinkedResourceWithSingleState::getProperties)
         .blockingGet();
@@ -144,18 +153,18 @@ public class TemplateVariablesTest {
   }
 
   @Test
-  public void should_expand_template_with_null_field_in_simple_dto() throws Exception {
+  public void should_expand_template_with_null_field_in_dto() throws Exception {
 
     String template = new String("/item/{id}{?text}");
     entryPoint.addLinks(ITEM, new Link(template));
 
-    SimpleDto dto = new SimpleDto();
+    VariablesDto dto = new VariablesDto();
     dto.id = 123;
     dto.text = null;
 
     mockHalResponseForTemplateExpandedWithDto(template, dto);
 
-    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariables.class)
+    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariablesDto.class)
         .getItem(dto)
         .flatMap(LinkedResourceWithSingleState::getProperties)
         .blockingGet();
@@ -164,18 +173,18 @@ public class TemplateVariablesTest {
   }
 
   @Test
-  public void should_expand_template_with_only_null_fields_in_simple_dto() throws Exception {
+  public void should_expand_template_with_only_null_fields_in_dto() throws Exception {
 
     String template = new String("/item/{id}{?text}");
     entryPoint.addLinks(ITEM, new Link(template));
 
-    SimpleDto dto = new SimpleDto();
+    VariablesDto dto = new VariablesDto();
     dto.id = null;
     dto.text = null;
 
     mockHalResponseForTemplateExpandedWithDto(template, dto);
 
-    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariables.class)
+    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariablesDto.class)
         .getItem(dto)
         .flatMap(LinkedResourceWithSingleState::getProperties)
         .blockingGet();
@@ -189,7 +198,67 @@ public class TemplateVariablesTest {
     String template = new String("/item/{id}{?text}");
     entryPoint.addLinks(ITEM, new Link(template));
 
-    Link link = createClientProxy(ResourceWithTemplateVariables.class)
+    Link link = createClientProxy(ResourceWithTemplateVariablesDto.class)
+        .getItem(null)
+        .map(LinkedResourceWithSingleState::createLink)
+        .blockingGet();
+
+    assertThat(link.getHref()).isEqualTo(template);
+  }
+
+
+  @TemplateVariables
+  public interface VariablesInterface {
+
+    Integer getId();
+
+    String getText();
+  }
+
+  @HalApiInterface
+  interface ResourceWithTemplateVariablesInterface {
+
+    @RelatedResource(relation = ITEM)
+    Single<LinkedResourceWithSingleState> getItem(VariablesInterface dto);
+  }
+
+  @Test
+  public void should_expand_template_with_variables_interface() throws Exception {
+
+    String template = new String("/item/{id}{?text*}");
+    entryPoint.addLinks(ITEM, new Link(template));
+
+    VariablesInterface variables = new VariablesInterface() {
+
+      @Override
+      public Integer getId() {
+        return 123;
+      }
+
+      @Override
+      public String getText() {
+        return "text";
+      }
+
+    };
+
+    mockHalResponseForTemplateExpandedWithInterface(template, variables);
+
+    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariablesInterface.class)
+        .getItem(variables)
+        .flatMap(LinkedResourceWithSingleState::getProperties)
+        .blockingGet();
+
+    assertThat(linkedState).isNotNull();
+  }
+
+  @Test
+  public void should_not_expand_template_if_null_interface_is_used() throws Exception {
+
+    String template = new String("/item/{id}{?text}");
+    entryPoint.addLinks(ITEM, new Link(template));
+
+    Link link = createClientProxy(ResourceWithTemplateVariablesInterface.class)
         .getItem(null)
         .map(LinkedResourceWithSingleState::createLink)
         .blockingGet();

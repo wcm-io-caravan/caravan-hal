@@ -19,7 +19,11 @@
  */
 package io.wcm.caravan.hal.microservices.impl.reflection;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -129,7 +133,25 @@ public final class HalApiReflectionUtils {
 
   public static Map<String, Object> getTemplateVariablesFrom(Object dto, Class dtoClass) {
 
+    if (dtoClass.isInterface()) {
+      return getPublicGetterValuesAsMap(dto, dtoClass);
+    }
+
     return getFieldValuesAsMap(dto, dtoClass);
+  }
+
+  private static Map<String, Object> getPublicGetterValuesAsMap(Object instance, Class dtoClass) {
+    try {
+      Map<String, Object> map = new LinkedHashMap<>();
+      for (PropertyDescriptor property : Introspector.getBeanInfo(dtoClass).getPropertyDescriptors()) {
+        Object value = instance != null ? property.getReadMethod().invoke(instance, new Object[0]) : null;
+        map.put(property.getName(), value);
+      }
+      return map;
+    }
+    catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+      throw new RuntimeException("Failed to extract template variables from class " + dtoClass.getName() + " through reflection", ex);
+    }
   }
 
   private static Map<String, Object> getFieldValuesAsMap(Object instance, Class dtoClass) {
