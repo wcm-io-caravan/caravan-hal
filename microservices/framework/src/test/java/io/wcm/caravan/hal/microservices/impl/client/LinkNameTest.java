@@ -37,6 +37,7 @@ import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
@@ -158,11 +159,26 @@ public class LinkNameTest {
     assertThat(state.number).isEqualTo(5);
   }
 
+
   @Test(expected = IllegalArgumentException.class)
   public void should_fail_if_null_is_given_as_link_name() {
 
     createClientProxy(ResourceWithNamedLinked.class)
-        .getLinkedByName(null)
-        .blockingGet();
+        .getLinkedByName(null);
+  }
+
+
+  @HalApiInterface
+  interface ResourceWithMultipleAnnotations {
+
+    @RelatedResource(relation = ITEM)
+    Single<ResourceWithSingleState> getItem(@LinkName String parameter, @LinkName String other);
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_unsupported_operation_if_multiple_link_name_parameters_are_present() {
+
+    createClientProxy(ResourceWithMultipleAnnotations.class)
+        .getItem("foo", "bar");
   }
 }

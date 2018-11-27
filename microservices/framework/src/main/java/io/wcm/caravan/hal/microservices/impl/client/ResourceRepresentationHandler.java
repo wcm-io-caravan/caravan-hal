@@ -50,10 +50,9 @@ class ResourceRepresentationHandler {
       return Single.just(resource.getModel().toString());
     }
 
-    throw new RuntimeException(
-        "the method " + invocation + " annotated with @" + ResourceRepresentation.class.getSimpleName() + " must return "
+    throw new UnsupportedOperationException(
+        "The method " + invocation + " annotated with @" + ResourceRepresentation.class.getSimpleName() + " must return "
             + "a reactive type emitting either " + HalResource.class.getSimpleName() + ", " + JsonNode.class.getSimpleName()
             + ", " + String.class.getSimpleName());
-
   }
 }

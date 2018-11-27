@@ -39,36 +39,33 @@ class HalApiMethodInvocation {
     for (int i = 0; i < method.getParameterCount(); i++) {
       Parameter parameter = method.getParameters()[i];
 
+      Object parameterValue = args[i];
+      nonNullParameterFound = nonNullParameterFound || parameterValue != null;
+
       TemplateVariable variable = parameter.getAnnotation(TemplateVariable.class);
       LinkName name = parameter.getAnnotation(LinkName.class);
       TemplateVariables variables = parameter.getType().getAnnotation(TemplateVariables.class);
 
-      Preconditions.checkArgument(variable != null || name != null || variables != null,
-          "all parameters of " + toString() + " need to be either annotated with @"
-              + TemplateVariable.class.getSimpleName() + " or @" + LinkName.class.getSimpleName() + ", "
-              + " or have class type annotated with @" + TemplateVariables.class.getSimpleName());
-
-      Object parameterValue = args[i];
-
-      nonNullParameterFound = nonNullParameterFound || parameterValue != null;
-
       if (variable != null) {
         templateVariables.put(variable.value(), parameterValue);
       }
-
-      if (variables != null) {
+      else if (variables != null) {
         templateVariables.putAll(HalApiReflectionUtils.getTemplateVariablesFrom(parameterValue, parameter.getType()));
       }
-
-      if (name != null) {
+      else if (name != null) {
         if (foundLinkName != null) {
-          throw new IllegalArgumentException("More than one parameter of " + toString() + " is annotated with @" + LinkName.class.getSimpleName());
+          throw new UnsupportedOperationException("More than one parameter of " + toString() + " is annotated with @" + LinkName.class.getSimpleName());
         }
         if (parameterValue == null) {
           throw new IllegalArgumentException(
               "You must provide a non-null value for for the parameter annotated with @" + LinkName.class.getSimpleName() + " when calling " + toString());
         }
         foundLinkName = parameterValue.toString();
+      }
+      else {
+        throw new UnsupportedOperationException("all parameters of " + toString() + " need to be either annotated with @"
+            + TemplateVariable.class.getSimpleName() + " or @" + LinkName.class.getSimpleName() + ", "
+            + " or have class type annotated with @" + TemplateVariables.class.getSimpleName());
       }
 
     }
@@ -86,24 +83,20 @@ class HalApiMethodInvocation {
     return relatedResourceAnnotation.relation();
   }
 
-  boolean isRelatedResource() {
+  boolean isForMethodAnnotatedWithRelatedResource() {
     return method.getAnnotation(RelatedResource.class) != null;
   }
 
-  boolean isResourceLink() {
+  boolean isForMethodAnnotatedWithResourceLink() {
     return method.getAnnotation(ResourceLink.class) != null;
   }
 
-  boolean isResourceProperties() {
+  boolean isForMethodAnnotatedWithResourceState() {
     return method.getAnnotation(ResourceState.class) != null;
   }
 
-  boolean isResourceRepresentation() {
+  boolean isForMethodAnnotatedWithResourceRepresentation() {
     return method.getAnnotation(ResourceRepresentation.class) != null;
-  }
-
-  boolean returnsReactiveType() {
-    return RxJavaReflectionUtils.hasReactiveReturnType(method);
   }
 
   Class<?> getReturnType() {

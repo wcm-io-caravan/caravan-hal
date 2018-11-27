@@ -146,7 +146,7 @@ public final class HalApiReflectionUtils {
 
   private static Object getFieldValue(Field field, Object instance) {
     try {
-      return field.get(instance);
+      return FieldUtils.readField(field, instance, true);
     }
     catch (IllegalArgumentException | IllegalAccessException ex) {
       throw new IllegalArgumentException("Failed to read value of field " + field.getName() + " from class " + instance.getClass().getSimpleName()

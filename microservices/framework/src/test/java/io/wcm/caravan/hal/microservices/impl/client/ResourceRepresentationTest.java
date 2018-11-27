@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.w3c.dom.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -125,5 +126,20 @@ public class ResourceRepresentationTest {
         .blockingGet();
 
     assertThat(string).isEqualTo(entryPoint.getJson().toString());
+  }
+
+  @HalApiInterface
+  interface ResourceWithUnsupportedRepresentations {
+
+    @ResourceRepresentation
+    Single<Document> asXmlDocument();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_unsupported_operation_if_emission_type_is_not_supported() {
+
+    createClientProxy(ResourceWithUnsupportedRepresentations.class)
+        .asXmlDocument()
+        .blockingGet();
   }
 }

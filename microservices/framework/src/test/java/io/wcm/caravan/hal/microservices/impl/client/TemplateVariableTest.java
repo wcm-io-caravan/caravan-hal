@@ -249,4 +249,19 @@ public class TemplateVariableTest {
 
     assertThat(state.number).isEqualTo(3);
   }
+
+
+  @HalApiInterface
+  interface ResourceWithMissingAnnotations {
+
+    @RelatedResource(relation = ITEM)
+    Single<ResourceWithSingleState> getItem(String parameter);
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_unsupported_operation_if_annotation_for_parameter_is_missing() {
+
+    createClientProxy(ResourceWithMissingAnnotations.class)
+        .getItem("foo");
+  }
 }

@@ -6,9 +6,6 @@ import java.lang.reflect.Method;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 
@@ -29,8 +26,6 @@ import io.wcm.caravan.hal.resource.Link;
  * Handles calls to proxy methods from dynamic proxies created with {@link HalApiClientProxyFactory}
  */
 final class HalApiInvocationHandler implements InvocationHandler {
-
-  private static final Logger log = LoggerFactory.getLogger(HalApiInvocationHandler.class);
 
   private final Single<HalResource> rxResource;
   private final Class resourceInterface;
@@ -59,8 +54,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
 
     try {
 
-      // handling of methods annotated with @ResourceState
-      if (invocation.isResourceProperties()) {
+      if (invocation.isForMethodAnnotatedWithResourceState()) {
 
         Maybe<Object> maybeProperties = rxResource
             .map(hal -> new ResourceStateHandler(hal))
@@ -69,8 +63,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
         return RxJavaReflectionUtils.convertReactiveType(maybeProperties, invocation.getReturnType());
       }
 
-      // handling of methods annotated with @RelatedResource
-      if (invocation.isRelatedResource()) {
+      if (invocation.isForMethodAnnotatedWithRelatedResource()) {
 
         Observable<Object> rxRelated = rxResource
             .map(hal -> new RelatedResourceHandler(hal, jsonLoader, responseMetadata))
@@ -79,15 +72,13 @@ final class HalApiInvocationHandler implements InvocationHandler {
         return RxJavaReflectionUtils.convertReactiveType(rxRelated, invocation.getReturnType());
       }
 
-      // handling of methods annotated with @ResourceLink
-      if (invocation.isResourceLink()) {
+      if (invocation.isForMethodAnnotatedWithResourceLink()) {
 
         ResourceLinkHandler handler = new ResourceLinkHandler(linkToResource);
         return handler.handleMethodInvocation(invocation);
       }
 
-      // handling of methods annotated with @ResourceAnnotation
-      if (invocation.isResourceRepresentation()) {
+      if (invocation.isForMethodAnnotatedWithResourceRepresentation()) {
 
         Single<Object> rxRepresentation = rxResource
             .map(hal -> new ResourceRepresentationHandler(hal))
@@ -101,13 +92,17 @@ final class HalApiInvocationHandler implements InvocationHandler {
           .map(Class::getSimpleName)
           .map(name -> "@" + name)
           .collect(Collectors.joining(", ", "(", ")"));
-      throw new RuntimeException("The method must be annotated with one of the HAL API annotations " + annotationNames);
+
+      throw new UnsupportedOperationException("The method " + invocation + " is not annotated with one of the HAL API annotations " + annotationNames);
 
     }
-    // CHECKSTYLE:OFF- we really want to catch any possible runtime exceptions here
+    catch (UnsupportedOperationException e) {
+      throw e;
+    }
+    // CHECKSTYLE:OFF- we really want to catch any possible runtime exceptions here to add additional information on the method being called
     catch (RuntimeException e) {
       // CHECKSTYLE:ON
-      throw new RuntimeException("The invocation of " + invocation + " failed", e);
+      throw new RuntimeException("The invocation of " + invocation + " has failed with an unexpected exception", e);
     }
     finally {
       // collect the time spend calling all proxy methods during the current request in the HalResponseMetadata object

@@ -80,9 +80,10 @@ public class ResourceStateTest {
 
     mockHalResponseWithSingle(new TestResourceState().withText("test"));
 
-    ResourceWithSingleState proxy = createClientProxy(ResourceWithSingleState.class);
+    TestResourceState properties = createClientProxy(ResourceWithSingleState.class)
+        .getProperties()
+        .blockingGet();
 
-    TestResourceState properties = proxy.getProperties().blockingGet();
     assertThat(properties).isNotNull();
     assertThat(properties.text).isEqualTo("test");
   }
@@ -100,9 +101,10 @@ public class ResourceStateTest {
 
     mockHalResponseWithSingle(new TestResourceState().withText("test"));
 
-    ResourceWithOptionalState proxy = createClientProxy(ResourceWithOptionalState.class);
+    TestResourceState properties = createClientProxy(ResourceWithOptionalState.class)
+        .getProperties()
+        .blockingGet();
 
-    TestResourceState properties = proxy.getProperties().blockingGet();
     assertThat(properties).isNotNull();
     assertThat(properties.text).isEqualTo("test");
   }
@@ -112,10 +114,26 @@ public class ResourceStateTest {
 
     mockHalResponseWithSingle(JsonNodeFactory.instance.objectNode());
 
-    ResourceWithOptionalState proxy = createClientProxy(ResourceWithOptionalState.class);
+    TestResourceState properties = createClientProxy(ResourceWithOptionalState.class)
+        .getProperties()
+        .blockingGet();
 
-    TestResourceState properties = proxy.getProperties().blockingGet();
     assertThat(properties).isNull();
+  }
+
+
+  @HalApiInterface
+  interface ResourceWithIllegalAnnotations {
+
+    @ResourceState
+    TestResourceState notReactive();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_unsupported_operation_if_return_type_is_not_reactive() {
+
+    createClientProxy(ResourceWithIllegalAnnotations.class)
+        .notReactive();
   }
 
 }

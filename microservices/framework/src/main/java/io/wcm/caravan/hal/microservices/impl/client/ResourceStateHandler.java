@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.reactivex.Maybe;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.resource.HalResource;
 
 class ResourceStateHandler {
@@ -37,14 +36,12 @@ class ResourceStateHandler {
   }
 
   Maybe<Object> handleMethodInvocation(HalApiMethodInvocation invocation) {
+
     Class<?> returnType = invocation.getReturnType();
+
     log.trace(invocation + " was invoked, method is annotated with @ResourceState and returns type " + returnType.getSimpleName());
 
-    if (!invocation.returnsReactiveType()) {
-      throw new RuntimeException("the method " + invocation + " annotated with " + ResourceState.class.getSimpleName() + " must return a reactive type");
-    }
-
-    // if the interface is using Maybe as return type, and the HAL resource does not containy any
+    // if the interface is using Maybe as return type, and the HAL resource does not contain any
     // state properties, then an empty maybe should be returned
     if (Maybe.class.isAssignableFrom(returnType) && contextResource.getStateFieldNames().isEmpty()) {
       return Maybe.empty();

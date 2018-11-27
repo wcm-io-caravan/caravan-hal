@@ -117,7 +117,7 @@ public class RxJavaReflectionUtils {
       return observable.toFlowable(BackpressureStrategy.BUFFER);
     }
 
-    throw new RuntimeException("The given target type of " + targetType.getName() + " is not a supported reactive type");
+    throw new UnsupportedOperationException("The given target type of " + targetType.getName() + " is not a supported reactive type");
   }
 
   private static Observable<?> convertToObservable(Object reactiveInstance) {
@@ -138,7 +138,7 @@ public class RxJavaReflectionUtils {
       observable = Observable.fromPublisher((Publisher<?>)reactiveInstance);
     }
     else {
-      throw new RuntimeException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");
+      throw new UnsupportedOperationException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");
     }
 
     return observable;

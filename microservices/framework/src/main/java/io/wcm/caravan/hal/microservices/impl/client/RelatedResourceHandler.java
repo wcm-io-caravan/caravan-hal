@@ -59,7 +59,7 @@ class RelatedResourceHandler {
 
     if (relatedResourceType.getAnnotation(HalApiInterface.class) == null) {
 
-      throw new RuntimeException("The method " + invocation + " has an invalid emission type " + relatedResourceType.getName() +
+      throw new UnsupportedOperationException("The method " + invocation + " has an invalid emission type " + relatedResourceType.getName() +
           " which does not have a @" + HalApiInterface.class + " annotation.");
     }
 

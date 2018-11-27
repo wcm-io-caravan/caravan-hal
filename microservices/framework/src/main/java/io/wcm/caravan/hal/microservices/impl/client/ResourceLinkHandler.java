@@ -47,7 +47,7 @@ class ResourceLinkHandler {
       return link.getHref();
     }
 
-    throw new RuntimeException(
+    throw new UnsupportedOperationException(
         "the method " + invocation + " annotated with @" + ResourceLink.class.getSimpleName() + " must return either a String or " + Link.class.getName());
   }
 }

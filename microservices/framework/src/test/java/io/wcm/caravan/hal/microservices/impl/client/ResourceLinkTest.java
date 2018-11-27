@@ -22,6 +22,7 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import static io.wcm.caravan.hal.api.annotations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.URI;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -106,7 +107,7 @@ public class ResourceLinkTest {
   }
 
   @Test
-  public void original_link_name_should_be_available() {
+  public void original_referencing_link_name_should_be_used() {
 
     String linkName = "linkName";
 
@@ -182,6 +183,25 @@ public class ResourceLinkTest {
   }
 
   @Test
+  public void should_use_the_first_link_name_if_multiple_links_are_pointing_to_the_same_embedded() {
+
+    TestResource embedded = entryPoint.createEmbedded(ITEM);
+    embedded.asHalResource().setLink(new Link("/embedded"));
+
+    Observable.range(0, 3).forEach(i -> {
+      String linkName = Integer.toString(i);
+      entryPoint.asHalResource().addLinks(ITEM, new Link(embedded.getUrl()).setName(linkName));
+    });
+
+    Link link = createClientProxy(ResourceWithSingleEmbedded.class)
+        .getEmbedded()
+        .map(LinkableResource::createLink)
+        .blockingGet();
+
+    assertThat(link.getName()).isEqualTo("0");
+  }
+
+  @Test
   public void link_with_empty_href_should_be_extracted_from_embedded_resource_without_self_link() {
 
     entryPoint.createEmbedded(ITEM);
@@ -231,5 +251,56 @@ public class ResourceLinkTest {
         .blockingGet();
 
     assertThat(link.getHref()).isEqualTo(uriTemplate);
+  }
+
+
+  @HalApiInterface
+  interface ResourceWithUri {
+
+    @ResourceLink
+    String getUri();
+  }
+
+  @Test
+  public void link_uri_should_be_accessible_as_string() {
+
+    String uri = createClientProxy(ResourceWithUri.class)
+        .getUri();
+
+    assertThat(uri).isEqualTo(entryPoint.getUrl());
+  }
+
+  @HalApiInterface
+  interface EntyPointWithEmbedded {
+
+    @RelatedResource(relation = ITEM)
+    Single<ResourceWithUri> getEmbedded();
+  }
+
+  @Test
+  public void link_uri_should_be_empty_if_resource_is_embedded() {
+
+    entryPoint.createEmbedded(ITEM);
+
+    String uri = createClientProxy(EntyPointWithEmbedded.class)
+        .getEmbedded()
+        .map(ResourceWithUri::getUri)
+        .blockingGet();
+
+    assertThat(uri).isEmpty();
+  }
+
+  @HalApiInterface
+  interface ResourceWithUnsupportedType {
+
+    @ResourceLink
+    URI getLink();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void unsupported_return_types_should_throw_unsupported_operation() {
+
+    createClientProxy(ResourceWithUnsupportedType.class)
+        .getLink();
   }
 }
