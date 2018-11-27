@@ -63,7 +63,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
 
   @Override
   public void onMethodInvocationFinished(String methodDescription, long invocationDurationMicros) {
-    // TODO: Auto-generated method stub
+    methodInvocationTimes.add(new TimeMeasurement(methodDescription, invocationDurationMicros / 1000.f, TimeUnit.MILLISECONDS));
   }
 
 
