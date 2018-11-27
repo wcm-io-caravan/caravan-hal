@@ -35,6 +35,8 @@ import io.wcm.caravan.hal.api.server.testing.TestRelations;
 import io.wcm.caravan.hal.api.server.testing.TestResource;
 import io.wcm.caravan.hal.api.server.testing.TestResourceWithObservableState;
 import io.wcm.caravan.hal.api.server.testing.TestState;
+import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadata;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -44,7 +46,8 @@ public class AsyncHalResourceRendererImplTest {
 
   static HalResource render(Object resourceImplInstance) {
 
-    AsyncHalResourceRendererImpl renderer = new AsyncHalResourceRendererImpl();
+    RequestMetricsCollector metrics = new ResponseMetadata();
+    AsyncHalResourceRendererImpl renderer = new AsyncHalResourceRendererImpl(metrics);
     Single<HalResource> rxResource = renderer.renderLinkedOrEmbeddedResource(resourceImplInstance);
 
     return rxResource.toObservable().blockingFirst();

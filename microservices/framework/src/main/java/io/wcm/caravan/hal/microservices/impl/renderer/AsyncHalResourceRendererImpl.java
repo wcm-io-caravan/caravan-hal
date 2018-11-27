@@ -23,14 +23,18 @@ import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionU
 import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.getResourceStateObservable;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.renderer.RelatedResourcesRendererImpl.RelationRenderResult;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -42,12 +46,22 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+  private final RelatedResourcesRendererImpl relatedRenderer;
+  private final RequestMetricsCollector metrics;
+
+  public AsyncHalResourceRendererImpl(RequestMetricsCollector metrics) {
+    this.relatedRenderer = new RelatedResourcesRendererImpl(this::renderLinkedOrEmbeddedResource, metrics);
+    this.metrics = metrics;
+  }
+
   @Override
   public Single<HalResource> renderResource(LinkableResource resourceImpl) {
     return renderLinkedOrEmbeddedResource(resourceImpl);
   }
 
-  static Single<HalResource> renderLinkedOrEmbeddedResource(Object resourceImplInstance) {
+  Single<HalResource> renderLinkedOrEmbeddedResource(Object resourceImplInstance) {
+
+    Stopwatch assemblyTime = Stopwatch.createStarted();
 
     Preconditions.checkNotNull(resourceImplInstance, "Cannot create a HalResource from a null reference");
 
@@ -58,25 +72,31 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     Single<ObjectNode> rxState = getResourceStateAndConvertToJson(apiInterface, resourceImplInstance);
 
     // render links and embedded resources for each method annotated with @RelatedResource
-    Single<List<RelationRenderResult>> rxRelated = RelatedResourcesRendererImpl.renderRelated(apiInterface, resourceImplInstance);
+    Single<List<RelationRenderResult>> rxRelated = relatedRenderer.renderRelated(apiInterface, resourceImplInstance);
 
     // wait until all this is available...
     Single<HalResource> rxHalResource = Single.zip(rxState, rxRelated,
         // ...and then create the HalResource instance
-        (stateNode, listOfRelated) -> createHalResource(resourceImplInstance, stateNode, listOfRelated));
+        (stateNode, listOfRelated) -> createHalResource(resourceImplInstance, stateNode, listOfRelated))
+        // and calculate the time of the emissions
+        .compose(EmissionStopwatch.collectMetrics("rendering " + resourceImplInstance.getClass().getSimpleName(), metrics));
+
+    metrics.onMethodInvocationFinished(AsyncHalResourceRenderer.class,
+        "renderLinkedOrEmbeddedResource(" + resourceImplInstance.getClass().getSimpleName() + ")",
+        assemblyTime.elapsed(TimeUnit.MICROSECONDS));
 
     return rxHalResource;
   }
 
-  private static Single<ObjectNode> getResourceStateAndConvertToJson(Class<?> apiInterface, Object resourceImplInstance) {
+  Single<ObjectNode> getResourceStateAndConvertToJson(Class<?> apiInterface, Object resourceImplInstance) {
 
     // call the method annotated with @ResourceState (and convert the return value to Observable if necessary)
-    return getResourceStateObservable(apiInterface, resourceImplInstance)
+    return getResourceStateObservable(apiInterface, resourceImplInstance, metrics)
         // then convert the value emitted by the Observable to a Jackson JSON node
         .map(object -> OBJECT_MAPPER.convertValue(object, ObjectNode.class));
   }
 
-  private static HalResource createHalResource(Object resourceImplInstance, ObjectNode stateNode, List<RelationRenderResult> listOfRelated) {
+  static HalResource createHalResource(Object resourceImplInstance, ObjectNode stateNode, List<RelationRenderResult> listOfRelated) {
 
     HalResource hal = new HalResource(stateNode);
 

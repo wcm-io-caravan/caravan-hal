@@ -30,6 +30,7 @@ import javax.ws.rs.QueryParam;
 
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import com.google.common.base.Stopwatch;
 
@@ -39,8 +40,9 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.microservices.jaxrs.JaxRsLinkBuilder;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -52,7 +54,9 @@ public class AsyncHalResourceRendererImplPT {
 
   static HalResource render(LinkableResource resourceImplInstance) {
 
-    AsyncHalResourceRendererImpl renderer = new AsyncHalResourceRendererImpl();
+    RequestMetricsCollector metrics = Mockito.mock(RequestMetricsCollector.class);
+
+    AsyncHalResourceRenderer renderer = AsyncHalResourceRenderer.create(metrics);
     Single<HalResource> rxResource = renderer.renderResource(resourceImplInstance);
 
     return rxResource.toObservable().blockingFirst();

@@ -22,6 +22,7 @@ package io.wcm.caravan.hal.microservices.api.server;
 import org.osgi.annotation.versioning.ProviderType;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -30,7 +31,7 @@ public interface AsyncHalResourceRenderer {
 
   Single<HalResource> renderResource(LinkableResource resourceImpl);
 
-  static AsyncHalResourceRenderer create() {
-    return new AsyncHalResourceRendererImpl();
+  static AsyncHalResourceRenderer create(RequestMetricsCollector metrics) {
+    return new AsyncHalResourceRendererImpl(metrics);
   }
 }

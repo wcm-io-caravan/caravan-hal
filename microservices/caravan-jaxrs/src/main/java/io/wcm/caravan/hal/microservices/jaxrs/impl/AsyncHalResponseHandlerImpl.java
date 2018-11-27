@@ -41,10 +41,10 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
 
   private static final Logger log = LoggerFactory.getLogger(AsyncHalResponseHandlerImpl.class);
 
-  private final AsyncHalResourceRenderer renderer = AsyncHalResourceRenderer.create();
-
   @Override
   public void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse, RequestMetricsCollector metrics) {
+
+    AsyncHalResourceRenderer renderer = AsyncHalResourceRenderer.create(metrics);
 
     Single<HalResource> rxHalResource = renderer.renderResource(resourceImpl);
 

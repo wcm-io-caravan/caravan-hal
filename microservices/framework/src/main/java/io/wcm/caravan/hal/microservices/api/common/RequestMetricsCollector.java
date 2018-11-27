@@ -27,7 +27,7 @@ public interface RequestMetricsCollector {
 
   void onResponseRetrieved(String resourceUri, String resourceTitle, int maxAgeSeconds, long responseTimeMicros);
 
-  void onMethodInvocationFinished(String methodDescription, long invocationDurationMicros);
+  void onMethodInvocationFinished(Class category, String methodDescription, long invocationDurationMicros);
 
   int getOutputMaxAge();
 

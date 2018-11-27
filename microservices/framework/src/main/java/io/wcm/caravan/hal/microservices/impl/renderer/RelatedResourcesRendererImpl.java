@@ -25,6 +25,7 @@ import static io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionU
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -32,16 +33,22 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 final class RelatedResourcesRendererImpl {
 
-  private RelatedResourcesRendererImpl() {
-    // only static methods
+  private final Function<Object, Single<HalResource>> recursiveRenderFunc;
+  private final RequestMetricsCollector metrics;
+
+  RelatedResourcesRendererImpl(Function<Object, Single<HalResource>> recursiveRenderFunc, RequestMetricsCollector metrics) {
+    this.recursiveRenderFunc = recursiveRenderFunc;
+    this.metrics = metrics;
   }
 
   /**
@@ -51,7 +58,7 @@ final class RelatedResourcesRendererImpl {
    *         with
    *         {@link RelatedResource}
    */
-  static Single<List<RelationRenderResult>> renderRelated(Class<?> apiInterface, Object resourceImplInstance) {
+  Single<List<RelationRenderResult>> renderRelated(Class<?> apiInterface, Object resourceImplInstance) {
 
     // find all methods annotated with @RelatedResource
     return getSortedRelatedResourceMethods(apiInterface)
@@ -61,13 +68,14 @@ final class RelatedResourcesRendererImpl {
         .toList();
   }
 
-  private static Single<RelationRenderResult> createRelatedContentForMethod(Object resourceImplInstance, Method method) {
+  private Single<RelationRenderResult> createRelatedContentForMethod(Object resourceImplInstance, Method method) {
 
     verifyReturnType(resourceImplInstance, method);
     String relation = method.getAnnotation(RelatedResource.class).relation();
 
     // call the implementation of the method to get an observable of related resource implementation instances
-    Observable<?> rxRelatedResources = invokeMethodAndReturnObservable(resourceImplInstance, method).cache();
+    Observable<?> rxRelatedResources = invokeMethodAndReturnObservable(resourceImplInstance, method, metrics)
+        .cache();
 
     // create links for those resources that implement LinkableResource
     Single<List<Link>> rxLinks = createLinksTo(rxRelatedResources);
@@ -78,10 +86,10 @@ final class RelatedResourcesRendererImpl {
     // wait for all this to be complete before creating a RelatedResourceInfo for this method
     return Single.zip(rxLinks, rxEmbeddedHalResources, (links, embeddedResources) -> {
       return new RelationRenderResult(relation, links, embeddedResources);
-    });
+    }).compose(EmissionStopwatch.collectMetrics("rendering " + resourceImplInstance.getClass().getSimpleName() + "#" + method.getName(), metrics));
   }
 
-  private static void verifyReturnType(Object resourceImplInstance, Method method) {
+  private void verifyReturnType(Object resourceImplInstance, Method method) {
     String fullMethodName = resourceImplInstance.getClass().getSimpleName() + "#" + method.getName();
 
     // get the emitted result resource type from the method signature
@@ -93,7 +101,7 @@ final class RelatedResourcesRendererImpl {
     }
   }
 
-  private static Single<List<Link>> createLinksTo(Observable<?> rxRelatedResources) {
+  private Single<List<Link>> createLinksTo(Observable<?> rxRelatedResources) {
 
     // filter only those resources that are Linkable
     Observable<LinkableResource> rxLinkedResourceImpls = rxRelatedResources
@@ -113,7 +121,7 @@ final class RelatedResourcesRendererImpl {
     return rxLinks.toList();
   }
 
-  private static Single<List<HalResource>> renderEmbeddedResources(Method method, Observable<?> rxRelatedResources) {
+  private Single<List<HalResource>> renderEmbeddedResources(Method method, Observable<?> rxRelatedResources) {
 
     // embedded resources can only occur for methods that don't have parameters
     // (because if the method has parameters, it must be a link template)
@@ -127,7 +135,7 @@ final class RelatedResourcesRendererImpl {
 
       // and render them by recursively calling the render function from AsyncHalresourceRendererImpl
       Observable<HalResource> rxHalResources = rxEmbeddedResourceImpls
-          .concatMapEager(r -> AsyncHalResourceRendererImpl.renderLinkedOrEmbeddedResource(r).toObservable());
+          .concatMapEager(r -> recursiveRenderFunc.apply(r).toObservable());
 
       return rxHalResources.toList();
     }

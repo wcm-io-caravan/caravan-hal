@@ -25,16 +25,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 
 import io.wcm.caravan.hal.api.annotations.StandardRelations;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -45,7 +51,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
 
   private final List<TimeMeasurement> inputMaxAgeSeconds = Collections.synchronizedList(new ArrayList<>());
   private final List<TimeMeasurement> inputResponseTimes = Collections.synchronizedList(new ArrayList<>());
-  private final List<TimeMeasurement> methodInvocationTimes = Collections.synchronizedList(new ArrayList<>());
+  private final ListMultimap<String, TimeMeasurement> methodInvocationTimes = Multimaps.synchronizedListMultimap(LinkedListMultimap.create());
 
   private final List<Link> sourceLinks = Collections.synchronizedList(new ArrayList<>());
 
@@ -62,8 +68,9 @@ public class ResponseMetadata implements RequestMetricsCollector {
   }
 
   @Override
-  public void onMethodInvocationFinished(String methodDescription, long invocationDurationMicros) {
-    methodInvocationTimes.add(new TimeMeasurement(methodDescription, invocationDurationMicros / 1000.f, TimeUnit.MILLISECONDS));
+  public void onMethodInvocationFinished(Class category, String methodDescription, long invocationDurationMicros) {
+    methodInvocationTimes.put(category.getSimpleName(),
+        new TimeMeasurement(methodDescription, invocationDurationMicros / 1000.f, TimeUnit.MILLISECONDS));
   }
 
 
@@ -98,22 +105,22 @@ public class ResponseMetadata implements RequestMetricsCollector {
     return TimeMeasurement.LONGEST_TIME_FIRST.sortedCopy(inputResponseTimes);
   }
 
-  List<TimeMeasurement> getSortedMethodInvocationTimes() {
-    return TimeMeasurement.LONGEST_TIME_FIRST.sortedCopy(methodInvocationTimes);
-  }
 
-  List<TimeMeasurement> getGroupedAndSortedInvocationTimes() {
+  List<TimeMeasurement> getGroupedAndSortedInvocationTimes(Class category, boolean useAvg) {
 
-    List<TimeMeasurement> invocationTimes = getSortedMethodInvocationTimes();
+    List<TimeMeasurement> invocationTimes = methodInvocationTimes.get(category.getSimpleName());
 
     List<TimeMeasurement> groupedInvocationTimes = new ArrayList<>();
     invocationTimes.stream()
         .collect(Collectors.groupingBy(TimeMeasurement::getText))
         .forEach((text, measurements) -> {
-          double totalTime = measurements.stream().mapToDouble(TimeMeasurement::getTime).sum();
+          DoubleStream individualTimes = measurements.stream().mapToDouble(TimeMeasurement::getTime);
+
+          double totalTime = useAvg ? individualTimes.average().orElse(0.f) : individualTimes.sum();
           long invocations = measurements.stream().count();
 
-          groupedInvocationTimes.add(new TimeMeasurement(invocations + "x " + text, (float)totalTime, measurements.get(0).getUnit()));
+          String prefix = useAvg ? "avg of " : "sum of ";
+          groupedInvocationTimes.add(new TimeMeasurement(prefix + invocations + "x " + text, (float)totalTime, measurements.get(0).getUnit()));
         });
 
     groupedInvocationTimes.sort(TimeMeasurement.LONGEST_TIME_FIRST);
@@ -131,21 +138,12 @@ public class ResponseMetadata implements RequestMetricsCollector {
         .sum();
   }
 
-  float getSumOfProxyInvocationMillis() {
-    return (float)methodInvocationTimes.stream()
+  float getSumOfProxyInvocationMillis(Class category) {
+    return (float)methodInvocationTimes.get(category.getSimpleName()).stream()
         .mapToDouble(m -> m.getTime())
         .sum();
   }
 
-  float getMaximumInvocationMillis() {
-    return (float)methodInvocationTimes.stream()
-        .mapToDouble(m -> m.getTime())
-        .max().orElse(0);
-  }
-
-  float getRemainingCalculationMillis() {
-    return getOverallResponseTimeMillis() - getSumOfProxyInvocationMillis() - getMaximumInvocationMillis();
-  }
 
   List<Link> getSourceLinks() {
     return ImmutableList.copyOf(sourceLinks);
@@ -180,13 +178,21 @@ public class ResponseMetadata implements RequestMetricsCollector {
         + "service also provides a way to fetch this data all at once. ");
     metadataResource.addEmbedded("metrics:responseTimes", responseTimeResource);
 
-    HalResource invocationTimeResource = createTimingResource(getGroupedAndSortedInvocationTimes());
-    invocationTimeResource.getModel().put("title", "A breakdown of the time spent in HalApiClient proxy methods");
-    invocationTimeResource.getModel().put("developerHint",
+    HalResource apiClientResource = createTimingResource(getGroupedAndSortedInvocationTimes(HalApiClient.class, false));
+    apiClientResource.getModel().put("title", "A breakdown of the time spent in HalApiClient proxy methods");
+    apiClientResource.getModel().put("developerHint",
         "If a lot of time is spent in a method that is invoked very often, then you should check if you can "
             + "use Observable#cache() and share the same observable in different methods of this resource. "
             + "If this resource has embedded resource than you might need to pass that observable to the constructor of the embedded resource. ");
-    metadataResource.addEmbedded("metrics:invocationTimes", invocationTimeResource);
+    metadataResource.addEmbedded("metrics:invocationTimes", apiClientResource);
+
+    HalResource asyncRendererResource = createTimingResource(getGroupedAndSortedInvocationTimes(AsyncHalResourceRenderer.class, false));
+    asyncRendererResource.getModel().put("title", "A breakdown of assembly time spent by AsyncHalResourceRenderer");
+    metadataResource.addEmbedded("metrics:invocationTimes", asyncRendererResource);
+
+    HalResource emissionResource = createTimingResource(getGroupedAndSortedInvocationTimes(EmissionStopwatch.class, true));
+    emissionResource.getModel().put("title", "A breakdown of average emission times by resource and methods");
+    metadataResource.addEmbedded("metrics:emissionTimes", emissionResource);
 
     HalResource maxAgeResource = createTimingResource(getSortedInputMaxAgeSeconds());
     maxAgeResource.getModel().put("title", "The max-age cache header values of all retrieved resources");
@@ -199,7 +205,8 @@ public class ResponseMetadata implements RequestMetricsCollector {
 
     metadataResource.getModel().put("maxAge", getOutputMaxAge() + "s");
 
-    metadataResource.getModel().put("sumOfProxyInvocationTime", getSumOfProxyInvocationMillis() + "ms");
+    metadataResource.getModel().put("sumOfProxyInvocationTime", getSumOfProxyInvocationMillis(HalApiClient.class) + "ms");
+    metadataResource.getModel().put("sumOfResourceAssemblyTime", getSumOfProxyInvocationMillis(AsyncHalResourceRenderer.class) + "ms");
     metadataResource.getModel().put("sumOfResponseAndParseTimes", getSumOfResponseTimeMillis() + "ms");
     metadataResource.getModel().put("metadataGenerationTime", stopwatch.elapsed(TimeUnit.MILLISECONDS) + "ms");
     metadataResource.getModel().put("overallServerSideResponseTime", getOverallResponseTimeMillis() + "ms");
@@ -209,12 +216,12 @@ public class ResponseMetadata implements RequestMetricsCollector {
     return metadataResource;
   }
 
-  private static HalResource createTimingResource(List<TimeMeasurement> map) {
+  private static HalResource createTimingResource(List<TimeMeasurement> list) {
 
     ObjectNode model = JsonNodeFactory.instance.objectNode();
-    ArrayNode individualMetrics = model.putArray("timeMeasurements");
+    ArrayNode individualMetrics = model.putArray("measurements");
 
-    map.stream()
+    list.stream()
         .map(measurement -> measurement.getTime() + " " + measurement.getUnit().toString() + " - " + measurement.getText())
         .forEach(title -> individualMetrics.add(title));
 

@@ -16,6 +16,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
@@ -31,16 +32,16 @@ final class HalApiInvocationHandler implements InvocationHandler {
   private final Class resourceInterface;
   private final Link linkToResource;
   private final JsonResourceLoader jsonLoader;
-  private final RequestMetricsCollector responseMetadata;
+  private final RequestMetricsCollector metrics;
 
   HalApiInvocationHandler(Single<HalResource> rxResource, Class resourceInterface, Link linkToResource,
-      JsonResourceLoader jsonLoader, RequestMetricsCollector responseMetadata) {
+      JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
 
     this.rxResource = rxResource;
     this.resourceInterface = resourceInterface;
     this.linkToResource = linkToResource;
     this.jsonLoader = jsonLoader;
-    this.responseMetadata = responseMetadata;
+    this.metrics = metrics;
   }
 
   @Override
@@ -60,16 +61,16 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceStateHandler(hal))
             .flatMapMaybe(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(maybeProperties, invocation.getReturnType());
+        return RxJavaReflectionUtils.convertReactiveType(maybeProperties, invocation.getReturnType(), metrics, invocation);
       }
 
       if (invocation.isForMethodAnnotatedWithRelatedResource()) {
 
         Observable<Object> rxRelated = rxResource
-            .map(hal -> new RelatedResourceHandler(hal, jsonLoader, responseMetadata))
+            .map(hal -> new RelatedResourceHandler(hal, jsonLoader, metrics))
             .flatMapObservable(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(rxRelated, invocation.getReturnType());
+        return RxJavaReflectionUtils.convertReactiveType(rxRelated, invocation.getReturnType(), metrics, invocation);
       }
 
       if (invocation.isForMethodAnnotatedWithResourceLink()) {
@@ -84,7 +85,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceRepresentationHandler(hal))
             .flatMap(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(rxRepresentation, invocation.getReturnType());
+        return RxJavaReflectionUtils.convertReactiveType(rxRepresentation, invocation.getReturnType(), metrics, invocation);
       }
 
       // unsupported operation
@@ -106,7 +107,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
     }
     finally {
       // collect the time spend calling all proxy methods during the current request in the HalResponseMetadata object
-      responseMetadata.onMethodInvocationFinished(invocation.toString(), stopwatch.elapsed(TimeUnit.MICROSECONDS));
+      metrics.onMethodInvocationFinished(HalApiClient.class, invocation.toString(), stopwatch.elapsed(TimeUnit.MICROSECONDS));
     }
   }
 

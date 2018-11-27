@@ -42,6 +42,7 @@ import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
+import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
 /**
  * Utility methods to inspect method signatures
@@ -110,14 +111,14 @@ public final class HalApiReflectionUtils {
                 + HalApiInterface.class.getSimpleName() + " annotation"));
   }
 
-  public static Single<?> getResourceStateObservable(Class<?> apiInterface, Object instance) {
+  public static Single<?> getResourceStateObservable(Class<?> apiInterface, Object instance, RequestMetricsCollector metrics) {
 
     // find the first method annotated with @ResourceState
     Observable<Object> rxResourceState = Observable.fromArray(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(ResourceState.class) != null)
         .take(1)
         // invoke the method to get the state object and re-throw any exceptions that might be thrown
-        .flatMap(method -> RxJavaReflectionUtils.invokeMethodAndReturnObservable(instance, method));
+        .flatMap(method -> RxJavaReflectionUtils.invokeMethodAndReturnObservable(instance, method, metrics));
 
     // use an empty JSON object if no method is annotated with @ResourceState (or if the instance returned null)
     return rxResourceState

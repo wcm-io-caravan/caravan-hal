@@ -20,7 +20,7 @@ import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 
 
-class HalApiMethodInvocation {
+public class HalApiMethodInvocation {
 
   private final Class interfaze;
   private final Method method;
