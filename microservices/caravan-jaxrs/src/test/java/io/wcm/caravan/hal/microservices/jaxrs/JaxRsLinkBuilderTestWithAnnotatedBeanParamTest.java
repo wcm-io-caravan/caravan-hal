@@ -19,12 +19,17 @@
  */
 package io.wcm.caravan.hal.microservices.jaxrs;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
+import org.junit.Test;
+
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.hal.resource.Link;
 
 public class JaxRsLinkBuilderTestWithAnnotatedBeanParamTest extends JaxRsLinkBuilderTest {
 
@@ -91,4 +96,13 @@ public class JaxRsLinkBuilderTestWithAnnotatedBeanParamTest extends JaxRsLinkBui
     return new TestResourceWithTwoPathParameters(parameters);
   }
 
+
+  @Test
+  public void should_insert_variables_for_query_parameters_if_bean_param_is_null() throws Exception {
+
+    Link link = buildLinkTo(new TestResourceWithTwoQueryParameters(null));
+
+    assertThat(link.isTemplated());
+    assertThat(link.getHref()).endsWith("{?" + QUERY_PARAM_A + "," + QUERY_PARAM_B + "}");
+  }
 }

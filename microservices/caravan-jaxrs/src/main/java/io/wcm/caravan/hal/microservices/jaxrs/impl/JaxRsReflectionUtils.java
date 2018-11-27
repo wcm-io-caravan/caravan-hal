@@ -34,60 +34,60 @@ import org.apache.commons.lang3.tuple.Pair;
 
 public class JaxRsReflectionUtils {
 
-  public static Map<String, Object> getPathParameterMap(Object resourceImpl) {
+  public static Map<String, Object> getPathParameterMap(Object resourceImpl, Class clazz) {
 
     Map<String, Object> parameterMap = new LinkedHashMap<>();
 
-    findFieldsWithPathParamAnnotationsIn(resourceImpl)
+    findFieldsWithPathParamAnnotationsIn(resourceImpl, clazz)
         .forEach(pair -> parameterMap.put(pair.getKey(), pair.getValue()));
 
-    getPathParamNamesFromConstructors(resourceImpl.getClass())
+    getPathParamNamesFromConstructors(clazz)
         .map(name -> Pair.of(name, getFieldValue(name, resourceImpl)))
         .forEach(pair -> parameterMap.put(pair.getKey(), pair.getValue()));
 
-    findFieldsThatContainOtherParamsIn(resourceImpl)
-        .map(beanParam -> getPathParameterMap(beanParam))
+    findFieldsThatContainOtherParamsIn(resourceImpl, clazz)
+        .map(beanParamPair -> getPathParameterMap(beanParamPair.getRight(), beanParamPair.getLeft()))
         .forEach(beanParamMap -> parameterMap.putAll(beanParamMap));
 
     return parameterMap;
   }
 
 
-  public static Map<String, Object> getQueryParameterMap(Object resourceImpl) {
+  public static Map<String, Object> getQueryParameterMap(Object resourceImpl, Class clazz) {
 
     Map<String, Object> parameterMap = new LinkedHashMap<>();
 
-    findFieldsWithQueryParamAnnotationIn(resourceImpl)
+    findFieldsWithQueryParamAnnotationIn(resourceImpl, clazz)
         .forEach(pair -> parameterMap.put(pair.getKey(), pair.getValue()));
 
-    getQueryParamNamesFromConstructors(resourceImpl.getClass())
+    getQueryParamNamesFromConstructors(clazz)
         .map(name -> Pair.of(name, getFieldValue(name, resourceImpl)))
         .forEach(pair -> parameterMap.put(pair.getKey(), pair.getValue()));
 
-    findFieldsThatContainOtherParamsIn(resourceImpl)
-        .map(beanParam -> getQueryParameterMap(beanParam))
+    findFieldsThatContainOtherParamsIn(resourceImpl, clazz)
+        .map(beanParamPair -> getQueryParameterMap(beanParamPair.getRight(), beanParamPair.getLeft()))
         .forEach(beanParamMap -> parameterMap.putAll(beanParamMap));
 
     return parameterMap;
   }
 
-  private static Stream<Object> findFieldsThatContainOtherParamsIn(Object resourceImpl) {
-    return findFieldsDefinedInResource(resourceImpl).stream()
+  private static Stream<Pair<Class, Object>> findFieldsThatContainOtherParamsIn(Object resourceImpl, Class clazz) {
+    return findFieldsDefinedInClass(clazz).stream()
         .filter(field -> {
           return FieldUtils.getAllFieldsList(field.getType()).stream()
               .anyMatch(nestedField -> nestedField.getAnnotation(QueryParam.class) != null || nestedField.getAnnotation(PathParam.class) != null);
         })
-        .map(field -> getFieldValue(field, resourceImpl));
+        .map(field -> Pair.of(field.getType(), getFieldValue(field, resourceImpl)));
   }
 
-  private static Stream<Pair<String, Object>> findFieldsWithPathParamAnnotationsIn(Object resourceImpl) {
-    return findFieldsDefinedInResource(resourceImpl).stream()
+  private static Stream<Pair<String, Object>> findFieldsWithPathParamAnnotationsIn(Object resourceImpl, Class clazz) {
+    return findFieldsDefinedInClass(clazz).stream()
         .filter(field -> field.getAnnotation(PathParam.class) != null)
         .map(field -> Pair.of(field.getAnnotation(PathParam.class).value(), getFieldValue(field, resourceImpl)));
   }
 
-  private static Stream<Pair<String, Object>> findFieldsWithQueryParamAnnotationIn(Object resourceImpl) {
-    return findFieldsDefinedInResource(resourceImpl).stream()
+  private static Stream<Pair<String, Object>> findFieldsWithQueryParamAnnotationIn(Object resourceImpl, Class clazz) {
+    return findFieldsDefinedInClass(clazz).stream()
         .filter(field -> field.getAnnotation(QueryParam.class) != null)
         .map(field -> Pair.of(field.getAnnotation(QueryParam.class).value(), getFieldValue(field, resourceImpl)));
   }
@@ -124,17 +124,23 @@ public class JaxRsReflectionUtils {
         .distinct();
   }
 
-  private static List<Field> findFieldsDefinedInResource(Object resource) {
+  private static List<Field> findFieldsDefinedInClass(Class clazz) {
 
-    return FieldUtils.getAllFieldsList(resource.getClass());
+    return FieldUtils.getAllFieldsList(clazz);
   }
 
   private static Object getFieldValue(String name, Object instance) {
+    if (instance == null) {
+      return null;
+    }
     Field field = FieldUtils.getField(instance.getClass(), name, true);
     return getFieldValue(field, instance);
   }
 
   private static Object getFieldValue(Field field, Object instance) {
+    if (instance == null) {
+      return null;
+    }
     try {
       return FieldUtils.readField(field, instance, true);
     }
