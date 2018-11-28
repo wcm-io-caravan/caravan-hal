@@ -36,7 +36,6 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
-import io.wcm.caravan.hal.microservices.impl.client.HalApiMethodInvocation;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 
 public class RxJavaReflectionUtils {
@@ -45,7 +44,8 @@ public class RxJavaReflectionUtils {
 
     Stopwatch stopwatch = Stopwatch.createStarted();
 
-    String fullMethodName = resourceImplInstance.getClass().getSimpleName() + "#" + method.getName();
+    String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
+
 
     Object[] args = new Object[method.getParameterCount()];
 
@@ -57,14 +57,14 @@ public class RxJavaReflectionUtils {
         rxReturnValue = Observable.empty();
       }
       else if (hasReactiveReturnType(method)) {
-        rxReturnValue = convertToObservable(returnValue, null, null);
+        String description = "emitting " + getObservableEmissionType(method).getSimpleName() + " instances via " + fullMethodName;
+        rxReturnValue = convertToObservable(returnValue, metrics, description);
       }
       else {
         rxReturnValue = Observable.just(returnValue);
       }
 
-      return rxReturnValue
-          .compose(EmissionStopwatch.collectMetrics("emitting " + resourceImplInstance.getClass().getSimpleName() + "#" + method.getName(), metrics));
+      return rxReturnValue;
     }
     catch (InvocationTargetException ex) {
       throw new RuntimeException("Failed to invoke method " + fullMethodName, ex.getTargetException());
@@ -75,7 +75,7 @@ public class RxJavaReflectionUtils {
     finally {
 
       metrics.onMethodInvocationFinished(AsyncHalResourceRenderer.class,
-          "invokeMethodAndReturnObservable(" + fullMethodName + ")",
+          "calling " + fullMethodName,
           stopwatch.elapsed(TimeUnit.MICROSECONDS));
     }
   }
@@ -111,9 +111,9 @@ public class RxJavaReflectionUtils {
     return Observable.class.isAssignableFrom(returnType) || Single.class.isAssignableFrom(returnType) || Maybe.class.isAssignableFrom(returnType);
   }
 
-  public static Object convertReactiveType(Object reactiveInstance, Class<?> targetType, RequestMetricsCollector metrics, HalApiMethodInvocation invocation) {
+  public static Object convertReactiveType(Object reactiveInstance, Class<?> targetType, RequestMetricsCollector metrics, String description) {
 
-    Observable<?> observable = convertToObservable(reactiveInstance, metrics, invocation);
+    Observable<?> observable = convertToObservable(reactiveInstance, metrics, description);
 
     return convertObservableTo(observable, targetType);
   }
@@ -138,7 +138,7 @@ public class RxJavaReflectionUtils {
     throw new UnsupportedOperationException("The given target type of " + targetType.getName() + " is not a supported reactive type");
   }
 
-  private static Observable<?> convertToObservable(Object reactiveInstance, RequestMetricsCollector metrics, HalApiMethodInvocation invocation) {
+  private static Observable<?> convertToObservable(Object reactiveInstance, RequestMetricsCollector metrics, String description) {
 
     Preconditions.checkNotNull(reactiveInstance, "Cannot convert null objects");
 
@@ -159,8 +159,8 @@ public class RxJavaReflectionUtils {
       throw new UnsupportedOperationException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");
     }
 
-    if (metrics != null && invocation != null) {
-      observable = observable.compose(EmissionStopwatch.collectMetrics("fetching " + invocation, metrics));
+    if (metrics != null && description != null) {
+      observable = observable.compose(EmissionStopwatch.collectMetrics(description, metrics));
     }
 
     return observable;

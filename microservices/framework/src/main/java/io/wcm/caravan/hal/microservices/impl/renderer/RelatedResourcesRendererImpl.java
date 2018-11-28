@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
+import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.getClassAndMethodName;
 import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.getSortedRelatedResourceMethods;
 import static io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils.invokeMethodAndReturnObservable;
 
@@ -37,6 +38,7 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
+import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -61,7 +63,9 @@ final class RelatedResourcesRendererImpl {
   Single<List<RelationRenderResult>> renderRelated(Class<?> apiInterface, Object resourceImplInstance) {
 
     // find all methods annotated with @RelatedResource
-    return getSortedRelatedResourceMethods(apiInterface)
+    List<Method> methods = getSortedRelatedResourceMethods(apiInterface);
+
+    return Observable.fromIterable(methods)
         // create a RelatedContent instance with the links and embedded resources returned by each method
         .concatMapEager(method -> createRelatedContentForMethod(resourceImplInstance, method).toObservable())
         // and collect the results for each method in a single list
@@ -84,17 +88,24 @@ final class RelatedResourcesRendererImpl {
     Single<List<HalResource>> rxEmbeddedHalResources = renderEmbeddedResources(method, rxRelatedResources);
 
     // wait for all this to be complete before creating a RelatedResourceInfo for this method
-    return Single.zip(rxLinks, rxEmbeddedHalResources, (links, embeddedResources) -> {
+    Single<RelationRenderResult> renderResult = Single.zip(rxLinks, rxEmbeddedHalResources, (links, embeddedResources) -> {
       return new RelationRenderResult(relation, links, embeddedResources);
-    }).compose(EmissionStopwatch.collectMetrics("rendering " + resourceImplInstance.getClass().getSimpleName() + "#" + method.getName(), metrics));
+    });
+
+    // and measure the time of the emissions
+    return renderResult
+        .compose(EmissionStopwatch.collectMetrics(
+            "rendering all impls emitted by " + getClassAndMethodName(resourceImplInstance, method),
+            metrics));
   }
 
   private void verifyReturnType(Object resourceImplInstance, Method method) {
-    String fullMethodName = resourceImplInstance.getClass().getSimpleName() + "#" + method.getName();
 
     // get the emitted result resource type from the method signature
     Class<?> relatedResourceInterface = RxJavaReflectionUtils.getObservableEmissionType(method);
     if (relatedResourceInterface.getAnnotation(HalApiInterface.class) == null && !LinkableResource.class.equals(relatedResourceInterface)) {
+
+      String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
       throw new RuntimeException("The method " + fullMethodName + " returns an Observable<" + relatedResourceInterface.getName() + ">, "
           + " but it must return an Observable that emits objects that implement a HAL API interface annotated with the @"
           + HalApiInterface.class.getSimpleName() + " annotation");

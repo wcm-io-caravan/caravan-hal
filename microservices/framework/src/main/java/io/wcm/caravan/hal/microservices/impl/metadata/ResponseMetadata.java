@@ -23,6 +23,7 @@ import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimaps;
@@ -46,6 +48,13 @@ import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 public class ResponseMetadata implements RequestMetricsCollector {
+
+  private static Map<TimeUnit, String> TIME_UNIT_ABBRS = ImmutableMap.of(
+      TimeUnit.MINUTES, "m",
+      TimeUnit.SECONDS, "s",
+      TimeUnit.MILLISECONDS, "ms",
+      TimeUnit.MICROSECONDS, "μs",
+      TimeUnit.NANOSECONDS, "ns");
 
   private final Stopwatch overalResponseTImeStopwatch = Stopwatch.createStarted();
 
@@ -191,7 +200,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
     metadataResource.addEmbedded("metrics:invocationTimes", asyncRendererResource);
 
     HalResource emissionResource = createTimingResource(getGroupedAndSortedInvocationTimes(EmissionStopwatch.class, true));
-    emissionResource.getModel().put("title", "A breakdown of average emission times by resource and methods");
+    emissionResource.getModel().put("title", "A breakdown of average emission and rendering times by resource and method");
     metadataResource.addEmbedded("metrics:emissionTimes", emissionResource);
 
     HalResource maxAgeResource = createTimingResource(getSortedInputMaxAgeSeconds());
@@ -222,7 +231,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
     ArrayNode individualMetrics = model.putArray("measurements");
 
     list.stream()
-        .map(measurement -> measurement.getTime() + " " + measurement.getUnit().toString() + " - " + measurement.getText())
+        .map(measurement -> measurement.getTime() + " " + TIME_UNIT_ABBRS.get(measurement.getUnit()) + " - " + measurement.getText())
         .forEach(title -> individualMetrics.add(title));
 
     return new HalResource(model);

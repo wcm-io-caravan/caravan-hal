@@ -28,21 +28,20 @@ import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-
-import io.reactivex.Observable;
-import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
 /**
  * Utility methods to inspect method signatures
@@ -111,25 +110,18 @@ public final class HalApiReflectionUtils {
                 + HalApiInterface.class.getSimpleName() + " annotation"));
   }
 
-  public static Single<?> getResourceStateObservable(Class<?> apiInterface, Object instance, RequestMetricsCollector metrics) {
-
-    // find the first method annotated with @ResourceState
-    Observable<Object> rxResourceState = Observable.fromArray(apiInterface.getMethods())
+  public static Optional<Method> findResourceStateMethod(Class<?> apiInterface) {
+    return Stream.of(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(ResourceState.class) != null)
-        .take(1)
-        // invoke the method to get the state object and re-throw any exceptions that might be thrown
-        .flatMap(method -> RxJavaReflectionUtils.invokeMethodAndReturnObservable(instance, method, metrics));
-
-    // use an empty JSON object if no method is annotated with @ResourceState (or if the instance returned null)
-    return rxResourceState
-        .single(JsonNodeFactory.instance.objectNode());
+        .findFirst();
   }
 
-  public static Observable<Method> getSortedRelatedResourceMethods(Class<?> apiInterface) {
+  public static List<Method> getSortedRelatedResourceMethods(Class<?> apiInterface) {
 
-    return Observable.fromArray(apiInterface.getMethods())
+    return Stream.of(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(RelatedResource.class) != null)
-        .sorted((m1, m2) -> HalApiReflectionUtils.methodRelationComparator.compare(m1, m2));
+        .sorted((m1, m2) -> HalApiReflectionUtils.methodRelationComparator.compare(m1, m2))
+        .collect(Collectors.toList());
   }
 
   public static Map<String, Object> getTemplateVariablesFrom(Object dto, Class dtoClass) {
@@ -175,5 +167,9 @@ public final class HalApiReflectionUtils {
       throw new IllegalArgumentException("Failed to read value of field " + field.getName() + " from class " + instance.getClass().getSimpleName()
           + ". Make sure that all fields in your classes annotated with @" + TemplateVariables.class.getSimpleName() + " are public");
     }
+  }
+
+  public static String getClassAndMethodName(Object instance, Method method) {
+    return instance.getClass().getSimpleName() + "#" + method.getName();
   }
 }

@@ -20,12 +20,15 @@
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
 import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.findHalApiInterface;
-import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.getResourceStateObservable;
+import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.getClassAndMethodName;
 
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
@@ -35,6 +38,8 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
+import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
+import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.renderer.RelatedResourcesRendererImpl.RelationRenderResult;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -45,6 +50,7 @@ import io.wcm.caravan.hal.resource.Link;
 public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRenderer {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+  private static final ObjectNode EMPTY_OBJECT = JsonNodeFactory.instance.objectNode();
 
   private final RelatedResourcesRendererImpl relatedRenderer;
   private final RequestMetricsCollector metrics;
@@ -69,7 +75,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     Class<?> apiInterface = findHalApiInterface(resourceImplInstance);
 
     // get the JSON resource state from the method annotated with @ResourceState
-    Single<ObjectNode> rxState = getResourceStateAndConvertToJson(apiInterface, resourceImplInstance);
+    Single<ObjectNode> rxState = renderResourceState(apiInterface, resourceImplInstance);
 
     // render links and embedded resources for each method annotated with @RelatedResource
     Single<List<RelationRenderResult>> rxRelated = relatedRenderer.renderRelated(apiInterface, resourceImplInstance);
@@ -78,22 +84,37 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     Single<HalResource> rxHalResource = Single.zip(rxState, rxRelated,
         // ...and then create the HalResource instance
         (stateNode, listOfRelated) -> createHalResource(resourceImplInstance, stateNode, listOfRelated))
-        // and calculate the time of the emissions
-        .compose(EmissionStopwatch.collectMetrics("rendering " + resourceImplInstance.getClass().getSimpleName(), metrics));
+        // and measure the time of the emissions
+        .compose(EmissionStopwatch.collectMetrics("rendering " + resourceImplInstance.getClass().getSimpleName() + " instances", metrics));
 
     metrics.onMethodInvocationFinished(AsyncHalResourceRenderer.class,
-        "renderLinkedOrEmbeddedResource(" + resourceImplInstance.getClass().getSimpleName() + ")",
+        "preparing rendering of " + resourceImplInstance.getClass().getSimpleName(),
         assemblyTime.elapsed(TimeUnit.MICROSECONDS));
 
     return rxHalResource;
   }
 
-  Single<ObjectNode> getResourceStateAndConvertToJson(Class<?> apiInterface, Object resourceImplInstance) {
+  Single<ObjectNode> renderResourceState(Class<?> apiInterface, Object resourceImplInstance) {
 
-    // call the method annotated with @ResourceState (and convert the return value to Observable if necessary)
-    return getResourceStateObservable(apiInterface, resourceImplInstance, metrics)
-        // then convert the value emitted by the Observable to a Jackson JSON node
-        .map(object -> OBJECT_MAPPER.convertValue(object, ObjectNode.class));
+    Single<ObjectNode> emptyObject = Single.fromCallable(() -> JsonNodeFactory.instance.objectNode());
+
+    // find the first method annotated with @ResourceState (and return an empty object if there is none)
+    Optional<Method> method = HalApiReflectionUtils.findResourceStateMethod(apiInterface);
+    if (!method.isPresent()) {
+
+      return emptyObject;
+    }
+
+    // invoke the method to get the state observable
+    return RxJavaReflectionUtils.invokeMethodAndReturnObservable(resourceImplInstance, method.get(), metrics)
+        // convert the emitted state instance to a JSON object node
+        .map(object -> OBJECT_MAPPER.convertValue(object, ObjectNode.class))
+        // or use an empty object if the method returned an empty Maybe or Observable
+        .singleElement()
+        .switchIfEmpty(emptyObject)
+        // and measure the total time of the emissions
+        .compose(EmissionStopwatch
+            .collectMetrics("rendering state emmited by " + getClassAndMethodName(resourceImplInstance, method.get()), metrics));
   }
 
   static HalResource createHalResource(Object resourceImplInstance, ObjectNode stateNode, List<RelationRenderResult> listOfRelated) {

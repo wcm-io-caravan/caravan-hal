@@ -24,6 +24,7 @@ public class HalApiMethodInvocation {
 
   private final Class interfaze;
   private final Method method;
+  private final Class<?> emissionType;
 
   private final Map<String, Object> templateVariables;
   private final String linkName;
@@ -32,6 +33,8 @@ public class HalApiMethodInvocation {
   HalApiMethodInvocation(Class interfaze, Method method, Object[] args) {
     this.interfaze = interfaze;
     this.method = method;
+    this.emissionType = hasReactiveReturnType() ? RxJavaReflectionUtils.getObservableEmissionType(method) : method.getReturnType();
+
     this.templateVariables = new HashMap<>();
 
     boolean nonNullParameterFound = false;
@@ -99,12 +102,16 @@ public class HalApiMethodInvocation {
     return method.getAnnotation(ResourceRepresentation.class) != null;
   }
 
+  boolean hasReactiveReturnType() {
+    return RxJavaReflectionUtils.hasReactiveReturnType(method);
+  }
+
   Class<?> getReturnType() {
     return method.getReturnType();
   }
 
   Class<?> getEmissionType() {
-    return RxJavaReflectionUtils.getObservableEmissionType(method);
+    return emissionType;
   }
 
   boolean isCalledWithOnlyNullParameters() {
@@ -117,6 +124,18 @@ public class HalApiMethodInvocation {
 
   String getLinkName() {
     return linkName;
+  }
+
+  public String getDescription() {
+    String desc = "emitting " + getEmissionType().getSimpleName();
+    if (isForMethodAnnotatedWithRelatedResource()) {
+      desc += " proxies";
+    }
+    else {
+      desc += " objects";
+    }
+    desc += " via " + toString();
+    return desc;
   }
 
   @Override

@@ -61,7 +61,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceStateHandler(hal))
             .flatMapMaybe(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(maybeProperties, invocation.getReturnType(), metrics, invocation);
+        return RxJavaReflectionUtils.convertReactiveType(maybeProperties, invocation.getReturnType(), metrics, invocation.getDescription());
       }
 
       if (invocation.isForMethodAnnotatedWithRelatedResource()) {
@@ -70,7 +70,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new RelatedResourceHandler(hal, jsonLoader, metrics))
             .flatMapObservable(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(rxRelated, invocation.getReturnType(), metrics, invocation);
+        return RxJavaReflectionUtils.convertReactiveType(rxRelated, invocation.getReturnType(), metrics, invocation.getDescription());
       }
 
       if (invocation.isForMethodAnnotatedWithResourceLink()) {
@@ -85,7 +85,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceRepresentationHandler(hal))
             .flatMap(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(rxRepresentation, invocation.getReturnType(), metrics, invocation);
+        return RxJavaReflectionUtils.convertReactiveType(rxRepresentation, invocation.getReturnType(), metrics, invocation.getDescription());
       }
 
       // unsupported operation
