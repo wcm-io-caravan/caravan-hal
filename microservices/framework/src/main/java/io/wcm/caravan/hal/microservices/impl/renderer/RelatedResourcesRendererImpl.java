@@ -37,7 +37,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
+import io.wcm.caravan.hal.microservices.impl.metadata.CachingEmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -94,8 +94,8 @@ final class RelatedResourcesRendererImpl {
 
     // and measure the time of the emissions
     return renderResult
-        .compose(EmissionStopwatch.collectMetrics(
-            "rendering all impls emitted by " + getClassAndMethodName(resourceImplInstance, method),
+        .compose(CachingEmissionStopwatch.collectMetrics(
+            "rendering links and embedded from " + getClassAndMethodName(resourceImplInstance, method),
             metrics));
   }
 

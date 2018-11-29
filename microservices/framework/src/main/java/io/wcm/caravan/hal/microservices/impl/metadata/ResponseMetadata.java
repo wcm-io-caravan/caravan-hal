@@ -199,7 +199,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
     asyncRendererResource.getModel().put("title", "A breakdown of assembly time spent by AsyncHalResourceRenderer");
     metadataResource.addEmbedded("metrics:invocationTimes", asyncRendererResource);
 
-    HalResource emissionResource = createTimingResource(getGroupedAndSortedInvocationTimes(EmissionStopwatch.class, true));
+    HalResource emissionResource = createTimingResource(getGroupedAndSortedInvocationTimes(CachingEmissionStopwatch.class, true));
     emissionResource.getModel().put("title", "A breakdown of average emission and rendering times by resource and method");
     metadataResource.addEmbedded("metrics:emissionTimes", emissionResource);
 

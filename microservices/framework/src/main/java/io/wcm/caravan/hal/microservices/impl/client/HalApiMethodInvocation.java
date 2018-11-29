@@ -127,14 +127,16 @@ public class HalApiMethodInvocation {
   }
 
   public String getDescription() {
-    String desc = "emitting " + getEmissionType().getSimpleName();
+    String desc = "fetching " + interfaze.getSimpleName();
+    desc += " and emitting " + getEmissionType().getSimpleName();
     if (isForMethodAnnotatedWithRelatedResource()) {
       desc += " proxies";
     }
     else {
       desc += " objects";
     }
-    desc += " via " + toString();
+
+    desc += " via #" + method.getName();
     return desc;
   }
 

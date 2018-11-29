@@ -37,7 +37,7 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
+import io.wcm.caravan.hal.microservices.impl.metadata.CachingEmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.renderer.RelatedResourcesRendererImpl.RelationRenderResult;
@@ -85,7 +85,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
         // ...and then create the HalResource instance
         (stateNode, listOfRelated) -> createHalResource(resourceImplInstance, stateNode, listOfRelated))
         // and measure the time of the emissions
-        .compose(EmissionStopwatch.collectMetrics("rendering " + resourceImplInstance.getClass().getSimpleName() + " instances", metrics));
+        .compose(CachingEmissionStopwatch.collectMetrics("rendering " + resourceImplInstance.getClass().getSimpleName() + " instances", metrics));
 
     metrics.onMethodInvocationFinished(AsyncHalResourceRenderer.class,
         "preparing rendering of " + resourceImplInstance.getClass().getSimpleName(),
@@ -113,8 +113,8 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
         .singleElement()
         .switchIfEmpty(emptyObject)
         // and measure the total time of the emissions
-        .compose(EmissionStopwatch
-            .collectMetrics("rendering state emmited by " + getClassAndMethodName(resourceImplInstance, method.get()), metrics));
+        .compose(CachingEmissionStopwatch
+            .collectMetrics("rendering state emited by " + getClassAndMethodName(resourceImplInstance, method.get()), metrics));
   }
 
   static HalResource createHalResource(Object resourceImplInstance, ObjectNode stateNode, List<RelationRenderResult> listOfRelated) {

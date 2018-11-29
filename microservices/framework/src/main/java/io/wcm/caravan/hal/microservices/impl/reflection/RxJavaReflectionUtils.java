@@ -36,7 +36,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
-import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
+import io.wcm.caravan.hal.microservices.impl.metadata.CachingEmissionStopwatch;
 
 public class RxJavaReflectionUtils {
 
@@ -160,7 +160,7 @@ public class RxJavaReflectionUtils {
     }
 
     if (metrics != null && description != null) {
-      observable = observable.compose(EmissionStopwatch.collectMetrics(description, metrics));
+      observable = observable.compose(CachingEmissionStopwatch.collectMetrics(description, metrics));
     }
 
     return observable;
