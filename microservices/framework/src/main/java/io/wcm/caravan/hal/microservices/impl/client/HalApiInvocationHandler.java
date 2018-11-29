@@ -61,7 +61,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceStateHandler(hal))
             .flatMapMaybe(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(maybeProperties, invocation.getReturnType(), metrics, invocation.getDescription());
+        return RxJavaReflectionUtils.convertReactiveType(maybeProperties, invocation.getReturnType());
       }
 
       if (invocation.isForMethodAnnotatedWithRelatedResource()) {
@@ -70,7 +70,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new RelatedResourceHandler(hal, jsonLoader, metrics))
             .flatMapObservable(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(rxRelated, invocation.getReturnType(), metrics, invocation.getDescription());
+        return RxJavaReflectionUtils.convertReactiveType(rxRelated, invocation.getReturnType());
       }
 
       if (invocation.isForMethodAnnotatedWithResourceLink()) {
@@ -85,7 +85,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceRepresentationHandler(hal))
             .flatMap(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(rxRepresentation, invocation.getReturnType(), metrics, invocation.getDescription());
+        return RxJavaReflectionUtils.convertReactiveType(rxRepresentation, invocation.getReturnType());
       }
 
       // unsupported operation
@@ -107,7 +107,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
     }
     finally {
       // collect the time spend calling all proxy methods during the current request in the HalResponseMetadata object
-      metrics.onMethodInvocationFinished(HalApiClient.class, invocation.toString(), stopwatch.elapsed(TimeUnit.MICROSECONDS));
+      metrics.onMethodInvocationFinished(HalApiClient.class, "calling " + invocation.toString(), stopwatch.elapsed(TimeUnit.MICROSECONDS));
     }
   }
 

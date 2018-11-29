@@ -29,6 +29,7 @@ import io.reactivex.ObservableTransformer;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.reactivex.SingleTransformer;
+import io.reactivex.schedulers.Schedulers;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
 public class CachingEmissionStopwatch<T> implements SingleTransformer<T, T>, ObservableTransformer<T, T> {
@@ -43,8 +44,8 @@ public class CachingEmissionStopwatch<T> implements SingleTransformer<T, T>, Obs
     this.message = message;
   }
 
-  public static <T> CachingEmissionStopwatch<T> collectMetrics(String message, RequestMetricsCollector metrics) {
-    return new CachingEmissionStopwatch<T>(metrics, message);
+  public static <T> EmissionStopwatch<T> collectMetrics(String message, RequestMetricsCollector metrics) {
+    return EmissionStopwatch.collectMetrics(message, metrics);
   }
 
   @Override
@@ -55,7 +56,9 @@ public class CachingEmissionStopwatch<T> implements SingleTransformer<T, T>, Obs
     return cachedUpstream.doOnSubscribe(d -> {
       if (!stopwatch.isRunning()) {
         startStopwatch();
-        cachedUpstream.subscribe(this::sendMetrics);
+        cachedUpstream
+            .observeOn(Schedulers.computation())
+            .subscribe(this::sendMetrics);
       }
     });
   }
@@ -68,7 +71,10 @@ public class CachingEmissionStopwatch<T> implements SingleTransformer<T, T>, Obs
     return cachedUpstream.doOnSubscribe(d -> {
       if (!stopwatch.isRunning()) {
         startStopwatch();
-        cachedUpstream.toList().subscribe(this::sendMetrics);
+        cachedUpstream
+            .observeOn(Schedulers.computation())
+            .toList()
+            .subscribe(this::sendMetrics);
       }
     });
   }
@@ -80,6 +86,6 @@ public class CachingEmissionStopwatch<T> implements SingleTransformer<T, T>, Obs
   }
 
   private void sendMetrics(Object o) {
-    metrics.onMethodInvocationFinished(CachingEmissionStopwatch.class, message, stopwatch.elapsed(TimeUnit.MICROSECONDS));
+    metrics.onMethodInvocationFinished(EmissionStopwatch.class, message, stopwatch.elapsed(TimeUnit.MICROSECONDS));
   }
 }

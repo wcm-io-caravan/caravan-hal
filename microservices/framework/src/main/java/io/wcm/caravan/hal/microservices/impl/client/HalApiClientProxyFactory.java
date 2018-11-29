@@ -4,14 +4,19 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import java.lang.reflect.Proxy;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.metadata.CachingEmissionStopwatch;
+import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -28,7 +33,7 @@ final class HalApiClientProxyFactory {
   static <T> T createProxyFromUrl(Class<T> relatedResourceType, String url, JsonResourceLoader jsonLoader,
       RequestMetricsCollector metrics) {
 
-    Single<HalResource> rxHal = loadHalResource(url, jsonLoader, metrics);
+    Single<HalResource> rxHal = loadHalResource(url, jsonLoader, metrics, relatedResourceType);
 
     return createProxy(relatedResourceType, rxHal, new Link(url), jsonLoader, metrics);
   }
@@ -36,7 +41,7 @@ final class HalApiClientProxyFactory {
   static <T> T createProxyFromLink(Class<T> relatedResourceType, Link link, JsonResourceLoader jsonLoader,
       RequestMetricsCollector metrics) {
 
-    Single<HalResource> rxHal = loadHalResource(link.getHref(), jsonLoader, metrics);
+    Single<HalResource> rxHal = loadHalResource(link.getHref(), jsonLoader, metrics, relatedResourceType);
 
     return createProxy(relatedResourceType, rxHal, link, jsonLoader, metrics);
   }
@@ -49,7 +54,8 @@ final class HalApiClientProxyFactory {
     return createProxy(relatedResourceType, rxHal, link, jsonLoader, metrics);
   }
 
-  private static Single<HalResource> loadHalResource(String resourceUrl, JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
+  private static <T> Single<HalResource> loadHalResource(String resourceUrl, JsonResourceLoader jsonLoader, RequestMetricsCollector metrics,
+      Class<T> relatedResourceType) {
 
     // this additional single is only required because we want to validate the URL only on subscription
     // (e.g. right before it is actually retrieved).
@@ -68,26 +74,36 @@ final class HalApiClientProxyFactory {
 
           return jsonLoader.loadJsonResource(url, metrics)
               .map(json -> new HalResource(json));
-        });
+        })
+        .compose(EmissionStopwatch.collectMetrics("fetching " + relatedResourceType.getSimpleName() + " resource from upstream server", metrics));
   }
 
   private static <T> T createProxy(Class<T> relatedResourceType, Single<HalResource> rxHal, Link linkToResource,
       JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
 
-    // check that the given class is indeed a HAL api interface
-    HalApiInterface annotation = relatedResourceType.getAnnotation(HalApiInterface.class);
-    Preconditions.checkNotNull(annotation,
-        "The given resource interface " + relatedResourceType.getName() + " does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
+    Stopwatch sw = Stopwatch.createStarted();
 
-    Class[] interfaces = getInterfacesToImplement(relatedResourceType);
+    try {
+      // check that the given class is indeed a HAL api interface
+      HalApiInterface annotation = relatedResourceType.getAnnotation(HalApiInterface.class);
+      Preconditions.checkNotNull(annotation,
+          "The given resource interface " + relatedResourceType.getName() + " does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
 
-    // the main logic of the proxy is implemented in this InvocationHandler
-    HalApiInvocationHandler invocationHandler = new HalApiInvocationHandler(rxHal, relatedResourceType, linkToResource, jsonLoader, metrics);
+      Class[] interfaces = getInterfacesToImplement(relatedResourceType);
 
-    @SuppressWarnings("unchecked")
-    T proxy = (T)Proxy.newProxyInstance(relatedResourceType.getClassLoader(), interfaces, invocationHandler);
+      // the main logic of the proxy is implemented in this InvocationHandler
+      HalApiInvocationHandler invocationHandler = new HalApiInvocationHandler(rxHal, relatedResourceType, linkToResource, jsonLoader, metrics);
 
-    return proxy;
+      @SuppressWarnings("unchecked")
+      T proxy = (T)Proxy.newProxyInstance(relatedResourceType.getClassLoader(), interfaces, invocationHandler);
+
+      return proxy;
+    }
+    finally {
+      metrics.onMethodInvocationFinished(HalApiClient.class,
+          "creating " + relatedResourceType.getSimpleName() + " proxy instance",
+          sw.elapsed(TimeUnit.MICROSECONDS));
+    }
   }
 
   private static <T> Class[] getInterfacesToImplement(Class<T> relatedResourceType) {

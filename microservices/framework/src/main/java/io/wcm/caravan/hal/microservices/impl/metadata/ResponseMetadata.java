@@ -190,12 +190,12 @@ public class ResponseMetadata implements RequestMetricsCollector {
         + "service also provides a way to fetch this data all at once. ");
     metadataResource.addEmbedded("metrics:responseTimes", responseTimeResource);
 
-    HalResource emissionResource = createTimingResource(getGroupedAndSortedInvocationTimes(CachingEmissionStopwatch.class, true));
+    HalResource emissionResource = createTimingResource(getGroupedAndSortedInvocationTimes(EmissionStopwatch.class, true));
     emissionResource.getModel().put("title", "A breakdown of emission and rendering times by resource and method");
     metadataResource.addEmbedded("metrics:emissionTimes", emissionResource);
 
     HalResource apiClientResource = createTimingResource(getGroupedAndSortedInvocationTimes(HalApiClient.class, false));
-    apiClientResource.getModel().put("title", "A breakdown of the time spent in HalApiClient proxy methods");
+    apiClientResource.getModel().put("title", "A breakdown of time spent in blocking HalApiClient proxy method calls");
     apiClientResource.getModel().put("developerHint",
         "If a lot of time is spent in a method that is invoked very often, then you should check if you can "
             + "use Observable#cache() and share the same observable in different methods of this resource. "
@@ -203,7 +203,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
     metadataResource.addEmbedded("metrics:invocationTimes", apiClientResource);
 
     HalResource asyncRendererResource = createTimingResource(getGroupedAndSortedInvocationTimes(AsyncHalResourceRenderer.class, false));
-    asyncRendererResource.getModel().put("title", "A breakdown of assembly time spent by AsyncHalResourceRenderer");
+    asyncRendererResource.getModel().put("title", "A breakdown of time spent in blocking method calls by AsyncHalResourceRenderer");
     metadataResource.addEmbedded("metrics:invocationTimes", asyncRendererResource);
 
     HalResource maxAgeResource = createTimingResource(getSortedInputMaxAgeSeconds());

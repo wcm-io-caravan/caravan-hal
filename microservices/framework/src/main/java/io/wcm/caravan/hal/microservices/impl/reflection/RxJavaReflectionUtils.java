@@ -36,7 +36,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
-import io.wcm.caravan.hal.microservices.impl.metadata.CachingEmissionStopwatch;
+import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 
 public class RxJavaReflectionUtils {
 
@@ -57,8 +57,9 @@ public class RxJavaReflectionUtils {
         rxReturnValue = Observable.empty();
       }
       else if (hasReactiveReturnType(method)) {
-        String description = "emitting " + getObservableEmissionType(method).getSimpleName() + " instances via " + fullMethodName;
-        rxReturnValue = convertToObservable(returnValue, metrics, description);
+        rxReturnValue = convertToObservable(returnValue)
+            .compose(EmissionStopwatch.collectMetrics("processing " + getObservableEmissionType(method).getSimpleName() + " emissions from " + fullMethodName,
+                metrics));
       }
       else {
         rxReturnValue = Observable.just(returnValue);
@@ -111,9 +112,9 @@ public class RxJavaReflectionUtils {
     return Observable.class.isAssignableFrom(returnType) || Single.class.isAssignableFrom(returnType) || Maybe.class.isAssignableFrom(returnType);
   }
 
-  public static Object convertReactiveType(Object reactiveInstance, Class<?> targetType, RequestMetricsCollector metrics, String description) {
+  public static Object convertReactiveType(Object reactiveInstance, Class<?> targetType) {
 
-    Observable<?> observable = convertToObservable(reactiveInstance, metrics, description);
+    Observable<?> observable = convertToObservable(reactiveInstance);
 
     return convertObservableTo(observable, targetType);
   }
@@ -138,7 +139,7 @@ public class RxJavaReflectionUtils {
     throw new UnsupportedOperationException("The given target type of " + targetType.getName() + " is not a supported reactive type");
   }
 
-  private static Observable<?> convertToObservable(Object reactiveInstance, RequestMetricsCollector metrics, String description) {
+  private static Observable<?> convertToObservable(Object reactiveInstance) {
 
     Preconditions.checkNotNull(reactiveInstance, "Cannot convert null objects");
 
@@ -157,10 +158,6 @@ public class RxJavaReflectionUtils {
     }
     else {
       throw new UnsupportedOperationException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");
-    }
-
-    if (metrics != null && description != null) {
-      observable = observable.compose(CachingEmissionStopwatch.collectMetrics(description, metrics));
     }
 
     return observable;

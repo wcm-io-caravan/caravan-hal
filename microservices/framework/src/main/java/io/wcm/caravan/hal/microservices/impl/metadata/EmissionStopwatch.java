@@ -39,7 +39,7 @@ public class EmissionStopwatch<T> implements SingleTransformer<T, T>, Observable
   private final RequestMetricsCollector metrics;
   private final String message;
 
-  private EmissionStopwatch(RequestMetricsCollector metrics, String message) {
+  EmissionStopwatch(RequestMetricsCollector metrics, String message) {
     this.metrics = metrics;
     this.message = message;
   }
@@ -61,7 +61,7 @@ public class EmissionStopwatch<T> implements SingleTransformer<T, T>, Observable
 
     return upstream
         .doOnSubscribe(this::startStopwatch)
-        .doOnComplete(this::sendMetrics);
+        .doOnTerminate(this::sendMetrics);
   }
 
 

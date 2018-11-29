@@ -171,7 +171,7 @@ class RelatedResourceHandler {
 
     // if the resources are linked, then we have to fetch those resources first
     return Observable.fromIterable(links)
-        .map(link -> expandLinkTemplates(link, parameters))
+        .map(link -> link.isTemplated() ? expandLinkTemplates(link, parameters) : link)
         .map(link -> HalApiClientProxyFactory.createProxyFromLink(relatedResourceType, link, jsonLoader, metrics));
   }
 
