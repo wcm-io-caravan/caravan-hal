@@ -115,7 +115,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
   }
 
 
-  List<TimeMeasurement> getGroupedAndSortedInvocationTimes(Class category, boolean useAvg) {
+  List<TimeMeasurement> getGroupedAndSortedInvocationTimes(Class category, boolean useMax) {
 
     List<TimeMeasurement> invocationTimes = methodInvocationTimes.get(category.getSimpleName());
 
@@ -125,10 +125,13 @@ public class ResponseMetadata implements RequestMetricsCollector {
         .forEach((text, measurements) -> {
           DoubleStream individualTimes = measurements.stream().mapToDouble(TimeMeasurement::getTime);
 
-          double totalTime = useAvg ? individualTimes.average().orElse(0.f) : individualTimes.sum();
+          double totalTime = useMax ? individualTimes.max().orElse(0.f) : individualTimes.sum();
           long invocations = measurements.stream().count();
 
-          String prefix = useAvg ? "avg of " : "sum of ";
+          String prefix = "";
+          if (measurements.size() > 1) {
+            prefix = useMax ? "max of " : "sum of ";
+          }
           groupedInvocationTimes.add(new TimeMeasurement(prefix + invocations + "x " + text, (float)totalTime, measurements.get(0).getUnit()));
         });
 
@@ -187,6 +190,10 @@ public class ResponseMetadata implements RequestMetricsCollector {
         + "service also provides a way to fetch this data all at once. ");
     metadataResource.addEmbedded("metrics:responseTimes", responseTimeResource);
 
+    HalResource emissionResource = createTimingResource(getGroupedAndSortedInvocationTimes(CachingEmissionStopwatch.class, true));
+    emissionResource.getModel().put("title", "A breakdown of emission and rendering times by resource and method");
+    metadataResource.addEmbedded("metrics:emissionTimes", emissionResource);
+
     HalResource apiClientResource = createTimingResource(getGroupedAndSortedInvocationTimes(HalApiClient.class, false));
     apiClientResource.getModel().put("title", "A breakdown of the time spent in HalApiClient proxy methods");
     apiClientResource.getModel().put("developerHint",
@@ -198,10 +205,6 @@ public class ResponseMetadata implements RequestMetricsCollector {
     HalResource asyncRendererResource = createTimingResource(getGroupedAndSortedInvocationTimes(AsyncHalResourceRenderer.class, false));
     asyncRendererResource.getModel().put("title", "A breakdown of assembly time spent by AsyncHalResourceRenderer");
     metadataResource.addEmbedded("metrics:invocationTimes", asyncRendererResource);
-
-    HalResource emissionResource = createTimingResource(getGroupedAndSortedInvocationTimes(CachingEmissionStopwatch.class, true));
-    emissionResource.getModel().put("title", "A breakdown of average emission and rendering times by resource and method");
-    metadataResource.addEmbedded("metrics:emissionTimes", emissionResource);
 
     HalResource maxAgeResource = createTimingResource(getSortedInputMaxAgeSeconds());
     maxAgeResource.getModel().put("title", "The max-age cache header values of all retrieved resources");

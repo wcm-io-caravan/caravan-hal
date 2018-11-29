@@ -117,12 +117,18 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
             .collectMetrics("rendering state emited by " + getClassAndMethodName(resourceImplInstance, method.get()), metrics));
   }
 
-  static HalResource createHalResource(Object resourceImplInstance, ObjectNode stateNode, List<RelationRenderResult> listOfRelated) {
+  HalResource createHalResource(Object resourceImplInstance, ObjectNode stateNode, List<RelationRenderResult> listOfRelated) {
 
     HalResource hal = new HalResource(stateNode);
 
     if (resourceImplInstance instanceof LinkableResource) {
+      Stopwatch sw = Stopwatch.createStarted();
       Link selfLink = ((LinkableResource)resourceImplInstance).createLink();
+
+      metrics.onMethodInvocationFinished(AsyncHalResourceRenderer.class,
+          "calling " + resourceImplInstance.getClass().getSimpleName() + "#createLink",
+          sw.elapsed(TimeUnit.MICROSECONDS));
+
       hal.setLink(selfLink);
     }
 

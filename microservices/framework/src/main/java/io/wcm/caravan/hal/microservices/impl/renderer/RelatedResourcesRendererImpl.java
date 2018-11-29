@@ -26,15 +26,19 @@ import static io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionU
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.NotImplementedException;
+
+import com.google.common.base.Stopwatch;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.CachingEmissionStopwatch;
@@ -121,10 +125,16 @@ final class RelatedResourcesRendererImpl {
 
     // and let each resource create a link to itself
     Observable<Link> rxLinks = rxLinkedResourceImpls
-        .map(r -> {
-          Link link = r.createLink();
+        .map(linkedResource -> {
+
+          Stopwatch sw = Stopwatch.createStarted();
+          Link link = linkedResource.createLink();
+          metrics.onMethodInvocationFinished(AsyncHalResourceRenderer.class,
+              "calling " + linkedResource.getClass().getSimpleName() + "#createLink",
+              sw.elapsed(TimeUnit.MICROSECONDS));
+
           if (link == null) {
-            throw new NotImplementedException(r.getClass().getName() + "#createLink" + " returned a null value");
+            throw new NotImplementedException(linkedResource.getClass().getName() + "#createLink" + " returned a null value");
           }
           return link;
         });
