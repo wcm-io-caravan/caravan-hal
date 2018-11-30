@@ -15,7 +15,6 @@ import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.impl.metadata.CachingEmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
