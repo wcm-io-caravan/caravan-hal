@@ -36,7 +36,6 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
-import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 
 public class RxJavaReflectionUtils {
 
@@ -57,9 +56,8 @@ public class RxJavaReflectionUtils {
         rxReturnValue = Observable.empty();
       }
       else if (hasReactiveReturnType(method)) {
-        rxReturnValue = convertToObservable(returnValue)
-            .compose(EmissionStopwatch.collectMetrics("processing " + getObservableEmissionType(method).getSimpleName() + " emissions from " + fullMethodName,
-                metrics));
+        rxReturnValue = convertToObservable(returnValue);
+        //            .compose(EmissionStopwatch.collectMetrics("processing " + getObservableEmissionType(method).getSimpleName() + " emissions from " + fullMethodName,metrics));
       }
       else {
         rxReturnValue = Observable.just(returnValue);
