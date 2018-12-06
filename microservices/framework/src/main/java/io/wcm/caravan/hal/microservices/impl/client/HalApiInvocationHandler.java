@@ -17,7 +17,6 @@ import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -31,16 +30,16 @@ final class HalApiInvocationHandler implements InvocationHandler {
   private final Single<HalResource> rxResource;
   private final Class resourceInterface;
   private final Link linkToResource;
-  private final JsonResourceLoader jsonLoader;
+  private final HalApiClientProxyFactory proxyFactory;
   private final RequestMetricsCollector metrics;
 
   HalApiInvocationHandler(Single<HalResource> rxResource, Class resourceInterface, Link linkToResource,
-      JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
+      HalApiClientProxyFactory proxyFactory, RequestMetricsCollector metrics) {
 
     this.rxResource = rxResource;
     this.resourceInterface = resourceInterface;
     this.linkToResource = linkToResource;
-    this.jsonLoader = jsonLoader;
+    this.proxyFactory = proxyFactory;
     this.metrics = metrics;
   }
 
@@ -67,7 +66,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
       if (invocation.isForMethodAnnotatedWithRelatedResource()) {
 
         Observable<Object> rxRelated = rxResource
-            .map(hal -> new RelatedResourceHandler(hal, jsonLoader, metrics))
+            .map(hal -> new RelatedResourceHandler(hal, proxyFactory))
             .flatMapObservable(handler -> handler.handleMethodInvocation(invocation));
 
         return RxJavaReflectionUtils.convertReactiveType(rxRelated, invocation.getReturnType());

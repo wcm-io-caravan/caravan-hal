@@ -26,9 +26,10 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
 public class HalApiClientImpl implements HalApiClient {
 
-  private final JsonResourceLoader jsonLoader;
+  private final CachingJsonResourceLoader jsonLoader;
   private final BinaryResourceLoader binaryLoader;
-  private final RequestMetricsCollector collector;
+  private final RequestMetricsCollector metrics;
+
 
   /**
    * @param jsonLoader
@@ -37,16 +38,18 @@ public class HalApiClientImpl implements HalApiClient {
    *          request
    */
   public HalApiClientImpl(JsonResourceLoader jsonLoader, BinaryResourceLoader binaryLoader, RequestMetricsCollector collector) {
-    this.jsonLoader = jsonLoader;
+    this.jsonLoader = new CachingJsonResourceLoader(jsonLoader);
     this.binaryLoader = binaryLoader;
-    this.collector = collector;
+    this.metrics = collector;
   }
 
   @Override
   public <T> T getEntryPoint(String uri, Class<T> halApiInterface) {
 
+    HalApiClientProxyFactory factory = new HalApiClientProxyFactory(jsonLoader, metrics);
+
     // load the entry point JSON, parse it as a HalResource and emit a proxy instance
-    return HalApiClientProxyFactory.createProxyFromUrl(halApiInterface, uri, jsonLoader, collector);
+    return factory.createProxyFromUrl(halApiInterface, uri);
   }
 
 }

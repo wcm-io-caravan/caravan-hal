@@ -32,8 +32,6 @@ import com.damnhandy.uri.template.UriTemplate;
 
 import io.reactivex.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -42,13 +40,11 @@ class RelatedResourceHandler {
   private static final Logger log = LoggerFactory.getLogger(HalApiInvocationHandler.class);
 
   private final HalResource contextResource;
-  private final JsonResourceLoader jsonLoader;
-  private final RequestMetricsCollector metrics;
+  private final HalApiClientProxyFactory proxyFactory;
 
-  RelatedResourceHandler(HalResource contextResource, JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
+  RelatedResourceHandler(HalResource contextResource, HalApiClientProxyFactory proxyFactory) {
     this.contextResource = contextResource;
-    this.jsonLoader = jsonLoader;
-    this.metrics = metrics;
+    this.proxyFactory = proxyFactory;
   }
 
   Observable<?> handleMethodInvocation(HalApiMethodInvocation invocation) {
@@ -163,7 +159,7 @@ class RelatedResourceHandler {
           String selfHref = selfLink != null ? selfLink.getHref() : null;
           Link link = linksByHref.getOrDefault(selfHref, selfLink);
 
-          return HalApiClientProxyFactory.createProxyFromHalResource(relatedResourceType, embeddedResource, link, jsonLoader, metrics);
+          return proxyFactory.createProxyFromHalResource(relatedResourceType, embeddedResource, link);
         });
   }
 
@@ -172,14 +168,14 @@ class RelatedResourceHandler {
     // if the resources are linked, then we have to fetch those resources first
     return Observable.fromIterable(links)
         .map(link -> link.isTemplated() ? expandLinkTemplates(link, parameters) : link)
-        .map(link -> HalApiClientProxyFactory.createProxyFromLink(relatedResourceType, link, jsonLoader, metrics));
+        .map(link -> proxyFactory.createProxyFromLink(relatedResourceType, link));
   }
 
   private Observable<Object> createObservableFromLinkTemplates(Class<?> relatedResourceType, List<Link> links) {
 
     // do not expand the link templates
     return Observable.fromIterable(links)
-        .map(link -> HalApiClientProxyFactory.createProxyFromLink(relatedResourceType, link, jsonLoader, metrics));
+        .map(link -> proxyFactory.createProxyFromLink(relatedResourceType, link));
   }
 
   private static Link expandLinkTemplates(Link link, Map<String, Object> parameters) {
