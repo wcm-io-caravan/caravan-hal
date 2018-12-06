@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 
 import io.reactivex.Maybe;
@@ -27,6 +29,9 @@ import io.wcm.caravan.hal.resource.Link;
  */
 final class HalApiInvocationHandler implements InvocationHandler {
 
+
+  private final Cache<String, Object> returnValueCache = CacheBuilder.newBuilder().build();
+
   private final Single<HalResource> rxResource;
   private final Class resourceInterface;
   private final Link linkToResource;
@@ -46,11 +51,26 @@ final class HalApiInvocationHandler implements InvocationHandler {
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-    // we want to measure how much time is spent for reflection magic in this proxy
-    Stopwatch stopwatch = Stopwatch.createStarted();
-
     // create an object to help with identification of methods and parameters
     HalApiMethodInvocation invocation = new HalApiMethodInvocation(resourceInterface, method, args);
+
+    String cacheKey = invocation.toString();
+
+    return returnValueCache.get(cacheKey, () -> {
+      try {
+        return doInvoke(proxy, method, args, invocation);
+      }
+      catch (Throwable ex) {
+        throw new RuntimeException(ex);
+      }
+    });
+
+  }
+
+  private Object doInvoke(Object proxy, Method method, Object[] args, HalApiMethodInvocation invocation) throws Throwable {
+
+    // we want to measure how much time is spent for reflection magic in this proxy
+    Stopwatch stopwatch = Stopwatch.createStarted();
 
     try {
 
@@ -60,7 +80,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceStateHandler(hal))
             .flatMapMaybe(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(maybeProperties, invocation.getReturnType());
+        return RxJavaReflectionUtils.convertAndCacheReactiveType(maybeProperties, invocation.getReturnType());
       }
 
       if (invocation.isForMethodAnnotatedWithRelatedResource()) {
@@ -69,7 +89,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new RelatedResourceHandler(hal, proxyFactory))
             .flatMapObservable(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(rxRelated, invocation.getReturnType());
+        return RxJavaReflectionUtils.convertAndCacheReactiveType(rxRelated, invocation.getReturnType());
       }
 
       if (invocation.isForMethodAnnotatedWithResourceLink()) {
@@ -84,7 +104,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceRepresentationHandler(hal))
             .flatMap(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertReactiveType(rxRepresentation, invocation.getReturnType());
+        return RxJavaReflectionUtils.convertAndCacheReactiveType(rxRepresentation, invocation.getReturnType());
       }
 
       // unsupported operation

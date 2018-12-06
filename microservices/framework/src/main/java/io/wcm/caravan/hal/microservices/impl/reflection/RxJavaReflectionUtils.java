@@ -110,9 +110,10 @@ public class RxJavaReflectionUtils {
     return Observable.class.isAssignableFrom(returnType) || Single.class.isAssignableFrom(returnType) || Maybe.class.isAssignableFrom(returnType);
   }
 
-  public static Object convertReactiveType(Object reactiveInstance, Class<?> targetType) {
+  public static Object convertAndCacheReactiveType(Object reactiveInstance, Class<?> targetType) {
 
-    Observable<?> observable = convertToObservable(reactiveInstance);
+    Observable<?> observable = convertToObservable(reactiveInstance)
+        .cache();
 
     return convertObservableTo(observable, targetType);
   }
