@@ -4,10 +4,13 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import java.lang.reflect.Proxy;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
@@ -25,8 +28,12 @@ import io.wcm.caravan.hal.resource.Link;
  */
 final class HalApiClientProxyFactory {
 
+
+  private final Cache<String, Object> proxyCache = CacheBuilder.newBuilder().build();
+
   private final JsonResourceLoader jsonLoader;
   private final RequestMetricsCollector metrics;
+
 
   HalApiClientProxyFactory(JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
     this.metrics = metrics;
@@ -37,21 +44,21 @@ final class HalApiClientProxyFactory {
 
     Single<HalResource> rxHal = loadHalResource(url, relatedResourceType);
 
-    return createProxy(relatedResourceType, rxHal, new Link(url), jsonLoader, metrics);
+    return getProxy(relatedResourceType, rxHal, new Link(url));
   }
 
   <T> T createProxyFromLink(Class<T> relatedResourceType, Link link) {
 
     Single<HalResource> rxHal = loadHalResource(link.getHref(), relatedResourceType);
 
-    return createProxy(relatedResourceType, rxHal, link, jsonLoader, metrics);
+    return getProxy(relatedResourceType, rxHal, link);
   }
 
   <T> T createProxyFromHalResource(Class<T> relatedResourceType, HalResource contextResource, Link link) {
 
     Single<HalResource> rxHal = Single.just(contextResource);
 
-    return createProxy(relatedResourceType, rxHal, link, jsonLoader, metrics);
+    return getProxy(relatedResourceType, rxHal, link);
   }
 
   private <T> Single<HalResource> loadHalResource(String resourceUrl, Class<T> relatedResourceType) {
@@ -77,8 +84,26 @@ final class HalApiClientProxyFactory {
         .compose(EmissionStopwatch.collectMetrics("fetching " + relatedResourceType.getSimpleName() + " resource from upstream server", metrics));
   }
 
-  private <T> T createProxy(Class<T> relatedResourceType, Single<HalResource> rxHal, Link linkToResource,
-      JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
+
+  @SuppressWarnings("unchecked")
+  private <T> T getProxy(Class<T> relatedResourceType, Single<HalResource> rxHal, Link linkToResource) {
+
+    if (linkToResource == null) {
+      return createProxy(relatedResourceType, rxHal, linkToResource);
+    }
+
+    String cacheKey = linkToResource.getModel().toString();
+
+    try {
+      return (T)proxyCache.get(cacheKey, () -> createProxy(relatedResourceType, rxHal, linkToResource));
+    }
+    catch (ExecutionException ex) {
+      throw new RuntimeException(ex);
+    }
+
+  }
+
+  private <T> T createProxy(Class<T> relatedResourceType, Single<HalResource> rxHal, Link linkToResource) {
 
     Stopwatch sw = Stopwatch.createStarted();
 
