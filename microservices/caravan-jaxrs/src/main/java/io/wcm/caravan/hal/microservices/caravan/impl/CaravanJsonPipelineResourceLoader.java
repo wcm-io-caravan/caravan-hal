@@ -38,6 +38,7 @@ import io.wcm.caravan.io.http.request.CaravanHttpRequestBuilder;
 import io.wcm.caravan.pipeline.JsonPipeline;
 import io.wcm.caravan.pipeline.JsonPipelineFactory;
 import io.wcm.caravan.pipeline.JsonPipelineOutput;
+import io.wcm.caravan.pipeline.cache.CacheStrategies;
 
 
 public class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
@@ -93,7 +94,8 @@ public class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
 
   private Single<JsonPipelineOutput> getPipelineOutput(CaravanHttpRequest request) {
 
-    JsonPipeline pipeline = pipelineFactory.create(request);
+    JsonPipeline pipeline = pipelineFactory.create(request)
+        .addCachePoint(CacheStrategies.timeToIdle(60, TimeUnit.SECONDS));
 
     return RxJavaInterop.toV2Single(pipeline.getOutput().toSingle());
   }
