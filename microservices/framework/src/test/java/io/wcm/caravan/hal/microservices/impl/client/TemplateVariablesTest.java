@@ -68,7 +68,7 @@ public class TemplateVariablesTest {
 
   private void mockHalResponse(String url, HalResource resource) {
 
-    when(jsonLoader.loadJsonResource(eq(url), eq(metrics)))
+    when(jsonLoader.loadJsonResource(eq(url)))
         .thenReturn(Single.just(ConversionFunctions.toJsonResponse(resource)));
   }
 

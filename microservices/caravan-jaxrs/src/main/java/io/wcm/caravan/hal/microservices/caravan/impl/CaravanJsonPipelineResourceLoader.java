@@ -21,19 +21,10 @@ package io.wcm.caravan.hal.microservices.caravan.impl;
 
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Stopwatch;
-
 import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.Link;
 import io.wcm.caravan.io.http.request.CaravanHttpRequest;
 import io.wcm.caravan.io.http.request.CaravanHttpRequestBuilder;
 import io.wcm.caravan.pipeline.JsonPipeline;
@@ -42,9 +33,7 @@ import io.wcm.caravan.pipeline.JsonPipelineOutput;
 import io.wcm.caravan.pipeline.cache.CacheStrategies;
 
 
-public class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
-
-  private static final Logger log = LoggerFactory.getLogger(CaravanJsonPipelineResourceLoader.class);
+class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
 
   private final JsonPipelineFactory pipelineFactory;
   private final String serviceId;
@@ -55,37 +44,19 @@ public class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonResponse> loadJsonResource(String uri, RequestMetricsCollector metrics) {
+  public Single<JsonResponse> loadJsonResource(String uri) {
 
     CaravanHttpRequest request = createRequest(uri);
 
-    Single<JsonPipelineOutput> rxPipelineOutput = getPipelineOutput(request);
-
-    Stopwatch stopwatch = Stopwatch.createUnstarted();
-
-    return rxPipelineOutput
+    return getPipelineOutput(request)
         .map(pipelineOutput -> {
-
-          log.debug("Received JSON response from {} with status code {} and max-age {} in {}ms",
-              uri, pipelineOutput.getStatusCode(), pipelineOutput.getMaxAge(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
-
-          JsonNode payload = pipelineOutput.getPayload();
-
-          String title = getResourceTitle(payload);
-
-          metrics.onResponseRetrieved(uri, title, pipelineOutput.getMaxAge(), stopwatch.elapsed(TimeUnit.MICROSECONDS));
 
           JsonResponse response = new JsonResponse()
               .withStatus(pipelineOutput.getStatusCode())
-              .withBody(payload)
+              .withBody(pipelineOutput.getPayload())
               .withMaxAge(pipelineOutput.getMaxAge());
 
           return response;
-        })
-        .doOnSubscribe(disposable -> {
-          if (!stopwatch.isRunning()) {
-            stopwatch.start();
-          }
         });
   }
 
@@ -105,25 +76,4 @@ public class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
 
     return RxJavaInterop.toV2Single(pipeline.getOutput().toSingle());
   }
-
-  private String getResourceTitle(JsonNode payload) {
-
-    HalResource halResource = new HalResource(payload);
-
-    Link selfLink = halResource.getLink();
-    String title = null;
-    if (selfLink != null) {
-      title = selfLink.getTitle();
-    }
-
-    if (title == null) {
-      title = "Untitled HAL resource";
-      if (serviceId != null) {
-        title += " from service " + serviceId;
-      }
-    }
-
-    return title;
-  }
-
 }

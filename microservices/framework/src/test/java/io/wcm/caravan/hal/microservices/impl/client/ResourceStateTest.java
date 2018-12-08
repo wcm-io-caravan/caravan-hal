@@ -67,7 +67,7 @@ public class ResourceStateTest {
 
     HalResource hal = new HalResource(state, RESOURCE_URL);
 
-    when(jsonLoader.loadJsonResource(eq(RESOURCE_URL), eq(metrics)))
+    when(jsonLoader.loadJsonResource(eq(RESOURCE_URL)))
         .thenReturn(Single.just(ConversionFunctions.toJsonResponse(hal)));
   }
 

@@ -21,7 +21,6 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import static io.wcm.caravan.hal.api.annotations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -71,7 +70,7 @@ public class LazyLoadingTest {
   private SingleSubject<HalResource> mockHalResponseWithSubject(String uri) {
     SingleSubject<HalResource> testSubject = SingleSubject.create();
 
-    when(jsonLoader.loadJsonResource(eq(uri), any()))
+    when(jsonLoader.loadJsonResource(eq(uri)))
         .thenReturn(testSubject.map(ConversionFunctions::toJsonResponse));
 
     return testSubject;

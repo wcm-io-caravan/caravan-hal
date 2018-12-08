@@ -67,8 +67,11 @@ public class ResponseMetadata implements RequestMetricsCollector {
   private Integer maxAgeOverride;
 
   @Override
-  public void onResponseRetrieved(String resourceUri, String resourceTitle, int maxAgeSeconds, long responseTimeMicros) {
-    inputMaxAgeSeconds.add(new TimeMeasurement(resourceUri, maxAgeSeconds / 1.f, TimeUnit.SECONDS));
+  public void onResponseRetrieved(String resourceUri, String resourceTitle, Integer maxAgeSeconds, long responseTimeMicros) {
+
+    if (maxAgeSeconds != null) {
+      inputMaxAgeSeconds.add(new TimeMeasurement(resourceUri, maxAgeSeconds / 1.f, TimeUnit.SECONDS));
+    }
     inputResponseTimes.add(new TimeMeasurement(resourceUri, responseTimeMicros / 1000.f, TimeUnit.MILLISECONDS));
 
     Link link = new Link(resourceUri);

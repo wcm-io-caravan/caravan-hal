@@ -25,7 +25,7 @@ import io.wcm.caravan.hal.resource.HalResource;
 
 public interface RequestMetricsCollector {
 
-  void onResponseRetrieved(String resourceUri, String resourceTitle, int maxAgeSeconds, long responseTimeMicros);
+  void onResponseRetrieved(String resourceUri, String resourceTitle, Integer maxAgeSeconds, long responseTimeMicros);
 
   void onMethodInvocationFinished(Class category, String methodDescription, long invocationDurationMicros);
 

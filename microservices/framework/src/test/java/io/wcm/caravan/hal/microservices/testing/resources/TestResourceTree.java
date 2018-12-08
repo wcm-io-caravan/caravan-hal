@@ -33,7 +33,6 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -64,7 +63,7 @@ public class TestResourceTree implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonResponse> loadJsonResource(String uri, RequestMetricsCollector metrics) {
+  public Single<JsonResponse> loadJsonResource(String uri) {
 
     Link link = new Link(uri);
     if (link.isTemplated()) {

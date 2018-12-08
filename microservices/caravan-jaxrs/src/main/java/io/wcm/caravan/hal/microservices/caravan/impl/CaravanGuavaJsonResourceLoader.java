@@ -20,16 +20,11 @@
 package io.wcm.caravan.hal.microservices.caravan.impl;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -37,22 +32,17 @@ import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.Link;
 import io.wcm.caravan.io.http.CaravanHttpClient;
 import io.wcm.caravan.io.http.request.CaravanHttpRequest;
 import io.wcm.caravan.io.http.request.CaravanHttpRequestBuilder;
 import io.wcm.caravan.io.http.response.CaravanHttpResponse;
 
 
-public class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
-
-  private static final Logger log = LoggerFactory.getLogger(CaravanGuavaJsonResourceLoader.class);
+class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
 
   private static final JsonFactory JSON_FACTORY = new JsonFactory(new ObjectMapper());
 
-  private static final Cache<String, JsonResponse> cache = CacheBuilder.newBuilder().build();
+  private static final Cache<String, JsonResponse> SHARED_CACHE = CacheBuilder.newBuilder().build();
 
   private final String serviceId;
 
@@ -64,35 +54,34 @@ public class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonResponse> loadJsonResource(String uri, RequestMetricsCollector metrics) {
+  public Single<JsonResponse> loadJsonResource(String uri) {
 
-    Stopwatch stopwatch = Stopwatch.createUnstarted();
-
-    return getFromCacheOrServer(uri, metrics)
-        .doOnSuccess(jsonNode -> metrics.onResponseRetrieved(uri, getResourceTitle(jsonNode.getBody()), 60, stopwatch.elapsed(TimeUnit.MILLISECONDS)))
-        .doOnSubscribe((d) -> {
-          if (!stopwatch.isRunning()) {
-            stopwatch.start();
-          }
-        });
-  }
-
-  private Single<JsonResponse> getFromCacheOrServer(String uri, RequestMetricsCollector metrics) {
-
-    JsonResponse cached = cache.getIfPresent(uri);
+    JsonResponse cached = SHARED_CACHE.getIfPresent(uri);
     if (cached != null) {
       return Single.just(cached);
     }
 
-    return executeRequest(createRequest(uri))
-        .map(response -> parseResponse(uri, response, metrics));
+    CaravanHttpRequest request = createRequest(uri);
+
+    return executeRequest(request)
+        .map(response -> parseResponse(uri, response));
+  }
+
+  private CaravanHttpRequest createRequest(String uri) {
+
+    CaravanHttpRequestBuilder requestBuilder = new CaravanHttpRequestBuilder(serviceId);
+
+    requestBuilder.append(uri);
+
+    return requestBuilder.build();
   }
 
   private Single<CaravanHttpResponse> executeRequest(CaravanHttpRequest request) {
+
     return RxJavaInterop.toV2Single(client.execute(request).toSingle());
   }
 
-  private JsonResponse parseResponse(String uri, CaravanHttpResponse response, RequestMetricsCollector metrics) {
+  private JsonResponse parseResponse(String uri, CaravanHttpResponse response) {
     try {
 
       int statusCode = response.status();
@@ -121,7 +110,7 @@ public class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
           .withBody(jsonNode)
           .withMaxAge(maxAge);
 
-      cache.put(uri, jsonResponse);
+      SHARED_CACHE.put(uri, jsonResponse);
 
       return jsonResponse;
 
@@ -138,34 +127,5 @@ public class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
     }
   }
 
-  private CaravanHttpRequest createRequest(String uri) {
-
-    CaravanHttpRequestBuilder requestBuilder = new CaravanHttpRequestBuilder(serviceId);
-
-    requestBuilder.append(uri);
-
-    return requestBuilder.build();
-  }
-
-
-  private String getResourceTitle(JsonNode payload) {
-
-    HalResource halResource = new HalResource(payload);
-
-    Link selfLink = halResource.getLink();
-    String title = null;
-    if (selfLink != null) {
-      title = selfLink.getTitle();
-    }
-
-    if (title == null) {
-      title = "Untitled HAL resource";
-      if (serviceId != null) {
-        title += " from service " + serviceId;
-      }
-    }
-
-    return title;
-  }
 
 }
