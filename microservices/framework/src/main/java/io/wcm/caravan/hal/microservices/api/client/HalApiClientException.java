@@ -19,32 +19,39 @@
  */
 package io.wcm.caravan.hal.microservices.api.client;
 
+import io.wcm.caravan.hal.microservices.impl.client.HalApiMethodInvocation;
 
 public class HalApiClientException extends RuntimeException {
 
-  private final int statusCode;
+  private final JsonResponse failedResponse;
   private final String requestUrl;
 
-  public HalApiClientException(String message, int statusCode, String requestUrl, Throwable cause) {
-    super(message, cause);
-    this.statusCode = statusCode;
-    this.requestUrl = requestUrl;
+  public HalApiClientException(HalApiMethodInvocation invocation, HalApiClientException cause) {
+    super("An upstream resource required to resolve " + invocation + " failed to load", cause);
+    this.failedResponse = cause.getFailedResponse();
+    this.requestUrl = cause.getRequestUrl();
   }
 
   public HalApiClientException(String message, int statusCode, String requestUrl) {
-    this(message, statusCode, requestUrl, null);
+    this(new JsonResponse().withStatus(statusCode).withReason(message), requestUrl);
   }
 
   public HalApiClientException(JsonResponse failedResponse, String requestUrl) {
-    this("HTTP request for " + requestUrl + " failed", failedResponse.getStatus(), requestUrl, failedResponse.getCause());
+    super("HTTP request for " + requestUrl + " failed with status code " + failedResponse.getStatus(), failedResponse.getCause());
+    this.failedResponse = failedResponse;
+    this.requestUrl = requestUrl;
+  }
+
+  public JsonResponse getFailedResponse() {
+    return failedResponse;
   }
 
   public int getStatusCode() {
-    return this.statusCode;
+    return failedResponse.getStatus();
   }
 
   public String getRequestUrl() {
-    return this.requestUrl;
+    return requestUrl;
   }
 
 }

@@ -82,7 +82,6 @@ final class HalApiClientProxyFactory {
           return jsonLoader.loadJsonResource(url)
               .flatMap(response -> {
                 if (response.getStatus() >= 400) {
-                  String message = "HttpApiClient request failed";
                   return Single.error(new HalApiClientException(response, resourceUrl));
                 }
                 return Single.just(response);

@@ -20,6 +20,7 @@ import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -68,6 +69,13 @@ final class HalApiInvocationHandler implements InvocationHandler {
 
   }
 
+  private Single<HalResource> addContextToHalApiClientException(Throwable ex, HalApiMethodInvocation invocation) {
+    if (ex instanceof HalApiClientException) {
+      return Single.error(new HalApiClientException(invocation, (HalApiClientException)ex));
+    }
+    return Single.error(ex);
+  }
+
   private Object doInvoke(Object proxy, Method method, Object[] args, HalApiMethodInvocation invocation) throws RuntimeException {
 
     // we want to measure how much time is spent for reflection magic in this proxy
@@ -78,6 +86,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
       if (invocation.isForMethodAnnotatedWithResourceState()) {
 
         Maybe<Object> maybeProperties = rxResource
+            .onErrorResumeNext(ex -> addContextToHalApiClientException(ex, invocation))
             .map(hal -> new ResourceStateHandler(hal))
             .flatMapMaybe(handler -> handler.handleMethodInvocation(invocation));
 
@@ -87,6 +96,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
       if (invocation.isForMethodAnnotatedWithRelatedResource()) {
 
         Observable<Object> rxRelated = rxResource
+            .onErrorResumeNext(ex -> addContextToHalApiClientException(ex, invocation))
             .map(hal -> new RelatedResourceHandler(hal, proxyFactory))
             .flatMapObservable(handler -> handler.handleMethodInvocation(invocation));
 
@@ -102,6 +112,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
       if (invocation.isForMethodAnnotatedWithResourceRepresentation()) {
 
         Single<Object> rxRepresentation = rxResource
+            .onErrorResumeNext(ex -> addContextToHalApiClientException(ex, invocation))
             .map(hal -> new ResourceRepresentationHandler(hal))
             .flatMap(handler -> handler.handleMethodInvocation(invocation));
 

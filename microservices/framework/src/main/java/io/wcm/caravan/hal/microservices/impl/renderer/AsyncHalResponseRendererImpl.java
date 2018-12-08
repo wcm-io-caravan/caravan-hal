@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
@@ -96,6 +97,13 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
       HalResource embedded = new HalResource();
       addProperties(embedded, cause);
       addEmbeddedCauses(embedded, cause);
+
+      if (cause instanceof HalApiClientException) {
+        String requestUrl = ((HalApiClientException)cause).getRequestUrl();
+        Link link = new Link(requestUrl)
+            .setTitle("The upstream resource that could not be loaded");
+        embedded.addLinks("about", link);
+      }
 
       vndResource.addEmbedded("errors", embedded);
     }

@@ -21,14 +21,18 @@ package io.wcm.caravan.hal.microservices.caravan.impl;
 
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+
 import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
+import io.reactivex.SingleSource;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
 import io.wcm.caravan.io.http.request.CaravanHttpRequest;
 import io.wcm.caravan.io.http.request.CaravanHttpRequestBuilder;
 import io.wcm.caravan.pipeline.JsonPipeline;
 import io.wcm.caravan.pipeline.JsonPipelineFactory;
+import io.wcm.caravan.pipeline.JsonPipelineInputException;
 import io.wcm.caravan.pipeline.JsonPipelineOutput;
 import io.wcm.caravan.pipeline.cache.CacheStrategies;
 
@@ -49,15 +53,8 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
     CaravanHttpRequest request = createRequest(uri);
 
     return getPipelineOutput(request)
-        .map(pipelineOutput -> {
-
-          JsonResponse response = new JsonResponse()
-              .withStatus(pipelineOutput.getStatusCode())
-              .withBody(pipelineOutput.getPayload())
-              .withMaxAge(pipelineOutput.getMaxAge());
-
-          return response;
-        });
+        .map(this::createSuccessResponse)
+        .onErrorResumeNext(this::createErrorResponse);
   }
 
   private CaravanHttpRequest createRequest(String uri) {
@@ -76,4 +73,36 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
 
     return RxJavaInterop.toV2Single(pipeline.getOutput().toSingle());
   }
+
+  private JsonResponse createSuccessResponse(JsonPipelineOutput pipelineOutput) {
+    JsonResponse response = new JsonResponse()
+        .withStatus(pipelineOutput.getStatusCode())
+        .withBody(pipelineOutput.getPayload())
+        .withMaxAge(pipelineOutput.getMaxAge());
+
+    return response;
+  }
+
+  private SingleSource<? extends JsonResponse> createErrorResponse(Throwable ex) {
+    if (!(ex instanceof JsonPipelineInputException)) {
+      JsonResponse response = new JsonResponse()
+          .withStatus(500)
+          .withBody(JsonNodeFactory.instance.objectNode())
+          .withCause(ex);
+
+      return Single.just(response);
+    }
+
+    JsonPipelineInputException jpie = (JsonPipelineInputException)ex;
+
+    JsonResponse response = new JsonResponse()
+        .withStatus(jpie.getStatusCode())
+        .withBody(JsonNodeFactory.instance.objectNode())
+        .withReason(jpie.getReason())
+        .withCause(jpie);
+
+    return Single.just(response);
+  }
+
+
 }

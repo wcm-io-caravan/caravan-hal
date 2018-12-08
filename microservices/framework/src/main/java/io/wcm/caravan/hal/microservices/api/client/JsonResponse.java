@@ -28,7 +28,7 @@ public class JsonResponse {
   private final JsonNode body;
   private final Integer maxAge;
 
-  private final Exception cause;
+  private final Throwable cause;
 
   public JsonResponse() {
     this.status = null;
@@ -38,7 +38,7 @@ public class JsonResponse {
     this.cause = null;
   }
 
-  private JsonResponse(Integer status, String reason, JsonNode body, Integer maxAge, Exception cause) {
+  private JsonResponse(Integer status, String reason, JsonNode body, Integer maxAge, Throwable cause) {
     this.status = status;
     this.reason = reason;
     this.body = body;
@@ -78,11 +78,11 @@ public class JsonResponse {
     return new JsonResponse(status, reason, body, value, cause);
   }
 
-  public Exception getCause() {
+  public Throwable getCause() {
     return cause;
   }
 
-  public JsonResponse withCause(Exception value) {
+  public JsonResponse withCause(Throwable value) {
     return new JsonResponse(status, reason, body, maxAge, value);
   }
 }
