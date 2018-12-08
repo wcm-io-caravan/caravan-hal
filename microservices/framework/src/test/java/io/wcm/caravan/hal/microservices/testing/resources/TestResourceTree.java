@@ -19,12 +19,8 @@
  */
 package io.wcm.caravan.hal.microservices.testing.resources;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import com.damnhandy.uri.template.UriTemplate;
 import com.google.common.collect.ImmutableMap;
@@ -43,7 +39,6 @@ public class TestResourceTree implements JsonResourceLoader {
   private final TestResource entryPoint;
 
   private final Map<String, TestResource> urlResourceMap = new HashMap<>();
-  private final Set<String> urlsThatTriggerException = new HashSet<>();
 
   private int linkCounter;
 
@@ -74,13 +69,9 @@ public class TestResourceTree implements JsonResourceLoader {
     if (requestedResource == null) {
       return Single.error(new HalApiClientException("No resource with path " + uri + " was created by this " + getClass().getSimpleName(), 404, uri));
     }
-    if (urlsThatTriggerException.contains(uri)) {
-      return Single
-          .error(new HalApiClientException("An error loading resource with path " + uri + " as simulated by this " + getClass().getSimpleName(), 500, uri));
-    }
     JsonResponse response = new JsonResponse()
-        .withStatus(200)
-        .withReason("Ok")
+        .withStatus(requestedResource.getStatus())
+        .withReason("")
         .withBody(requestedResource.asHalResource().getModel())
         .withMaxAge(requestedResource.getMaxAge());
 
@@ -102,10 +93,4 @@ public class TestResourceTree implements JsonResourceLoader {
   public TestResource createLinked(String relation, String name) {
     return getEntryPoint().createLinked(relation, name);
   }
-
-  public void throwExceptionWhenResolving(TestResource resource) {
-    assertThat(resource.getUrl()).isNotNull();
-    urlsThatTriggerException.add(resource.getUrl());
-  }
-
 }

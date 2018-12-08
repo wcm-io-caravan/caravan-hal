@@ -40,6 +40,7 @@ public class TestResource {
   private final HalResource halResource;
 
   private Integer maxAge;
+  private Integer status = 200;
 
   TestResource(TestResourceTree tree) {
     this.tree = tree;
@@ -113,6 +114,15 @@ public class TestResource {
 
   public TestResource withMaxAge(int value) {
     this.maxAge = value;
+    return this;
+  }
+
+  public Integer getStatus() {
+    return this.status;
+  }
+
+  public TestResource withStatus(int value) {
+    this.status = value;
     return this;
   }
 

@@ -16,6 +16,7 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
@@ -79,6 +80,13 @@ final class HalApiClientProxyFactory {
           }
 
           return jsonLoader.loadJsonResource(url)
+              .flatMap(response -> {
+                if (response.getStatus() >= 400) {
+                  String message = "HttpApiClient request failed";
+                  return Single.error(new HalApiClientException(response, resourceUrl));
+                }
+                return Single.just(response);
+              })
               .map(response -> new HalResource(response.getBody()));
         })
         .compose(EmissionStopwatch.collectMetrics("fetching " + relatedResourceType.getSimpleName() + " resource from upstream server", metrics));

@@ -28,50 +28,61 @@ public class JsonResponse {
   private final JsonNode body;
   private final Integer maxAge;
 
-  public JsonResponse(Integer status, String reason, JsonNode body, Integer maxAge) {
-    this.status = status;
-    this.reason = reason;
-    this.body = body;
-    this.maxAge = maxAge;
-  }
+  private final Exception cause;
 
   public JsonResponse() {
     this.status = null;
     this.reason = null;
     this.body = null;
     this.maxAge = null;
+    this.cause = null;
+  }
+
+  private JsonResponse(Integer status, String reason, JsonNode body, Integer maxAge, Exception cause) {
+    this.status = status;
+    this.reason = reason;
+    this.body = body;
+    this.maxAge = maxAge;
+    this.cause = cause;
   }
 
   public Integer getStatus() {
-    return this.status;
+    return status;
   }
 
   public JsonResponse withStatus(Integer value) {
-    return new JsonResponse(value, reason, body, maxAge);
+    return new JsonResponse(value, reason, body, maxAge, cause);
   }
 
   public String getReason() {
-    return this.reason;
+    return reason;
   }
 
   public JsonResponse withReason(String value) {
-    return new JsonResponse(status, value, body, maxAge);
+    return new JsonResponse(status, value, body, maxAge, cause);
   }
 
   public JsonNode getBody() {
-    return this.body;
+    return body;
   }
 
   public JsonResponse withBody(JsonNode value) {
-    return new JsonResponse(status, reason, value, maxAge);
+    return new JsonResponse(status, reason, value, maxAge, cause);
   }
 
   public Integer getMaxAge() {
-    return this.maxAge;
+    return maxAge;
   }
 
   public JsonResponse withMaxAge(Integer value) {
-    return new JsonResponse(status, reason, body, value);
+    return new JsonResponse(status, reason, body, value, cause);
   }
 
+  public Exception getCause() {
+    return cause;
+  }
+
+  public JsonResponse withCause(Exception value) {
+    return new JsonResponse(status, reason, body, maxAge, value);
+  }
 }

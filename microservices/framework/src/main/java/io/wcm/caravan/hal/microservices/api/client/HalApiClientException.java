@@ -35,6 +35,10 @@ public class HalApiClientException extends RuntimeException {
     this(message, statusCode, requestUrl, null);
   }
 
+  public HalApiClientException(JsonResponse failedResponse, String requestUrl) {
+    this("HTTP request for " + requestUrl + " failed", failedResponse.getStatus(), requestUrl, failedResponse.getCause());
+  }
+
   public int getStatusCode() {
     return this.statusCode;
   }
