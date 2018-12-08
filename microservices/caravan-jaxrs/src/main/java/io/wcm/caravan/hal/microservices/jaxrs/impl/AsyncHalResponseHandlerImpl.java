@@ -24,7 +24,6 @@ import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +31,9 @@ import org.slf4j.LoggerFactory;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
+import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
+import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.jaxrs.AsyncHalResponseHandler;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -46,11 +46,11 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
   @Override
   public void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse, RequestMetricsCollector metrics) {
 
-    AsyncHalResourceRenderer renderer = AsyncHalResourceRenderer.create(metrics);
+    AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics);
 
-    Single<HalResource> rxHalResource = renderer.renderResource(resourceImpl);
+    Single<JsonResponse> rxHalResource = renderer.renderResponse(resourceImpl);
 
-    rxHalResource.subscribe(new SingleObserver<HalResource>() {
+    rxHalResource.subscribe(new SingleObserver<JsonResponse>() {
 
       @Override
       public void onSubscribe(Disposable d) {
@@ -58,19 +58,24 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
       }
 
       @Override
-      public void onSuccess(HalResource value) {
+      public void onSuccess(JsonResponse jsonResponse) {
 
-        HalResource metadata = metrics.createMetadataResource(resourceImpl);
+        ResponseBuilder response = Response
+            .status(jsonResponse.getStatus())
+            .entity(jsonResponse.getBody());
 
-        value.addEmbedded("caravan:metadata", metadata);
-
-        ResponseBuilder response = Response.ok(value);
-
-        Integer maxAge = metrics.getOutputMaxAge();
+        Integer maxAge = jsonResponse.getMaxAge();
         if (maxAge != null) {
           CacheControl cacheControl = new CacheControl();
           cacheControl.setMaxAge(maxAge);
           response.cacheControl(cacheControl);
+        }
+
+        if (jsonResponse.getStatus() >= 400) {
+          response.type("application/vnd.error+json");
+        }
+        else {
+          response.type(HalResource.CONTENT_TYPE);
         }
 
         asyncResponse.resume(response.build());
@@ -80,9 +85,7 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
       public void onError(Throwable error) {
 
         log.error("Failed to handle request", error);
-
-        String stackTrace = ExceptionUtils.getStackTrace(error);
-        asyncResponse.resume(Response.serverError().entity(stackTrace).build());
+        asyncResponse.resume(error);
       }
 
     });
