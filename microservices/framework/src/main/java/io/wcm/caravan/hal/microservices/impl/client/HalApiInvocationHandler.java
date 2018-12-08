@@ -10,6 +10,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -56,18 +57,18 @@ final class HalApiInvocationHandler implements InvocationHandler {
 
     String cacheKey = invocation.toString();
 
-    return returnValueCache.get(cacheKey, () -> {
-      try {
+    try {
+      return returnValueCache.get(cacheKey, () -> {
         return doInvoke(proxy, method, args, invocation);
-      }
-      catch (Throwable ex) {
-        throw new RuntimeException(ex);
-      }
-    });
+      });
+    }
+    catch (UncheckedExecutionException ex) {
+      throw ex.getCause();
+    }
 
   }
 
-  private Object doInvoke(Object proxy, Method method, Object[] args, HalApiMethodInvocation invocation) throws Throwable {
+  private Object doInvoke(Object proxy, Method method, Object[] args, HalApiMethodInvocation invocation) throws RuntimeException {
 
     // we want to measure how much time is spent for reflection magic in this proxy
     Stopwatch stopwatch = Stopwatch.createStarted();
