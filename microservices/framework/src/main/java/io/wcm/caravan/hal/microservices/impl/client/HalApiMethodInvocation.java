@@ -6,6 +6,7 @@ import java.lang.reflect.Parameter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 
@@ -142,11 +143,23 @@ public class HalApiMethodInvocation {
   @Override
   public String toString() {
 
-    String parameterString = templateVariables.entrySet().stream()
-        .map(entry -> entry.getKey() + "=" + entry.getValue())
+    return interfaze.getSimpleName() + "#" + method.getName() + "(" + getVariablesString() + ")";
+  }
+
+  String getCacheKey() {
+
+    String parameterTypeNames = Stream.of(method.getParameterTypes())
+        .map(Class::getName)
         .collect(Collectors.joining(","));
 
-    return interfaze.getSimpleName() + "#" + method.getName() + "(" + parameterString + ")";
+    return interfaze.getName() + "#" + method.getName() + "/" + parameterTypeNames + "?" + getVariablesString();
+  }
+
+  private String getVariablesString() {
+
+    return templateVariables.entrySet().stream()
+        .map(entry -> entry.getKey() + "=" + entry.getValue())
+        .collect(Collectors.joining(","));
   }
 
 }

@@ -55,20 +55,15 @@ final class HalApiInvocationHandler implements InvocationHandler {
     // create an object to help with identification of methods and parameters
     HalApiMethodInvocation invocation = new HalApiMethodInvocation(resourceInterface, method, args);
 
-    String cacheKey = invocation.toString();
-
     try {
-      return returnValueCache.get(cacheKey, () -> {
-        return doInvoke(proxy, method, args, invocation);
-      });
+      return returnValueCache.get(invocation.getCacheKey(), () -> callAnnotationSpecificHandler(invocation));
     }
     catch (UncheckedExecutionException ex) {
       throw ex.getCause();
     }
-
   }
 
-  private Object doInvoke(Object proxy, Method method, Object[] args, HalApiMethodInvocation invocation) throws RuntimeException {
+  private Object callAnnotationSpecificHandler(HalApiMethodInvocation invocation) {
 
     // we want to measure how much time is spent for reflection magic in this proxy
     Stopwatch stopwatch = Stopwatch.createStarted();
