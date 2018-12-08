@@ -29,7 +29,9 @@ public interface RequestMetricsCollector {
 
   void onMethodInvocationFinished(Class category, String methodDescription, long invocationDurationMicros);
 
-  int getOutputMaxAge();
+  Integer getOutputMaxAge();
+
+  void setOutputMaxAge(int value);
 
   HalResource createMetadataResource(LinkableResource resourceImpl);
 

@@ -26,6 +26,8 @@ public interface JaxRsHalServerSupport {
 
   String getContextPath();
 
+  String getBundleVersion();
+
   AsyncHalResponseHandler getResponseHandler();
 
   CaravanHalApiClient getHalApiClient();

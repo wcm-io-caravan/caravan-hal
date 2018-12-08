@@ -79,7 +79,10 @@ public class TestResourceTree implements JsonResourceLoader {
           .error(new HalApiClientException("An error loading resource with path " + uri + " as simulated by this " + getClass().getSimpleName(), 500, uri));
     }
     JsonResponse response = new JsonResponse()
-        .withBody(requestedResource.asHalResource().getModel());
+        .withStatus(200)
+        .withReason("Ok")
+        .withBody(requestedResource.asHalResource().getModel())
+        .withMaxAge(requestedResource.getMaxAge());
 
     return Single.just(response);
   }

@@ -20,7 +20,9 @@
 package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.service.component.annotations.Component;
@@ -62,7 +64,16 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
 
         value.addEmbedded("caravan:metadata", metadata);
 
-        asyncResponse.resume(value);
+        ResponseBuilder response = Response.ok(value);
+
+        Integer maxAge = metrics.getOutputMaxAge();
+        if (maxAge != null) {
+          CacheControl cacheControl = new CacheControl();
+          cacheControl.setMaxAge(maxAge);
+          response.cacheControl(cacheControl);
+        }
+
+        asyncResponse.resume(response.build());
       }
 
       @Override
