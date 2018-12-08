@@ -23,6 +23,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
+import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.caravan.CaravanHalApiClient;
 import io.wcm.caravan.io.http.CaravanHttpClient;
@@ -40,7 +41,8 @@ public class CaravanHalApiClientImpl implements CaravanHalApiClient {
   @Override
   public <T> T getEntryPoint(String serviceId, String uri, Class<T> halApiInterface, RequestMetricsCollector metrics) {
 
-    CaravanJsonPipelineResourceLoader jsonLoader = new CaravanJsonPipelineResourceLoader(pipelineFactory, serviceId);
+    JsonResourceLoader jsonLoader = new CaravanJsonPipelineResourceLoader(pipelineFactory, serviceId);
+    //JsonResourceLoader jsonLoader = new CaravanGuavaJsonResourceLoader(httpClient, serviceId);
     CaravanBinaryResourceLoader binaryLoader = new CaravanBinaryResourceLoader(httpClient, serviceId);
 
     HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);
