@@ -21,18 +21,18 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import java.util.concurrent.ExecutionException;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
+import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
 
 class CachingJsonResourceLoader implements JsonResourceLoader {
 
-  private final Cache<String, Single<JsonNode>> cache = CacheBuilder.newBuilder().build();
+  private final Cache<String, Single<JsonResponse>> cache = CacheBuilder.newBuilder().build();
 
   private final JsonResourceLoader delegate;
 
@@ -41,7 +41,7 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonNode> loadJsonResource(String uri, RequestMetricsCollector metrics) {
+  public Single<JsonResponse> loadJsonResource(String uri, RequestMetricsCollector metrics) {
     try {
       return cache.get(uri, () -> {
         return delegate.loadJsonResource(uri, metrics).cache();

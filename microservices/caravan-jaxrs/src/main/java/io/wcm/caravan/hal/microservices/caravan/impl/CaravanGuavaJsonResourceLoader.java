@@ -36,6 +36,7 @@ import com.google.common.cache.CacheBuilder;
 import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
+import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -51,7 +52,7 @@ public class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
 
   private static final JsonFactory JSON_FACTORY = new JsonFactory(new ObjectMapper());
 
-  private static final Cache<String, JsonNode> cache = CacheBuilder.newBuilder().build();
+  private static final Cache<String, JsonResponse> cache = CacheBuilder.newBuilder().build();
 
   private final String serviceId;
 
@@ -63,13 +64,12 @@ public class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonNode> loadJsonResource(String uri, RequestMetricsCollector metrics) {
+  public Single<JsonResponse> loadJsonResource(String uri, RequestMetricsCollector metrics) {
 
     Stopwatch stopwatch = Stopwatch.createUnstarted();
 
     return getFromCacheOrServer(uri, metrics)
-        .map(this::clone)
-        .doOnSuccess(jsonNode -> metrics.onResponseRetrieved(uri, getResourceTitle(jsonNode), 60, stopwatch.elapsed(TimeUnit.MILLISECONDS)))
+        .doOnSuccess(jsonNode -> metrics.onResponseRetrieved(uri, getResourceTitle(jsonNode.getBody()), 60, stopwatch.elapsed(TimeUnit.MILLISECONDS)))
         .doOnSubscribe((d) -> {
           if (!stopwatch.isRunning()) {
             stopwatch.start();
@@ -77,13 +77,9 @@ public class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
         });
   }
 
-  private JsonNode clone(JsonNode json) {
-    return json.deepCopy();
-  }
+  private Single<JsonResponse> getFromCacheOrServer(String uri, RequestMetricsCollector metrics) {
 
-  private Single<JsonNode> getFromCacheOrServer(String uri, RequestMetricsCollector metrics) {
-
-    JsonNode cached = cache.getIfPresent(uri);
+    JsonResponse cached = cache.getIfPresent(uri);
     if (cached != null) {
       return Single.just(cached);
     }
@@ -96,24 +92,38 @@ public class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
     return RxJavaInterop.toV2Single(client.execute(request).toSingle());
   }
 
-  private JsonNode parseResponse(String uri, CaravanHttpResponse response, RequestMetricsCollector metrics) {
+  private JsonResponse parseResponse(String uri, CaravanHttpResponse response, RequestMetricsCollector metrics) {
     try {
+
       int statusCode = response.status();
       JsonNode jsonNode;
-      int maxAge = 0;
+      Integer maxAge = null;
       if (statusCode >= 400) {
         jsonNode = null;
         maxAge = 60;
       }
       else {
         jsonNode = JSON_FACTORY.createParser(response.body().asString()).readValueAsTree();
-        maxAge = 600;
-        // TODO: get max age time from response body
+        String maxAgeString = response.getCacheControl().get("max-age");
+        if (maxAgeString != null) {
+          try {
+            maxAge = Integer.parseInt(maxAgeString);
+          }
+          catch (NumberFormatException ex) {
+            // ignore
+          }
+        }
       }
 
-      cache.put(uri, jsonNode);
+      JsonResponse jsonResponse = new JsonResponse()
+          .withStatus(statusCode)
+          .withReason(response.reason())
+          .withBody(jsonNode)
+          .withMaxAge(maxAge);
 
-      return jsonNode;
+      cache.put(uri, jsonResponse);
+
+      return jsonResponse;
 
     }
     catch (JsonParseException ex) {

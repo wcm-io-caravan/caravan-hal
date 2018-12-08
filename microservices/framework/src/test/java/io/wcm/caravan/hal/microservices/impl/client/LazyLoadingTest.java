@@ -38,6 +38,7 @@ import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.api.server.testing.ConversionFunctions;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -71,7 +72,7 @@ public class LazyLoadingTest {
     SingleSubject<HalResource> testSubject = SingleSubject.create();
 
     when(jsonLoader.loadJsonResource(eq(uri), any()))
-        .thenReturn(testSubject.map(HalResource::getModel));
+        .thenReturn(testSubject.map(ConversionFunctions::toJsonResponse));
 
     return testSubject;
   }

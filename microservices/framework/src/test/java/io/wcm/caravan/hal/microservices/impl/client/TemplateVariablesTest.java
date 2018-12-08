@@ -39,6 +39,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
+import io.wcm.caravan.hal.api.server.testing.ConversionFunctions;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -68,7 +69,7 @@ public class TemplateVariablesTest {
   private void mockHalResponse(String url, HalResource resource) {
 
     when(jsonLoader.loadJsonResource(eq(url), eq(metrics)))
-        .thenReturn(Single.just(resource.getModel()));
+        .thenReturn(Single.just(ConversionFunctions.toJsonResponse(resource)));
   }
 
   private void mockHalResponseWithNumberAndText(String url, Integer number, String text) {

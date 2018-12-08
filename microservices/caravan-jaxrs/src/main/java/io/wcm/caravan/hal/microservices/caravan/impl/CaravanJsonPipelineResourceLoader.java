@@ -30,6 +30,7 @@ import com.google.common.base.Stopwatch;
 import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
+import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -54,7 +55,7 @@ public class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonNode> loadJsonResource(String uri, RequestMetricsCollector metrics) {
+  public Single<JsonResponse> loadJsonResource(String uri, RequestMetricsCollector metrics) {
 
     CaravanHttpRequest request = createRequest(uri);
 
@@ -74,7 +75,12 @@ public class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
 
           metrics.onResponseRetrieved(uri, title, pipelineOutput.getMaxAge(), stopwatch.elapsed(TimeUnit.MICROSECONDS));
 
-          return payload;
+          JsonResponse response = new JsonResponse()
+              .withStatus(pipelineOutput.getStatusCode())
+              .withBody(payload)
+              .withMaxAge(pipelineOutput.getMaxAge());
+
+          return response;
         })
         .doOnSubscribe(disposable -> {
           if (!stopwatch.isRunning()) {

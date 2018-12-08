@@ -33,6 +33,7 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.api.server.testing.ConversionFunctions;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -64,8 +65,10 @@ public class ResourceStateTest {
 
   private void mockHalResponseWithSingle(Object state) {
 
+    HalResource hal = new HalResource(state, RESOURCE_URL);
+
     when(jsonLoader.loadJsonResource(eq(RESOURCE_URL), eq(metrics)))
-        .thenReturn(Single.just(new HalResource(state, RESOURCE_URL).getModel()));
+        .thenReturn(Single.just(ConversionFunctions.toJsonResponse(hal)));
   }
 
   @HalApiInterface

@@ -79,7 +79,7 @@ final class HalApiClientProxyFactory {
           }
 
           return jsonLoader.loadJsonResource(url, metrics)
-              .map(json -> new HalResource(json));
+              .map(response -> new HalResource(response.getBody()));
         })
         .compose(EmissionStopwatch.collectMetrics("fetching " + relatedResourceType.getSimpleName() + " resource from upstream server", metrics));
   }
