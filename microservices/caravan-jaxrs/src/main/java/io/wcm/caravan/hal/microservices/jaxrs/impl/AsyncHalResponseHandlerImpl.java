@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Response;
@@ -34,6 +35,7 @@ import io.reactivex.disposables.Disposable;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
+import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.jaxrs.AsyncHalResponseHandler;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -43,10 +45,12 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
 
   private static final Logger log = LoggerFactory.getLogger(AsyncHalResponseHandlerImpl.class);
 
+  private final ExceptionStrategy exceptionStrategy = new ExceptionStrategy();
+
   @Override
   public void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse, RequestMetricsCollector metrics) {
 
-    AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics);
+    AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics, exceptionStrategy);
 
     Single<HalResponse> rxHalResource = renderer.renderResponse(resourceImpl);
 
@@ -89,6 +93,20 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
       }
 
     });
+  }
+
+  private static class ExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
+
+    @Override
+    public Integer extractStatusCode(Throwable error) {
+
+      if (error instanceof WebApplicationException) {
+        return ((WebApplicationException)error).getResponse().getStatus();
+      }
+
+      return null;
+    }
+
   }
 
 }

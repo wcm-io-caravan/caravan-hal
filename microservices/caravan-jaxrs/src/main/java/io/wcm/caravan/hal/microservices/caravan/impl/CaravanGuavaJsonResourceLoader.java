@@ -66,7 +66,7 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
     CaravanHttpRequest request = createRequest(uri);
 
     return executeRequest(request)
-        .map(response -> parseResponse(uri, response))
+        .map(response -> parseResponse(uri, request, response))
         .onErrorResumeNext(ex -> rethrowAsHalApiClientException(ex, uri));
   }
 
@@ -84,18 +84,20 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
     return RxJavaInterop.toV2Single(client.execute(request).toSingle());
   }
 
-  private HalResponse parseResponse(String uri, CaravanHttpResponse response) {
+  private HalResponse parseResponse(String uri, CaravanHttpRequest request, CaravanHttpResponse response) {
     try {
 
       int statusCode = response.status();
+      String responseBody = response.body().asString();
+
       JsonNode jsonNode;
       Integer maxAge;
       if (statusCode >= 400) {
-        jsonNode = parseResponseBodyAndIgnoreErrors(response.body().asString());
+        jsonNode = parseResponseBodyAndIgnoreErrors(responseBody);
         maxAge = 60;
       }
       else {
-        jsonNode = parseResponseBody(response.body().asString());
+        jsonNode = parseResponseBody(responseBody);
         maxAge = parseMaxAge(response);
       }
 
@@ -106,13 +108,18 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
           .withMaxAge(maxAge);
 
       if (statusCode >= 400) {
-        throw new HalApiClientException(jsonResponse, uri, null);
+        IllegalResponseRuntimeException cause = new IllegalResponseRuntimeException(request, uri, statusCode, responseBody,
+            "Received " + statusCode + " response from " + uri);
+        throw new HalApiClientException(jsonResponse, uri, cause);
       }
 
       SHARED_CACHE.put(uri, jsonResponse);
 
       return jsonResponse;
 
+    }
+    catch (HalApiClientException ex) {
+      throw ex;
     }
     catch (JsonParseException ex) {
       throw new RuntimeException("Failed to parse HAL/JSON body from " + uri, ex);
@@ -174,7 +181,8 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
       return Single.error(new HalApiClientException(jsonResponse, uri, ex));
     }
 
-    return Single.error(new HalApiClientException("HTTP request for " + uri + " failed because of timeout, configuration or networking issues", 0, uri));
+    String message = "HTTP request for " + uri + " failed because of timeout, configuration or networking issues";
+    return Single.error(new HalApiClientException(message, 0, uri, ex));
   }
 
 

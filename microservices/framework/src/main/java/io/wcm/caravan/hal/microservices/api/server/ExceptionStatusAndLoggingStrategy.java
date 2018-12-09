@@ -19,18 +19,14 @@
  */
 package io.wcm.caravan.hal.microservices.api.server;
 
-import io.reactivex.Single;
-import io.wcm.caravan.hal.microservices.api.common.HalResponse;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl;
 
-public interface AsyncHalResponseRenderer {
+public interface ExceptionStatusAndLoggingStrategy {
 
-  Single<HalResponse> renderResponse(LinkableResource resourceImpl);
+  default Integer extractStatusCode(Throwable error) {
+    return null;
+  }
 
-  static AsyncHalResponseRenderer create(RequestMetricsCollector metrics, ExceptionStatusAndLoggingStrategy statusCodeExtractor) {
-
-    AsyncHalResourceRenderer resourceRenderer = AsyncHalResourceRenderer.create(metrics);
-    return new AsyncHalResponseRendererImpl(resourceRenderer, metrics, statusCodeExtractor);
+  default boolean logAsCompactWarning(Throwable error) {
+    return false;
   }
 }

@@ -25,6 +25,7 @@ import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRO
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,7 @@ import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
+import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -50,9 +52,13 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
   private final RequestMetricsCollector metrics;
 
-  public AsyncHalResponseRendererImpl(AsyncHalResourceRenderer renderer, RequestMetricsCollector metrics) {
+  private final ExceptionStatusAndLoggingStrategy statusCodeExtractor;
+
+  public AsyncHalResponseRendererImpl(AsyncHalResourceRenderer renderer, RequestMetricsCollector metrics,
+      ExceptionStatusAndLoggingStrategy statusCodeExtractor) {
     this.renderer = renderer;
     this.metrics = metrics;
+    this.statusCodeExtractor = statusCodeExtractor;
   }
 
   @Override
@@ -93,8 +99,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
     addMetadata(vndResource, resourceImpl);
 
     String uri = addAboutLinkAndReturnResourceUri(vndResource, resourceImpl);
-    int status = 500;
-
+    int status = ObjectUtils.defaultIfNull(statusCodeExtractor.extractStatusCode(error), 500);
     logError(error, uri, status);
 
     HalResponse response = new HalResponse()
@@ -106,13 +111,13 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
   private void logError(Throwable error, String uri, int status) {
 
-    if (error instanceof HalApiClientException) {
+    if (statusCodeExtractor.logAsCompactWarning(error)) {
       // if this error was caused by an upstream request, there is no need to include the full stack traces
       String messages = Stream.of(ExceptionUtils.getThrowables(error))
-          .map(t -> t.getClass() + ": " + t.getMessage())
+          .map(t -> t.getClass().getSimpleName() + ": " + t.getMessage())
           .collect(Collectors.joining("\n"));
 
-      log.warn("Responding with " + status + " for " + uri + " after an upstream request failed:\n" + messages);
+      log.warn("Responding with " + status + " for " + uri + ":\n" + messages);
     }
     else {
       log.error("Responding with " + status + " for " + uri, error);

@@ -44,6 +44,7 @@ import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
+import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -55,6 +56,8 @@ public class AsyncHalResponseRendererImplTest {
 
   @Mock
   private RequestMetricsCollector metrics;
+
+  private ExceptionStatusAndLoggingStrategy statusAndLogging;
 
   @Mock
   private LinkableTestResource resource;
@@ -71,7 +74,20 @@ public class AsyncHalResponseRendererImplTest {
 
   @Before
   public void setUp() {
-    responseRenderer = new AsyncHalResponseRendererImpl(renderer, metrics);
+
+    statusAndLogging = new ExceptionStatusAndLoggingStrategy() {
+
+      @Override
+      public Integer extractStatusCode(Throwable error) {
+        if (error instanceof HalApiClientException) {
+          return ((HalApiClientException)error).getStatusCode();
+        }
+        return null;
+      }
+    };
+
+    responseRenderer = new AsyncHalResponseRendererImpl(renderer, metrics, statusAndLogging);
+
   }
 
   private HalResource mockRenderedResource() {
@@ -150,6 +166,16 @@ public class AsyncHalResponseRendererImplTest {
     HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
 
     assertThat(response.getStatus()).isEqualTo(500);
+  }
+
+  @Test
+  public void error_response_should_use_status_code_from_HalApiClientException() {
+
+    mockExceptionDuringRendering(new HalApiClientException("Something went wrong", 404, "uri"));
+
+    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+
+    assertThat(response.getStatus()).isEqualTo(404);
   }
 
   @Test
