@@ -22,6 +22,13 @@ package io.wcm.caravan.hal.microservices.impl.renderer;
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOUT;
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
@@ -34,6 +41,8 @@ import io.wcm.caravan.hal.resource.Link;
 
 
 public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
+
+  private static final Logger log = LoggerFactory.getLogger(AsyncHalResourceRendererImpl.class);
 
   static final String CARAVAN_METADATA_RELATION = "caravan:metadata";
 
@@ -80,15 +89,34 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
     HalResource vndResource = new HalResource();
 
     addProperties(vndResource, error);
-    addAboutLink(vndResource, resourceImpl);
     addEmbeddedCauses(vndResource, error);
     addMetadata(vndResource, resourceImpl);
 
+    String uri = addAboutLinkAndReturnResourceUri(vndResource, resourceImpl);
+    int status = 500;
+
+    logError(error, uri, status);
+
     HalResponse response = new HalResponse()
-        .withStatus(500)
+        .withStatus(status)
         .withBody(vndResource);
 
     return Single.just(response);
+  }
+
+  private void logError(Throwable error, String uri, int status) {
+
+    if (error instanceof HalApiClientException) {
+      // if this error was caused by an upstream request, there is no need to include the full stack traces
+      String messages = Stream.of(ExceptionUtils.getThrowables(error))
+          .map(t -> t.getClass() + ": " + t.getMessage())
+          .collect(Collectors.joining("\n"));
+
+      log.warn("Responding with " + status + " for " + uri + " after an upstream request failed:\n" + messages);
+    }
+    else {
+      log.error("Responding with " + status + " for " + uri, error);
+    }
   }
 
   private void addProperties(HalResource vndResource, Throwable error) {
@@ -97,7 +125,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
     vndResource.getModel().put("title", error.getClass().getName() + ": " + error.getMessage());
   }
 
-  private void addAboutLink(HalResource vndResource, LinkableResource resourceImpl) {
+  private String addAboutLinkAndReturnResourceUri(HalResource vndResource, LinkableResource resourceImpl) {
     Link clonedLink = null;
     try {
       Link link = resourceImpl.createLink();
@@ -110,6 +138,8 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
     if (clonedLink != null) {
       vndResource.addLinks(ABOUT, clonedLink);
     }
+
+    return clonedLink != null ? clonedLink.getHref() : "(unknown URI)";
   }
 
   private void addEmbeddedCauses(HalResource vndResource, Throwable error) {
