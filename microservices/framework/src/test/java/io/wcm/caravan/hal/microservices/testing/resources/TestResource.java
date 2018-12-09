@@ -121,7 +121,7 @@ public class TestResource {
     return this.status;
   }
 
-  public TestResource withStatus(int value) {
+  public TestResource withStatus(Integer value) {
     this.status = value;
     return this;
   }

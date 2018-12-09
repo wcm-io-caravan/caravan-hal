@@ -30,10 +30,11 @@ import com.google.common.cache.CacheBuilder;
 
 import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
-import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.io.http.CaravanHttpClient;
+import io.wcm.caravan.io.http.IllegalResponseRuntimeException;
 import io.wcm.caravan.io.http.request.CaravanHttpRequest;
 import io.wcm.caravan.io.http.request.CaravanHttpRequestBuilder;
 import io.wcm.caravan.io.http.response.CaravanHttpResponse;
@@ -65,7 +66,8 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
     CaravanHttpRequest request = createRequest(uri);
 
     return executeRequest(request)
-        .map(response -> parseResponse(uri, response));
+        .map(response -> parseResponse(uri, response))
+        .onErrorResumeNext(ex -> rethrowAsHalApiClientException(ex, uri));
   }
 
   private CaravanHttpRequest createRequest(String uri) {
@@ -87,29 +89,25 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
 
       int statusCode = response.status();
       JsonNode jsonNode;
-      Integer maxAge = null;
+      Integer maxAge;
       if (statusCode >= 400) {
-        jsonNode = null;
+        jsonNode = parseResponseBodyAndIgnoreErrors(response.body().asString());
         maxAge = 60;
       }
       else {
-        jsonNode = JSON_FACTORY.createParser(response.body().asString()).readValueAsTree();
-        String maxAgeString = response.getCacheControl().get("max-age");
-        if (maxAgeString != null) {
-          try {
-            maxAge = Integer.parseInt(maxAgeString);
-          }
-          catch (NumberFormatException ex) {
-            // ignore
-          }
-        }
+        jsonNode = parseResponseBody(response.body().asString());
+        maxAge = parseMaxAge(response);
       }
 
       HalResponse jsonResponse = new HalResponse()
           .withStatus(statusCode)
           .withReason(response.reason())
-          .withBody(new HalResource(jsonNode))
+          .withBody(jsonNode)
           .withMaxAge(maxAge);
+
+      if (statusCode >= 400) {
+        throw new HalApiClientException(jsonResponse, uri, null);
+      }
 
       SHARED_CACHE.put(uri, jsonResponse);
 
@@ -117,15 +115,66 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
 
     }
     catch (JsonParseException ex) {
-      throw new RuntimeException("Failed to parse HAL/JSON from " + uri, ex);
+      throw new RuntimeException("Failed to parse HAL/JSON body from " + uri, ex);
     }
     catch (IOException ex) {
-      throw new RuntimeException("Failed to transfer HAL/JSON from " + uri, ex);
+      throw new RuntimeException("Failed to transfer HAL/JSON body from " + uri, ex);
     }
     // CHECKSTYLE:OFF - yes, we want to catch and rethrow all runtime exceptions
     catch (RuntimeException ex) {
-      throw new RuntimeException("Failed to process HAL/JSON response from " + uri, ex);
+      throw new RuntimeException("Failed to process HAL/JSON response body from " + uri, ex);
     }
+  }
+
+  private JsonNode parseResponseBody(String responseBody) throws IOException, JsonParseException {
+    return JSON_FACTORY.createParser(responseBody).readValueAsTree();
+  }
+
+  private Integer parseMaxAge(CaravanHttpResponse response) {
+
+    Integer maxAge = null;
+    String maxAgeString = response.getCacheControl().get("max-age");
+    if (maxAgeString != null) {
+      try {
+        maxAge = Integer.parseInt(maxAgeString);
+      }
+      catch (NumberFormatException ex) {
+        // ignore
+      }
+    }
+    return maxAge;
+  }
+
+  private JsonNode parseResponseBodyAndIgnoreErrors(String responseBody) {
+    JsonNode jsonNode = null;
+    try {
+      jsonNode = parseResponseBody(responseBody);
+    }
+    catch (Exception ex) {
+      // ignore any exceptions when trying to parse the response body for 40x errors
+    }
+    return jsonNode;
+  }
+
+  private Single<HalResponse> rethrowAsHalApiClientException(Throwable ex, String uri) {
+
+    if (ex instanceof HalApiClientException) {
+      return Single.error(ex);
+    }
+
+    if (ex instanceof IllegalResponseRuntimeException) {
+      IllegalResponseRuntimeException irre = ((IllegalResponseRuntimeException)ex);
+
+      JsonNode body = parseResponseBodyAndIgnoreErrors(irre.getResponseBody());
+
+      HalResponse jsonResponse = new HalResponse()
+          .withStatus(irre.getResponseStatusCode())
+          .withBody(body);
+
+      return Single.error(new HalApiClientException(jsonResponse, uri, ex));
+    }
+
+    return Single.error(new HalApiClientException("HTTP request for " + uri + " failed because of timeout, configuration or networking issues", 0, uri));
   }
 
 

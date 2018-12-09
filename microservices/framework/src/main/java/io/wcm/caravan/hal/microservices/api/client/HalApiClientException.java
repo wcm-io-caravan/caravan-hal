@@ -24,31 +24,37 @@ import io.wcm.caravan.hal.microservices.impl.client.HalApiMethodInvocation;
 
 public class HalApiClientException extends RuntimeException {
 
-  private final HalResponse failedResponse;
+  private final HalResponse errorResponse;
   private final String requestUrl;
 
   public HalApiClientException(HalApiMethodInvocation invocation, HalApiClientException cause) {
-    super("An upstream resource required to resolve " + invocation + " failed to load", cause);
-    this.failedResponse = cause.getFailedResponse();
+    super("Failed to load an upstream resource that was requested by calling " + invocation, cause);
+    this.errorResponse = cause.getErrorResponse();
     this.requestUrl = cause.getRequestUrl();
   }
 
-  public HalApiClientException(String message, int statusCode, String requestUrl) {
-    this(new HalResponse().withStatus(statusCode).withReason(message), requestUrl);
+  public HalApiClientException(String message, Integer statusCode, String requestUrl) {
+    this(message, statusCode, requestUrl, null);
   }
 
-  public HalApiClientException(HalResponse failedResponse, String requestUrl) {
-    super("HTTP request for " + requestUrl + " failed with status code " + failedResponse.getStatus(), failedResponse.getCause());
-    this.failedResponse = failedResponse;
+  public HalApiClientException(String message, Integer statusCode, String requestUrl, Throwable cause) {
+    super(message, cause);
+    this.errorResponse = new HalResponse().withStatus(statusCode);
     this.requestUrl = requestUrl;
   }
 
-  public HalResponse getFailedResponse() {
-    return failedResponse;
+  public HalApiClientException(HalResponse errorResponse, String requestUrl, Throwable cause) {
+    super("HTTP request failed with status code " + errorResponse.getStatus(), cause);
+    this.errorResponse = errorResponse;
+    this.requestUrl = requestUrl;
   }
 
-  public int getStatusCode() {
-    return failedResponse.getStatus();
+  public HalResponse getErrorResponse() {
+    return errorResponse;
+  }
+
+  public Integer getStatusCode() {
+    return errorResponse.getStatus();
   }
 
   public String getRequestUrl() {

@@ -136,7 +136,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
       Link link = new Link(hace.getRequestUrl()).setTitle("The upstream resource that could not be loaded");
       embedded.addLinks(ABOUT, link);
 
-      HalResponse upstreamJson = hace.getFailedResponse();
+      HalResponse upstreamJson = hace.getErrorResponse();
       if (upstreamJson.getBody() != null && upstreamJson.getBody().getModel().size() > 0) {
         HalResource causeFromBody = new HalResource(upstreamJson.getBody().getModel().deepCopy());
         causeFromBody.removeEmbedded(CARAVAN_METADATA_RELATION);

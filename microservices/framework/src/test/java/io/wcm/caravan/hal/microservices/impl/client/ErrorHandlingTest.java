@@ -22,6 +22,7 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import static io.wcm.caravan.hal.api.annotations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,45 +30,43 @@ import org.mockito.Mockito;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.server.testing.TestState;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
+import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
-import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 
 public class ErrorHandlingTest {
 
+  private static final String ENTRY_POINT_URI = "/";
+  private static final String RESOURCE_URI = "/linked";
+
   private RequestMetricsCollector metrics;
   private BinaryResourceLoader binaryLoader;
-  private TestResourceTree jsonLoader;
-  private TestResource entryPoint;
+  private JsonResourceLoader jsonLoader;
 
   @Before
   public void setUp() {
     metrics = RequestMetricsCollector.create();
     binaryLoader = Mockito.mock(BinaryResourceLoader.class);
-
-    TestResourceTree testResourceTree = new TestResourceTree();
-    jsonLoader = testResourceTree;
-    entryPoint = testResourceTree.getEntryPoint();
+    jsonLoader = Mockito.mock(JsonResourceLoader.class);
   }
 
   private <T> T createClientProxy(Class<T> halApiInterface) {
     HalApiClientImpl client = new HalApiClientImpl(jsonLoader, binaryLoader, metrics);
-    T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
+    T clientProxy = client.getEntryPoint(ENTRY_POINT_URI, halApiInterface);
     assertThat(clientProxy).isNotNull();
     return clientProxy;
   }
 
-  private void loadEntryPoint() {
+  private void mockFailedResponse(Integer statusCode, String uri) {
 
-    createClientProxy(EntryPoint.class)
-        .getState()
-        .blockingGet();
+    when(jsonLoader.loadJsonResource(uri))
+        .thenReturn(Single.error(new HalApiClientException("Simulated failed response", statusCode, uri)));
   }
 
   @HalApiInterface
@@ -89,16 +88,36 @@ public class ErrorHandlingTest {
   }
 
   @Test
-  public void status_code_from_failed_responses_should_be_present_in_exception() {
+  public void status_code_from_response_should_be_available_in_exception() {
 
-    entryPoint.withStatus(404);
+    mockFailedResponse(403, ENTRY_POINT_URI);
 
     try {
-      loadEntryPoint();
+      createClientProxy(EntryPoint.class)
+          .getState()
+          .blockingGet();
+
       fail("Expected " + HalApiClientException.class.getSimpleName() + " was not thrown");
     }
     catch (HalApiClientException ex) {
-      assertThat(ex.getStatusCode()).isEqualTo(404);
+      assertThat(ex.getStatusCode()).isEqualTo(403);
+    }
+  }
+
+  @Test
+  public void status_code_from_response_can_be_null_if_request_failed_with_network_issues() {
+
+    mockFailedResponse(null, ENTRY_POINT_URI);
+
+    try {
+      createClientProxy(EntryPoint.class)
+          .getState()
+          .blockingGet();
+
+      fail("Expected " + HalApiClientException.class.getSimpleName() + " was not thrown");
+    }
+    catch (HalApiClientException ex) {
+      assertThat(ex.getStatusCode()).isNull();
     }
   }
 }

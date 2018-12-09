@@ -30,22 +30,18 @@ public class HalResponse {
   private final HalResource body;
   private final Integer maxAge;
 
-  private final Throwable cause;
-
   public HalResponse() {
     this.status = null;
     this.reason = null;
     this.body = null;
     this.maxAge = null;
-    this.cause = null;
   }
 
-  private HalResponse(Integer status, String reason, HalResource body, Integer maxAge, Throwable cause) {
+  private HalResponse(Integer status, String reason, HalResource body, Integer maxAge) {
     this.status = status;
     this.reason = reason;
     this.body = body;
     this.maxAge = maxAge;
-    this.cause = cause;
   }
 
   public Integer getStatus() {
@@ -53,7 +49,7 @@ public class HalResponse {
   }
 
   public HalResponse withStatus(Integer value) {
-    return new HalResponse(value, reason, body, maxAge, cause);
+    return new HalResponse(value, reason, body, maxAge);
   }
 
   public String getReason() {
@@ -61,7 +57,7 @@ public class HalResponse {
   }
 
   public HalResponse withReason(String value) {
-    return new HalResponse(status, value, body, maxAge, cause);
+    return new HalResponse(status, value, body, maxAge);
   }
 
   public HalResource getBody() {
@@ -69,11 +65,12 @@ public class HalResponse {
   }
 
   public HalResponse withBody(HalResource value) {
-    return new HalResponse(status, reason, value, maxAge, cause);
+    return new HalResponse(status, reason, value, maxAge);
   }
 
   public HalResponse withBody(JsonNode value) {
-    return new HalResponse(status, reason, new HalResource(value), maxAge, cause);
+    HalResource hal = value != null ? new HalResource(value) : null;
+    return new HalResponse(status, reason, hal, maxAge);
   }
 
   public Integer getMaxAge() {
@@ -81,14 +78,6 @@ public class HalResponse {
   }
 
   public HalResponse withMaxAge(Integer value) {
-    return new HalResponse(status, reason, body, value, cause);
-  }
-
-  public Throwable getCause() {
-    return cause;
-  }
-
-  public HalResponse withCause(Throwable value) {
-    return new HalResponse(status, reason, body, maxAge, value);
+    return new HalResponse(status, reason, body, value);
   }
 }

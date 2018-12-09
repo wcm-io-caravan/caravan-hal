@@ -69,8 +69,14 @@ public class TestResourceTree implements JsonResourceLoader {
     if (requestedResource == null) {
       return Single.error(new HalApiClientException("No resource with path " + uri + " was created by this " + getClass().getSimpleName(), 404, uri));
     }
+
+    Integer status = requestedResource.getStatus();
+    if (status == null || status >= 400) {
+      return Single.error(new HalApiClientException("A failure to retrieve a HAL resource was simulated", status, uri));
+    }
+
     HalResponse response = new HalResponse()
-        .withStatus(requestedResource.getStatus())
+        .withStatus(status)
         .withReason("")
         .withBody(requestedResource.asHalResource())
         .withMaxAge(requestedResource.getMaxAge());

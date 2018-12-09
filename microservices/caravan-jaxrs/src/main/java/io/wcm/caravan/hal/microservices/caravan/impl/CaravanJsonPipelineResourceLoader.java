@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.io.http.IllegalResponseRuntimeException;
@@ -58,7 +59,7 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
 
     return getPipelineOutput(request)
         .map(this::createSuccessResponse)
-        .onErrorResumeNext(this::createErrorResponse);
+        .onErrorResumeNext(ex -> rethrowAsHalApiClientException(ex, uri));
   }
 
   private CaravanHttpRequest createRequest(String uri) {
@@ -87,27 +88,21 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
     return response;
   }
 
-  private SingleSource<HalResponse> createErrorResponse(Throwable ex) {
+  private SingleSource<HalResponse> rethrowAsHalApiClientException(Throwable ex, String uri) {
     if (!(ex instanceof JsonPipelineInputException)) {
-      HalResponse response = new HalResponse()
-          .withStatus(500)
-          .withBody(JsonNodeFactory.instance.objectNode())
-          .withCause(ex);
-
-      return Single.just(response);
+      return Single.error(new HalApiClientException("An unexpected exception occured trying to load " + uri, null, uri, ex));
     }
 
     JsonPipelineInputException jpie = (JsonPipelineInputException)ex;
 
     JsonNode responseNode = tryToReadResponseBodyFromException(jpie);
 
-    HalResponse response = new HalResponse()
+    HalResponse errorResponse = new HalResponse()
         .withStatus(jpie.getStatusCode())
         .withBody(responseNode)
-        .withReason(jpie.getReason())
-        .withCause(jpie);
+        .withReason(jpie.getReason());
 
-    return Single.just(response);
+    return Single.error(new HalApiClientException(errorResponse, uri, ex));
   }
 
   private JsonNode tryToReadResponseBodyFromException(JsonPipelineInputException jpie) {

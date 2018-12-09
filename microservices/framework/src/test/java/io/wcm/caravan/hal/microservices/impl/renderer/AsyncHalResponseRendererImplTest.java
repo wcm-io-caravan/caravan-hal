@@ -211,7 +211,7 @@ public class AsyncHalResponseRendererImplTest {
         .withStatus(status)
         .withBody(vndErrorResource);
 
-    HalApiClientException cause = new HalApiClientException(upstreamResponse, "/some/url");
+    HalApiClientException cause = new HalApiClientException(upstreamResponse, "/some/url", null);
     RuntimeException ex = new RuntimeException(cause);
     return ex;
   }
@@ -237,11 +237,7 @@ public class AsyncHalResponseRendererImplTest {
 
     RuntimeException rootCause = new RuntimeException(message);
 
-    HalResponse upstreamResponse = new HalResponse()
-        .withStatus(status)
-        .withCause(rootCause);
-
-    HalApiClientException cause = new HalApiClientException(upstreamResponse, "/some/url");
+    HalApiClientException cause = new HalApiClientException("Failed to load resource", 500, "/some/url", rootCause);
     RuntimeException ex = new RuntimeException(cause);
     return ex;
   }
