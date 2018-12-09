@@ -21,6 +21,9 @@ package io.wcm.caravan.hal.microservices.caravan.impl;
 
 import java.util.concurrent.TimeUnit;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import hu.akarnokd.rxjava.interop.RxJavaInterop;
@@ -28,6 +31,7 @@ import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
+import io.wcm.caravan.io.http.IllegalResponseRuntimeException;
 import io.wcm.caravan.io.http.request.CaravanHttpRequest;
 import io.wcm.caravan.io.http.request.CaravanHttpRequestBuilder;
 import io.wcm.caravan.pipeline.JsonPipeline;
@@ -95,13 +99,36 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
 
     JsonPipelineInputException jpie = (JsonPipelineInputException)ex;
 
+    JsonNode responseNode = tryToReadResponseBodyFromException(jpie);
+
     JsonResponse response = new JsonResponse()
         .withStatus(jpie.getStatusCode())
-        .withBody(JsonNodeFactory.instance.objectNode())
+        .withBody(responseNode)
         .withReason(jpie.getReason())
         .withCause(jpie);
 
     return Single.just(response);
+  }
+
+  private JsonNode tryToReadResponseBodyFromException(JsonPipelineInputException jpie) {
+
+    JsonNode responseNode = JsonNodeFactory.instance.objectNode();
+
+    Throwable cause = jpie.getCause();
+    if (cause instanceof IllegalResponseRuntimeException) {
+      IllegalResponseRuntimeException irre = ((IllegalResponseRuntimeException)cause);
+      String responseBody = irre.getResponseBody();
+      if (responseBody != null) {
+        try {
+          responseNode = new JsonFactory(new ObjectMapper()).createParser(responseBody).readValueAs(JsonNode.class);
+        }
+        catch (Exception exWhileParsing) {
+          // ignore
+        }
+      }
+    }
+
+    return responseNode;
   }
 
 
