@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
-import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
@@ -48,9 +48,9 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
 
     AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics);
 
-    Single<JsonResponse> rxHalResource = renderer.renderResponse(resourceImpl);
+    Single<HalResponse> rxHalResource = renderer.renderResponse(resourceImpl);
 
-    rxHalResource.subscribe(new SingleObserver<JsonResponse>() {
+    rxHalResource.subscribe(new SingleObserver<HalResponse>() {
 
       @Override
       public void onSubscribe(Disposable d) {
@@ -58,7 +58,7 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
       }
 
       @Override
-      public void onSuccess(JsonResponse jsonResponse) {
+      public void onSuccess(HalResponse jsonResponse) {
 
         ResponseBuilder response = Response
             .status(jsonResponse.getStatus())

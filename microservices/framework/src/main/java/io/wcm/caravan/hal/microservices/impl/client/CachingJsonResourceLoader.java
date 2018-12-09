@@ -25,14 +25,13 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -42,7 +41,7 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
 
   private static final Logger log = LoggerFactory.getLogger(CachingJsonResourceLoader.class);
 
-  private final Cache<String, Single<JsonResponse>> cache = CacheBuilder.newBuilder().build();
+  private final Cache<String, Single<HalResponse>> cache = CacheBuilder.newBuilder().build();
 
   private final JsonResourceLoader delegate;
   private final RequestMetricsCollector metrics;
@@ -53,7 +52,7 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonResponse> loadJsonResource(String uri) {
+  public Single<HalResponse> loadJsonResource(String uri) {
     try {
       return cache.get(uri, () -> {
 
@@ -70,7 +69,7 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
     }
   }
 
-  private void registerResponseMetrics(String uri, JsonResponse jsonResponse, Stopwatch stopwatch) {
+  private void registerResponseMetrics(String uri, HalResponse jsonResponse, Stopwatch stopwatch) {
 
     log.debug("Received JSON response from {} with status code {} and max-age {} in {}ms",
         uri, jsonResponse.getStatus(), jsonResponse.getMaxAge(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
@@ -80,9 +79,7 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
     metrics.onResponseRetrieved(uri, title, jsonResponse.getMaxAge(), stopwatch.elapsed(TimeUnit.MICROSECONDS));
   }
 
-  private String getResourceTitle(JsonNode jsonNode, String uri) {
-
-    HalResource halResource = new HalResource(jsonNode);
+  private String getResourceTitle(HalResource halResource, String uri) {
 
     Link selfLink = halResource.getLink();
 

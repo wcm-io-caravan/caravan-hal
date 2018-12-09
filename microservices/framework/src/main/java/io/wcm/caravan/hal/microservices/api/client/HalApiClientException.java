@@ -19,11 +19,12 @@
  */
 package io.wcm.caravan.hal.microservices.api.client;
 
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.impl.client.HalApiMethodInvocation;
 
 public class HalApiClientException extends RuntimeException {
 
-  private final JsonResponse failedResponse;
+  private final HalResponse failedResponse;
   private final String requestUrl;
 
   public HalApiClientException(HalApiMethodInvocation invocation, HalApiClientException cause) {
@@ -33,16 +34,16 @@ public class HalApiClientException extends RuntimeException {
   }
 
   public HalApiClientException(String message, int statusCode, String requestUrl) {
-    this(new JsonResponse().withStatus(statusCode).withReason(message), requestUrl);
+    this(new HalResponse().withStatus(statusCode).withReason(message), requestUrl);
   }
 
-  public HalApiClientException(JsonResponse failedResponse, String requestUrl) {
+  public HalApiClientException(HalResponse failedResponse, String requestUrl) {
     super("HTTP request for " + requestUrl + " failed with status code " + failedResponse.getStatus(), failedResponse.getCause());
     this.failedResponse = failedResponse;
     this.requestUrl = requestUrl;
   }
 
-  public JsonResponse getFailedResponse() {
+  public HalResponse getFailedResponse() {
     return failedResponse;
   }
 

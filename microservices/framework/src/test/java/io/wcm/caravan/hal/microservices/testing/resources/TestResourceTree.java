@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableMap;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -58,7 +58,7 @@ public class TestResourceTree implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonResponse> loadJsonResource(String uri) {
+  public Single<HalResponse> loadJsonResource(String uri) {
 
     Link link = new Link(uri);
     if (link.isTemplated()) {
@@ -69,10 +69,10 @@ public class TestResourceTree implements JsonResourceLoader {
     if (requestedResource == null) {
       return Single.error(new HalApiClientException("No resource with path " + uri + " was created by this " + getClass().getSimpleName(), 404, uri));
     }
-    JsonResponse response = new JsonResponse()
+    HalResponse response = new HalResponse()
         .withStatus(requestedResource.getStatus())
         .withReason("")
-        .withBody(requestedResource.asHalResource().getModel())
+        .withBody(requestedResource.asHalResource())
         .withMaxAge(requestedResource.getMaxAge());
 
     return Single.just(response);

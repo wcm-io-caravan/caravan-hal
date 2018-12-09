@@ -31,7 +31,8 @@ import com.google.common.cache.CacheBuilder;
 import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
+import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.io.http.CaravanHttpClient;
 import io.wcm.caravan.io.http.request.CaravanHttpRequest;
 import io.wcm.caravan.io.http.request.CaravanHttpRequestBuilder;
@@ -42,7 +43,7 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
 
   private static final JsonFactory JSON_FACTORY = new JsonFactory(new ObjectMapper());
 
-  private static final Cache<String, JsonResponse> SHARED_CACHE = CacheBuilder.newBuilder().build();
+  private static final Cache<String, HalResponse> SHARED_CACHE = CacheBuilder.newBuilder().build();
 
   private final String serviceId;
 
@@ -54,9 +55,9 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonResponse> loadJsonResource(String uri) {
+  public Single<HalResponse> loadJsonResource(String uri) {
 
-    JsonResponse cached = SHARED_CACHE.getIfPresent(uri);
+    HalResponse cached = SHARED_CACHE.getIfPresent(uri);
     if (cached != null) {
       return Single.just(cached);
     }
@@ -81,7 +82,7 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
     return RxJavaInterop.toV2Single(client.execute(request).toSingle());
   }
 
-  private JsonResponse parseResponse(String uri, CaravanHttpResponse response) {
+  private HalResponse parseResponse(String uri, CaravanHttpResponse response) {
     try {
 
       int statusCode = response.status();
@@ -104,10 +105,10 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
         }
       }
 
-      JsonResponse jsonResponse = new JsonResponse()
+      HalResponse jsonResponse = new HalResponse()
           .withStatus(statusCode)
           .withReason(response.reason())
-          .withBody(jsonNode)
+          .withBody(new HalResource(jsonNode))
           .withMaxAge(maxAge);
 
       SHARED_CACHE.put(uri, jsonResponse);

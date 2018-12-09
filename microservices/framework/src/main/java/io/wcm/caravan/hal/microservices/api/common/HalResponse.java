@@ -17,20 +17,22 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.api.client;
+package io.wcm.caravan.hal.microservices.api.common;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-public class JsonResponse {
+import io.wcm.caravan.hal.resource.HalResource;
+
+public class HalResponse {
 
   private final Integer status;
   private final String reason;
-  private final JsonNode body;
+  private final HalResource body;
   private final Integer maxAge;
 
   private final Throwable cause;
 
-  public JsonResponse() {
+  public HalResponse() {
     this.status = null;
     this.reason = null;
     this.body = null;
@@ -38,7 +40,7 @@ public class JsonResponse {
     this.cause = null;
   }
 
-  private JsonResponse(Integer status, String reason, JsonNode body, Integer maxAge, Throwable cause) {
+  private HalResponse(Integer status, String reason, HalResource body, Integer maxAge, Throwable cause) {
     this.status = status;
     this.reason = reason;
     this.body = body;
@@ -50,39 +52,43 @@ public class JsonResponse {
     return status;
   }
 
-  public JsonResponse withStatus(Integer value) {
-    return new JsonResponse(value, reason, body, maxAge, cause);
+  public HalResponse withStatus(Integer value) {
+    return new HalResponse(value, reason, body, maxAge, cause);
   }
 
   public String getReason() {
     return reason;
   }
 
-  public JsonResponse withReason(String value) {
-    return new JsonResponse(status, value, body, maxAge, cause);
+  public HalResponse withReason(String value) {
+    return new HalResponse(status, value, body, maxAge, cause);
   }
 
-  public JsonNode getBody() {
+  public HalResource getBody() {
     return body;
   }
 
-  public JsonResponse withBody(JsonNode value) {
-    return new JsonResponse(status, reason, value, maxAge, cause);
+  public HalResponse withBody(HalResource value) {
+    return new HalResponse(status, reason, value, maxAge, cause);
+  }
+
+  public HalResponse withBody(JsonNode value) {
+    return new HalResponse(status, reason, new HalResource(value), maxAge, cause);
   }
 
   public Integer getMaxAge() {
     return maxAge;
   }
 
-  public JsonResponse withMaxAge(Integer value) {
-    return new JsonResponse(status, reason, body, value, cause);
+  public HalResponse withMaxAge(Integer value) {
+    return new HalResponse(status, reason, body, value, cause);
   }
 
   public Throwable getCause() {
     return cause;
   }
 
-  public JsonResponse withCause(Throwable value) {
-    return new JsonResponse(status, reason, body, maxAge, value);
+  public HalResponse withCause(Throwable value) {
+    return new HalResponse(status, reason, body, maxAge, value);
   }
 }

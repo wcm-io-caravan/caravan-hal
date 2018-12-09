@@ -30,7 +30,7 @@ import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.io.http.IllegalResponseRuntimeException;
 import io.wcm.caravan.io.http.request.CaravanHttpRequest;
 import io.wcm.caravan.io.http.request.CaravanHttpRequestBuilder;
@@ -52,7 +52,7 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonResponse> loadJsonResource(String uri) {
+  public Single<HalResponse> loadJsonResource(String uri) {
 
     CaravanHttpRequest request = createRequest(uri);
 
@@ -78,8 +78,8 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
     return RxJavaInterop.toV2Single(pipeline.getOutput().toSingle());
   }
 
-  private JsonResponse createSuccessResponse(JsonPipelineOutput pipelineOutput) {
-    JsonResponse response = new JsonResponse()
+  private HalResponse createSuccessResponse(JsonPipelineOutput pipelineOutput) {
+    HalResponse response = new HalResponse()
         .withStatus(pipelineOutput.getStatusCode())
         .withBody(pipelineOutput.getPayload())
         .withMaxAge(pipelineOutput.getMaxAge());
@@ -87,9 +87,9 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
     return response;
   }
 
-  private SingleSource<? extends JsonResponse> createErrorResponse(Throwable ex) {
+  private SingleSource<HalResponse> createErrorResponse(Throwable ex) {
     if (!(ex instanceof JsonPipelineInputException)) {
-      JsonResponse response = new JsonResponse()
+      HalResponse response = new HalResponse()
           .withStatus(500)
           .withBody(JsonNodeFactory.instance.objectNode())
           .withCause(ex);
@@ -101,7 +101,7 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
 
     JsonNode responseNode = tryToReadResponseBodyFromException(jpie);
 
-    JsonResponse response = new JsonResponse()
+    HalResponse response = new HalResponse()
         .withStatus(jpie.getStatusCode())
         .withBody(responseNode)
         .withReason(jpie.getReason())

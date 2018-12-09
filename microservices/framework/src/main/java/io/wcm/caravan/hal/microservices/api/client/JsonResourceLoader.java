@@ -2,9 +2,10 @@
 package io.wcm.caravan.hal.microservices.api.client;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 
 @FunctionalInterface
 public interface JsonResourceLoader {
 
-  Single<JsonResponse> loadJsonResource(String uri);
+  Single<HalResponse> loadJsonResource(String uri);
 }

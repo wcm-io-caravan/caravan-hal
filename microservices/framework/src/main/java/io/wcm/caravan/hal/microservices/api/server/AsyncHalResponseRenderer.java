@@ -20,13 +20,13 @@
 package io.wcm.caravan.hal.microservices.api.server;
 
 import io.reactivex.Single;
-import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl;
 
 public interface AsyncHalResponseRenderer {
 
-  Single<JsonResponse> renderResponse(LinkableResource resourceImpl);
+  Single<HalResponse> renderResponse(LinkableResource resourceImpl);
 
   static AsyncHalResponseRenderer create(RequestMetricsCollector metrics) {
 

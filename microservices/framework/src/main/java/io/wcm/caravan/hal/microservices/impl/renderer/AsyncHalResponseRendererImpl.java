@@ -24,7 +24,7 @@ import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRO
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
-import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
@@ -47,21 +47,21 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
   }
 
   @Override
-  public Single<JsonResponse> renderResponse(LinkableResource resourceImpl) {
+  public Single<HalResponse> renderResponse(LinkableResource resourceImpl) {
 
     return renderer.renderResource(resourceImpl)
         .flatMap(hal -> this.createResponse(resourceImpl, hal))
         .onErrorResumeNext(ex -> this.handleError(resourceImpl, ex));
   }
 
-  Single<JsonResponse> createResponse(LinkableResource resourceImpl, HalResource hal) {
+  Single<HalResponse> createResponse(LinkableResource resourceImpl, HalResource hal) {
 
     addMetadata(hal, resourceImpl);
 
-    JsonResponse response = new JsonResponse()
+    HalResponse response = new HalResponse()
         .withStatus(200)
         .withReason("Ok")
-        .withBody(hal.getModel())
+        .withBody(hal)
         .withMaxAge(metrics.getOutputMaxAge());
 
     return Single.just(response);
@@ -75,7 +75,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
     }
   }
 
-  Single<JsonResponse> handleError(LinkableResource resourceImpl, Throwable error) {
+  Single<HalResponse> handleError(LinkableResource resourceImpl, Throwable error) {
 
     HalResource vndResource = new HalResource();
 
@@ -84,9 +84,9 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
     addEmbeddedCauses(vndResource, error);
     addMetadata(vndResource, resourceImpl);
 
-    JsonResponse response = new JsonResponse()
+    HalResponse response = new HalResponse()
         .withStatus(500)
-        .withBody(vndResource.getModel());
+        .withBody(vndResource);
 
     return Single.just(response);
   }
@@ -136,9 +136,9 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
       Link link = new Link(hace.getRequestUrl()).setTitle("The upstream resource that could not be loaded");
       embedded.addLinks(ABOUT, link);
 
-      JsonResponse upstreamJson = hace.getFailedResponse();
-      if (upstreamJson.getBody() != null && upstreamJson.getBody().size() > 0) {
-        HalResource causeFromBody = new HalResource(upstreamJson.getBody().deepCopy());
+      HalResponse upstreamJson = hace.getFailedResponse();
+      if (upstreamJson.getBody() != null && upstreamJson.getBody().getModel().size() > 0) {
+        HalResource causeFromBody = new HalResource(upstreamJson.getBody().getModel().deepCopy());
         causeFromBody.removeEmbedded(CARAVAN_METADATA_RELATION);
         embedded.addEmbedded(ERRORS, causeFromBody);
         vndErrorsFoundInBody = true;

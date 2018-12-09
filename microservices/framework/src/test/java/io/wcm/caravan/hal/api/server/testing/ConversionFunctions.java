@@ -19,15 +19,15 @@
  */
 package io.wcm.caravan.hal.api.server.testing;
 
-import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.resource.HalResource;
 
 public class ConversionFunctions {
 
-  public static JsonResponse toJsonResponse(HalResource resource) {
+  public static HalResponse toJsonResponse(HalResource resource) {
 
-    return new JsonResponse()
+    return new HalResponse()
         .withStatus(200)
-        .withBody(resource.getModel());
+        .withBody(resource);
   }
 }
