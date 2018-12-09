@@ -19,6 +19,9 @@
  */
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
+import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOUT;
+import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
+
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResponse;
@@ -32,7 +35,7 @@ import io.wcm.caravan.hal.resource.Link;
 
 public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
-  private static final String CARAVAN_METADATA_RELATION = "caravan:metadata";
+  static final String CARAVAN_METADATA_RELATION = "caravan:metadata";
 
   private final AsyncHalResourceRenderer renderer;
 
@@ -67,7 +70,9 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
   private void addMetadata(HalResource hal, LinkableResource resourceImpl) {
 
     HalResource metadata = metrics.createMetadataResource(resourceImpl);
-    hal.addEmbedded(CARAVAN_METADATA_RELATION, metadata);
+    if (metadata != null) {
+      hal.addEmbedded(CARAVAN_METADATA_RELATION, metadata);
+    }
   }
 
   Single<JsonResponse> handleError(LinkableResource resourceImpl, Throwable error) {
@@ -103,7 +108,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
     }
 
     if (clonedLink != null) {
-      vndResource.addLinks("about", clonedLink);
+      vndResource.addLinks(ABOUT, clonedLink);
     }
   }
 
@@ -114,11 +119,12 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
       addProperties(embedded, cause);
 
       boolean vndErrorsFoundInBody = embeddErrorsFromUpstreamResponse(embedded, cause);
+
+      vndResource.addEmbedded(ERRORS, embedded);
+
       if (!vndErrorsFoundInBody) {
         addEmbeddedCauses(vndResource, cause);
       }
-
-      vndResource.addEmbedded("errors", embedded);
     }
   }
 
@@ -128,13 +134,13 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
       HalApiClientException hace = (HalApiClientException)cause;
 
       Link link = new Link(hace.getRequestUrl()).setTitle("The upstream resource that could not be loaded");
-      embedded.addLinks("about", link);
+      embedded.addLinks(ABOUT, link);
 
       JsonResponse upstreamJson = hace.getFailedResponse();
       if (upstreamJson.getBody() != null && upstreamJson.getBody().size() > 0) {
         HalResource causeFromBody = new HalResource(upstreamJson.getBody().deepCopy());
         causeFromBody.removeEmbedded(CARAVAN_METADATA_RELATION);
-        embedded.addEmbedded("errors", causeFromBody);
+        embedded.addEmbedded(ERRORS, causeFromBody);
         vndErrorsFoundInBody = true;
       }
     }
