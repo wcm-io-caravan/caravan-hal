@@ -35,7 +35,9 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
+import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
+import io.wcm.caravan.hal.api.server.testing.TestState;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -70,7 +72,10 @@ public class ResourceLinkTest {
 
 
   @HalApiInterface
-  interface LinkableResource {
+  interface LinkTargetResource {
+
+    @ResourceState
+    Single<TestState> getState();
 
     @ResourceLink
     Link createLink();
@@ -79,7 +84,7 @@ public class ResourceLinkTest {
   @Test
   public void link_should_be_extracted_from_entry_point() {
 
-    Link link = createClientProxy(LinkableResource.class)
+    Link link = createClientProxy(LinkTargetResource.class)
         .createLink();
 
     assertThat(link.getHref()).isEqualTo(entryPoint.getUrl());
@@ -90,7 +95,7 @@ public class ResourceLinkTest {
   interface ResourceWithSingleLinked {
 
     @RelatedResource(relation = ITEM)
-    Single<LinkableResource> getLinked();
+    Single<LinkTargetResource> getLinked();
   }
 
   @Test
@@ -100,7 +105,7 @@ public class ResourceLinkTest {
 
     Link link = createClientProxy(ResourceWithSingleLinked.class)
         .getLinked()
-        .map(LinkableResource::createLink)
+        .map(LinkTargetResource::createLink)
         .blockingGet();
 
     assertThat(link.getHref()).isEqualTo(itemResource.getUrl());
@@ -115,7 +120,7 @@ public class ResourceLinkTest {
 
     Link link = createClientProxy(ResourceWithSingleLinked.class)
         .getLinked()
-        .map(LinkableResource::createLink)
+        .map(LinkTargetResource::createLink)
         .blockingGet();
 
     assertThat(link.getName()).isEqualTo(linkName);
@@ -126,31 +131,54 @@ public class ResourceLinkTest {
   interface ResourceWithMultipleLinked {
 
     @RelatedResource(relation = ITEM)
-    Observable<LinkableResource> getLinked();
+    Observable<LinkTargetResource> getLinked();
   }
 
   @Test
   public void filtering_linked_resources_by_name_should_be_possible() {
 
-    Observable.range(0, 10).forEach(i -> entryPoint.createLinked(ITEM, Integer.toString(i)));
+    Observable.range(0, 10).forEach(i -> entryPoint.createLinked(ITEM, Integer.toString(i)).setNumber(i));
 
-    String linkNameToFind = "5";
-
-    Link filteredLink = createClientProxy(ResourceWithMultipleLinked.class)
+    TestState filteredState = createClientProxy(ResourceWithMultipleLinked.class)
         .getLinked()
         .filter(resource -> StringUtils.equals(resource.createLink().getName(), "5"))
-        .map(LinkableResource::createLink)
         .singleElement()
+        .flatMapSingle(LinkTargetResource::getState)
         .blockingGet();
 
-    assertThat(filteredLink.getName()).isEqualTo(linkNameToFind);
+    assertThat(filteredState.number).isEqualTo(5);
+  }
+
+  @Test
+  public void filtering_linked_resources_by_name_should_still_use_embedded_resources() {
+
+    Observable.range(0, 10).forEach(i -> entryPoint.createLinked(ITEM, Integer.toString(i)));
+
+    // get one of the link that was created
+    Link link = entryPoint.asHalResource().getLinks(ITEM).get(5);
+
+    // and create an embedded resource with a self link of the same URL
+    HalResource embedded = new HalResource().setLink(link);
+    embedded.getModel().put("string", "foo");
+    entryPoint.asHalResource().addEmbedded(ITEM, embedded);
+
+    // then check that filtering the resource with link name....
+    TestState filteredState = createClientProxy(ResourceWithMultipleLinked.class)
+        .getLinked()
+        .filter(resource -> link.getName().equals(resource.createLink().getName()))
+        .singleElement()
+        .flatMapSingle(r -> r.getState())
+        .blockingGet();
+
+    // will actually return the embedded resource (because the string value wasn't added to the linked resource)
+    assertThat(filteredState.string).isEqualTo("foo");
   }
 
   @HalApiInterface
   interface ResourceWithSingleEmbedded {
 
     @RelatedResource(relation = ITEM)
-    Single<LinkableResource> getEmbedded();
+    Single<LinkTargetResource> getEmbedded();
   }
 
   @Test
@@ -161,7 +189,7 @@ public class ResourceLinkTest {
 
     Link link = createClientProxy(ResourceWithSingleEmbedded.class)
         .getEmbedded()
-        .map(LinkableResource::createLink)
+        .map(LinkTargetResource::createLink)
         .blockingGet();
 
     assertThat(link.getHref()).isEqualTo(itemResource.getUrl());
@@ -176,7 +204,7 @@ public class ResourceLinkTest {
 
     Link link = createClientProxy(ResourceWithSingleEmbedded.class)
         .getEmbedded()
-        .map(LinkableResource::createLink)
+        .map(LinkTargetResource::createLink)
         .blockingGet();
 
     assertThat(link.getName()).isEqualTo(linkName);
@@ -195,7 +223,7 @@ public class ResourceLinkTest {
 
     Link link = createClientProxy(ResourceWithSingleEmbedded.class)
         .getEmbedded()
-        .map(LinkableResource::createLink)
+        .map(LinkTargetResource::createLink)
         .blockingGet();
 
     assertThat(link.getName()).isEqualTo("0");
@@ -208,7 +236,7 @@ public class ResourceLinkTest {
 
     Link link = createClientProxy(ResourceWithSingleEmbedded.class)
         .getEmbedded()
-        .map(LinkableResource::createLink)
+        .map(LinkTargetResource::createLink)
         .blockingGet();
 
     assertThat(link.getHref()).isEmpty();
@@ -219,7 +247,7 @@ public class ResourceLinkTest {
   interface ResourceWithLinkTemplate {
 
     @RelatedResource(relation = ITEM)
-    Single<LinkableResource> getLinked(
+    Single<LinkTargetResource> getLinked(
         @TemplateVariable("intParam") Integer intParam,
         @TemplateVariable("stringParam") String stringParam,
         @TemplateVariable("listParam") List<String> listParam);
@@ -233,7 +261,7 @@ public class ResourceLinkTest {
 
     Link link = createClientProxy(ResourceWithLinkTemplate.class)
         .getLinked(5, null, null)
-        .map(LinkableResource::createLink)
+        .map(LinkTargetResource::createLink)
         .blockingGet();
 
     assertThat(link.getHref()).isEqualTo("/test?intParam=5");
@@ -247,7 +275,7 @@ public class ResourceLinkTest {
 
     Link link = createClientProxy(ResourceWithLinkTemplate.class)
         .getLinked(null, null, null)
-        .map(LinkableResource::createLink)
+        .map(LinkTargetResource::createLink)
         .blockingGet();
 
     assertThat(link.getHref()).isEqualTo(uriTemplate);
