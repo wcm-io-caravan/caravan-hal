@@ -39,6 +39,9 @@ public class TestResource {
 
   private final HalResource halResource;
 
+  private Integer maxAge;
+  private Integer status = 200;
+
   TestResource(TestResourceTree tree) {
     this.tree = tree;
     this.halResource = new HalResource();
@@ -102,6 +105,25 @@ public class TestResource {
 
   public ObjectNode getJson() {
     return halResource.getModel();
+  }
+
+
+  public Integer getMaxAge() {
+    return this.maxAge;
+  }
+
+  public TestResource withMaxAge(int value) {
+    this.maxAge = value;
+    return this;
+  }
+
+  public Integer getStatus() {
+    return this.status;
+  }
+
+  public TestResource withStatus(Integer value) {
+    this.status = value;
+    return this;
   }
 
 }

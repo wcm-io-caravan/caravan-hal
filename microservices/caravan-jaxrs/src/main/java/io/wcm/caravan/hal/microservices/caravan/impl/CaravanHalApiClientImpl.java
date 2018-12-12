@@ -41,8 +41,8 @@ public class CaravanHalApiClientImpl implements CaravanHalApiClient {
   @Override
   public <T> T getEntryPoint(String serviceId, String uri, Class<T> halApiInterface, RequestMetricsCollector metrics) {
 
-    JsonResourceLoader jsonLoader = new CaravanJsonPipelineResourceLoader(pipelineFactory, serviceId);
-    //JsonResourceLoader jsonLoader = new CaravanGuavaJsonResourceLoader(httpClient, serviceId);
+    //JsonResourceLoader jsonLoader = new CaravanJsonPipelineResourceLoader(pipelineFactory, serviceId);
+    JsonResourceLoader jsonLoader = new CaravanGuavaJsonResourceLoader(httpClient, serviceId);
     CaravanBinaryResourceLoader binaryLoader = new CaravanBinaryResourceLoader(httpClient, serviceId);
 
     HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);

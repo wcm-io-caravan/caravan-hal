@@ -17,21 +17,16 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.jaxrs;
+package io.wcm.caravan.hal.integrationtest.sampleservice.api.errors;
 
-import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
-import io.wcm.caravan.hal.microservices.caravan.CaravanHalApiClient;
+import io.reactivex.Maybe;
+import io.wcm.caravan.hal.api.annotations.HalApiInterface;
+import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.integrationtest.sampleservice.api.collection.TitledState;
 
-public interface JaxRsHalServerSupport {
+@HalApiInterface
+public interface ErrorResource {
 
-  String getContextPath();
-
-  String getBundleVersion();
-
-  AsyncHalResponseHandler getResponseHandler();
-
-  CaravanHalApiClient getHalApiClient();
-
-  LinkBuilder getLinkBuilder();
-
+  @ResourceState
+  Maybe<TitledState> getState();
 }

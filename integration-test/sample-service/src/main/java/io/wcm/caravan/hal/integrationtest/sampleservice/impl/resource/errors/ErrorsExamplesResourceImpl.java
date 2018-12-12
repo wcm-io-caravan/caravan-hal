@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.integrationtest.sampleservice.impl.resource;
+package io.wcm.caravan.hal.integrationtest.sampleservice.impl.resource.errors;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -26,55 +26,40 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.Context;
 
 import io.reactivex.Single;
-import io.wcm.caravan.hal.integrationtest.sampleservice.api.ExamplesEntryPointResource;
-import io.wcm.caravan.hal.integrationtest.sampleservice.api.caching.CachingExamplesResource;
-import io.wcm.caravan.hal.integrationtest.sampleservice.api.collection.CollectionExamplesResource;
 import io.wcm.caravan.hal.integrationtest.sampleservice.api.errors.ErrorExamplesResource;
+import io.wcm.caravan.hal.integrationtest.sampleservice.api.errors.ErrorResource;
 import io.wcm.caravan.hal.integrationtest.sampleservice.impl.context.ExampleServiceRequestContext;
-import io.wcm.caravan.hal.integrationtest.sampleservice.impl.resource.caching.CachingExamplesResourceImpl;
-import io.wcm.caravan.hal.integrationtest.sampleservice.impl.resource.collection.CollectionExamplesResourceImpl;
-import io.wcm.caravan.hal.integrationtest.sampleservice.impl.resource.errors.ErrorsExamplesResourceImpl;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.Link;
 
-@Path("")
-public class ExamplesEntryPointResourceImpl implements ExamplesEntryPointResource, LinkableResource {
+@Path("/errors")
+public class ErrorsExamplesResourceImpl implements ErrorExamplesResource, LinkableResource {
 
   private final ExampleServiceRequestContext context;
 
-  public ExamplesEntryPointResourceImpl(@Context ExampleServiceRequestContext context) {
+  public ErrorsExamplesResourceImpl(@Context ExampleServiceRequestContext context) {
     this.context = context;
   }
 
   @Override
-  public Single<CollectionExamplesResource> getCollectionExamples() {
-    return Single.just(new CollectionExamplesResourceImpl(context));
+  public Single<ErrorResource> provokeError(Integer statusCode, String message, Boolean withCause) {
+    return Single.just(new ServerSideErrorResourceImpl(context, statusCode, message, withCause));
   }
 
   @Override
-  public Single<CachingExamplesResource> getCachingExamples() {
-    return Single.just(new CachingExamplesResourceImpl(context));
-  }
-
-  @Override
-  public Single<ErrorExamplesResource> getErrorExamples() {
-    return Single.just(new ErrorsExamplesResourceImpl(context));
+  public Single<ErrorResource> provokeHttpClientError(Integer statusCode, String message, Boolean withCause) {
+    return Single.just(new HalApiClientErrorResourceImpl(context, statusCode, message, withCause));
   }
 
   @Override
   public Link createLink() {
 
     return context.buildLinkTo(this)
-        .setTitle("The HAL API entry point of the " + context.getContextPath() + " service");
+        .setTitle("Examples for error handling");
   }
 
   @GET
   public void get(@Suspended AsyncResponse response) {
-
-    context.limitMaxAge(60);
-
     context.respondWith(this, response);
   }
-
-
 }

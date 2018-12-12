@@ -19,10 +19,12 @@
  */
 package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +32,10 @@ import org.slf4j.LoggerFactory;
 import io.reactivex.Single;
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
+import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
+import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.jaxrs.AsyncHalResponseHandler;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -41,14 +45,16 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
 
   private static final Logger log = LoggerFactory.getLogger(AsyncHalResponseHandlerImpl.class);
 
+  private final ExceptionStrategy exceptionStrategy = new ExceptionStrategy();
+
   @Override
   public void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse, RequestMetricsCollector metrics) {
 
-    AsyncHalResourceRenderer renderer = AsyncHalResourceRenderer.create(metrics);
+    AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics, exceptionStrategy);
 
-    Single<HalResource> rxHalResource = renderer.renderResource(resourceImpl);
+    Single<HalResponse> rxHalResource = renderer.renderResponse(resourceImpl);
 
-    rxHalResource.subscribe(new SingleObserver<HalResource>() {
+    rxHalResource.subscribe(new SingleObserver<HalResponse>() {
 
       @Override
       public void onSubscribe(Disposable d) {
@@ -56,25 +62,51 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
       }
 
       @Override
-      public void onSuccess(HalResource value) {
+      public void onSuccess(HalResponse jsonResponse) {
 
-        HalResource metadata = metrics.createMetadataResource(resourceImpl);
+        ResponseBuilder response = Response
+            .status(jsonResponse.getStatus())
+            .entity(jsonResponse.getBody());
 
-        value.addEmbedded("caravan:metadata", metadata);
+        Integer maxAge = jsonResponse.getMaxAge();
+        if (maxAge != null) {
+          CacheControl cacheControl = new CacheControl();
+          cacheControl.setMaxAge(maxAge);
+          response.cacheControl(cacheControl);
+        }
 
-        asyncResponse.resume(value);
+        if (jsonResponse.getStatus() >= 400) {
+          response.type("application/vnd.error+json");
+        }
+        else {
+          response.type(HalResource.CONTENT_TYPE);
+        }
+
+        asyncResponse.resume(response.build());
       }
 
       @Override
       public void onError(Throwable error) {
 
         log.error("Failed to handle request", error);
-
-        String stackTrace = ExceptionUtils.getStackTrace(error);
-        asyncResponse.resume(Response.serverError().entity(stackTrace).build());
+        asyncResponse.resume(error);
       }
 
     });
+  }
+
+  private static class ExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
+
+    @Override
+    public Integer extractStatusCode(Throwable error) {
+
+      if (error instanceof WebApplicationException) {
+        return ((WebApplicationException)error).getResponse().getStatus();
+      }
+
+      return null;
+    }
+
   }
 
 }

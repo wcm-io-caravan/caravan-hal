@@ -34,13 +34,13 @@ public class HalApiClientImpl implements HalApiClient {
   /**
    * @param jsonLoader
    * @param binaryLoader
-   * @param collector an object to track all HAL resources that have been fetched while processing the current incoming
+   * @param metrics an object to track all HAL resources that have been fetched while processing the current incoming
    *          request
    */
-  public HalApiClientImpl(JsonResourceLoader jsonLoader, BinaryResourceLoader binaryLoader, RequestMetricsCollector collector) {
-    this.jsonLoader = new CachingJsonResourceLoader(jsonLoader);
+  public HalApiClientImpl(JsonResourceLoader jsonLoader, BinaryResourceLoader binaryLoader, RequestMetricsCollector metrics) {
+    this.jsonLoader = new CachingJsonResourceLoader(jsonLoader, metrics);
     this.binaryLoader = binaryLoader;
-    this.metrics = collector;
+    this.metrics = metrics;
   }
 
   @Override

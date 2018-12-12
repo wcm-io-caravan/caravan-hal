@@ -37,6 +37,7 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
+import io.wcm.caravan.hal.api.server.testing.ConversionFunctions;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -65,8 +66,8 @@ public class TemplateVariableTest {
 
   private void mockHalResponse(String url, HalResource resource) {
 
-    when(jsonLoader.loadJsonResource(eq(url), eq(metrics)))
-        .thenReturn(Single.just(resource.getModel()));
+    when(jsonLoader.loadJsonResource(eq(url)))
+        .thenReturn(Single.just(ConversionFunctions.toJsonResponse(resource)));
   }
 
   private void mockHalResponseWithNumber(String url, int number) {

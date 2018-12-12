@@ -67,8 +67,11 @@ public class ResponseMetadata implements RequestMetricsCollector {
   private Integer maxAgeOverride;
 
   @Override
-  public void onResponseRetrieved(String resourceUri, String resourceTitle, int maxAgeSeconds, long responseTimeMicros) {
-    inputMaxAgeSeconds.add(new TimeMeasurement(resourceUri, maxAgeSeconds / 1.f, TimeUnit.SECONDS));
+  public void onResponseRetrieved(String resourceUri, String resourceTitle, Integer maxAgeSeconds, long responseTimeMicros) {
+
+    if (maxAgeSeconds != null) {
+      inputMaxAgeSeconds.add(new TimeMeasurement(resourceUri, maxAgeSeconds / 1.f, TimeUnit.SECONDS));
+    }
     inputResponseTimes.add(new TimeMeasurement(resourceUri, responseTimeMicros / 1000.f, TimeUnit.MILLISECONDS));
 
     Link link = new Link(resourceUri);
@@ -83,26 +86,36 @@ public class ResponseMetadata implements RequestMetricsCollector {
   }
 
 
+  @Override
+  public void setOutputMaxAge(int value) {
+    maxAgeOverride = value;
+  }
+
   /**
    * @return the min max-age value of all responses that have been retrieved, or 365 days if no responses have been
    *         fetched,
    *         or none of them had a max-age header
    */
   @Override
-  public int getOutputMaxAge() {
+  public Integer getOutputMaxAge() {
 
-    if (maxAgeOverride != null) {
-      return maxAgeOverride;
+    if (inputMaxAgeSeconds.isEmpty() && maxAgeOverride == null) {
+      return null;
     }
 
-    return inputMaxAgeSeconds.stream()
+    int oneYear = (int)TimeUnit.DAYS.toSeconds(365);
+
+    int inputMaxAge = inputMaxAgeSeconds.stream()
         // find the max-age values of all requested resources
         .mapToInt(triple -> Math.round(triple.getTime()))
         .filter(maxAge -> maxAge >= 0)
         // get the minimum max age time
         .min()
-        // if no resources have been requested then consider the resource to be immutable)
-        .orElse((int)TimeUnit.DAYS.toSeconds(365));
+        .orElse(oneYear);
+
+    int specifiedMaxAge = maxAgeOverride != null ? maxAgeOverride : oneYear;
+
+    return Math.min(inputMaxAge, specifiedMaxAge);
   }
 
 
@@ -215,7 +228,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
 
     // and also include the overall max-age of the response
 
-    metadataResource.getModel().put("maxAge", getOutputMaxAge() + "s");
+    metadataResource.getModel().put("maxAge", getOutputMaxAge() + " s");
 
     metadataResource.getModel().put("sumOfProxyInvocationTime", getSumOfProxyInvocationMillis(HalApiClient.class) + "ms");
     metadataResource.getModel().put("sumOfResourceAssemblyTime", getSumOfProxyInvocationMillis(AsyncHalResourceRenderer.class) + "ms");
@@ -269,5 +282,6 @@ public class ResponseMetadata implements RequestMetricsCollector {
       return this.unit;
     }
   }
+
 
 }

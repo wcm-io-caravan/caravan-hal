@@ -17,21 +17,16 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.jaxrs;
+package io.wcm.caravan.hal.microservices.api.server;
 
-import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
-import io.wcm.caravan.hal.microservices.caravan.CaravanHalApiClient;
 
-public interface JaxRsHalServerSupport {
+public interface ExceptionStatusAndLoggingStrategy {
 
-  String getContextPath();
+  default Integer extractStatusCode(Throwable error) {
+    return null;
+  }
 
-  String getBundleVersion();
-
-  AsyncHalResponseHandler getResponseHandler();
-
-  CaravanHalApiClient getHalApiClient();
-
-  LinkBuilder getLinkBuilder();
-
+  default boolean logAsCompactWarning(Throwable error) {
+    return false;
+  }
 }

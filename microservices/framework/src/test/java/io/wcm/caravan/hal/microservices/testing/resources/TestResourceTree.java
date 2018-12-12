@@ -19,21 +19,16 @@
  */
 package io.wcm.caravan.hal.microservices.testing.resources;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import com.damnhandy.uri.template.UriTemplate;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableMap;
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -44,7 +39,6 @@ public class TestResourceTree implements JsonResourceLoader {
   private final TestResource entryPoint;
 
   private final Map<String, TestResource> urlResourceMap = new HashMap<>();
-  private final Set<String> urlsThatTriggerException = new HashSet<>();
 
   private int linkCounter;
 
@@ -64,7 +58,7 @@ public class TestResourceTree implements JsonResourceLoader {
   }
 
   @Override
-  public Single<JsonNode> loadJsonResource(String uri, RequestMetricsCollector metrics) {
+  public Single<HalResponse> loadJsonResource(String uri) {
 
     Link link = new Link(uri);
     if (link.isTemplated()) {
@@ -75,11 +69,19 @@ public class TestResourceTree implements JsonResourceLoader {
     if (requestedResource == null) {
       return Single.error(new HalApiClientException("No resource with path " + uri + " was created by this " + getClass().getSimpleName(), 404, uri));
     }
-    if (urlsThatTriggerException.contains(uri)) {
-      return Single
-          .error(new HalApiClientException("An error loading resource with path " + uri + " as simulated by this " + getClass().getSimpleName(), 500, uri));
+
+    Integer status = requestedResource.getStatus();
+    if (status == null || status >= 400) {
+      return Single.error(new HalApiClientException("A failure to retrieve a HAL resource was simulated", status, uri));
     }
-    return Single.just(requestedResource.asHalResource().getModel());
+
+    HalResponse response = new HalResponse()
+        .withStatus(status)
+        .withReason("")
+        .withBody(requestedResource.asHalResource())
+        .withMaxAge(requestedResource.getMaxAge());
+
+    return Single.just(response);
   }
 
   public TestResource getEntryPoint() {
@@ -97,10 +99,4 @@ public class TestResourceTree implements JsonResourceLoader {
   public TestResource createLinked(String relation, String name) {
     return getEntryPoint().createLinked(relation, name);
   }
-
-  public void throwExceptionWhenResolving(TestResource resource) {
-    assertThat(resource.getUrl()).isNotNull();
-    urlsThatTriggerException.add(resource.getUrl());
-  }
-
 }

@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
+import org.osgi.framework.Bundle;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -37,6 +38,7 @@ import io.wcm.caravan.jaxrs.publisher.JaxRsComponent;
 public class JaxRsHalServerSupportImpl implements JaxRsComponent, JaxRsHalServerSupport {
 
   private String contextPath;
+  private String bundleVersion;
 
   @Reference
   private AsyncHalResponseHandler responseHandler;
@@ -46,12 +48,24 @@ public class JaxRsHalServerSupportImpl implements JaxRsComponent, JaxRsHalServer
 
   @Activate
   void activate(ComponentContext componentCtx) {
-    contextPath = ApplicationPath.get(componentCtx.getUsingBundle());
+    Bundle bundle = componentCtx.getUsingBundle();
+
+    contextPath = ApplicationPath.get(bundle);
+
+    bundleVersion = bundle.getVersion().toString();
+    if (bundleVersion.endsWith("SNAPSHOT")) {
+      bundleVersion += "-" + bundle.getHeaders().get("Bnd-LastModified");
+    }
   }
 
   @Override
   public String getContextPath() {
     return contextPath;
+  }
+
+  @Override
+  public String getBundleVersion() {
+    return bundleVersion;
   }
 
   @Override
@@ -68,6 +82,4 @@ public class JaxRsHalServerSupportImpl implements JaxRsComponent, JaxRsHalServer
   public LinkBuilder getLinkBuilder() {
     return new JaxRsLinkBuilder(contextPath);
   }
-
-
 }

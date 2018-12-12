@@ -17,6 +17,7 @@ import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -78,8 +79,8 @@ final class HalApiClientProxyFactory {
                 + ")");
           }
 
-          return jsonLoader.loadJsonResource(url, metrics)
-              .map(json -> new HalResource(json));
+          return jsonLoader.loadJsonResource(url)
+              .map(HalResponse::getBody);
         })
         .compose(EmissionStopwatch.collectMetrics("fetching " + relatedResourceType.getSimpleName() + " resource from upstream server", metrics));
   }
