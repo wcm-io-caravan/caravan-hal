@@ -19,6 +19,8 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
+import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.isHalApiInterface;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,10 +55,9 @@ class RelatedResourceHandler {
     String relation = invocation.getRelation();
     Class<?> relatedResourceType = invocation.getEmissionType();
 
-    if (relatedResourceType.getAnnotation(HalApiInterface.class) == null) {
-
+    if (!isHalApiInterface(relatedResourceType)) {
       throw new UnsupportedOperationException("The method " + invocation + " has an invalid emission type " + relatedResourceType.getName() +
-          " which does not have a @" + HalApiInterface.class + " annotation.");
+          " which does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
     }
 
     log.trace(invocation + " was invoked, method is annotated with @RelatedResources cur=" + relation + " and returns an Observable<"
@@ -70,7 +71,6 @@ class RelatedResourceHandler {
 
     return rxEmbedded.concatWith(rxLinked);
   }
-
 
   private Observable<Object> getEmbedded(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<HalResource> embeddedResources,
       List<Link> links) {

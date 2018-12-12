@@ -110,6 +110,19 @@ public final class HalApiReflectionUtils {
                 + HalApiInterface.class.getSimpleName() + " annotation"));
   }
 
+  public static boolean isHalApiInterface(Class<?> relatedResourceType) {
+
+    if (!relatedResourceType.isInterface()) {
+      return false;
+    }
+    if (relatedResourceType.getAnnotation(HalApiInterface.class) != null) {
+      return true;
+    }
+
+    return Stream.of(relatedResourceType.getInterfaces())
+        .anyMatch(i -> i.getAnnotation(HalApiInterface.class) != null);
+  }
+
   public static Optional<Method> findResourceStateMethod(Class<?> apiInterface) {
     return Stream.of(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(ResourceState.class) != null)
@@ -172,4 +185,5 @@ public final class HalApiReflectionUtils {
   public static String getClassAndMethodName(Object instance, Method method) {
     return instance.getClass().getSimpleName() + "#" + method.getName();
   }
+
 }

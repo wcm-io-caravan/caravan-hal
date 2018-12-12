@@ -1,13 +1,14 @@
 /* Copyright (c) pro!vision GmbH. All rights reserved. */
 package io.wcm.caravan.hal.microservices.impl.client;
 
+import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.isHalApiInterface;
+
 import java.lang.reflect.Proxy;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -110,9 +111,10 @@ final class HalApiClientProxyFactory {
 
     try {
       // check that the given class is indeed a HAL api interface
-      HalApiInterface annotation = relatedResourceType.getAnnotation(HalApiInterface.class);
-      Preconditions.checkNotNull(annotation,
-          "The given resource interface " + relatedResourceType.getName() + " does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
+      if (!isHalApiInterface(relatedResourceType)) {
+        throw new IllegalArgumentException(
+            "The given resource interface " + relatedResourceType.getName() + " does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
+      }
 
       Class[] interfaces = getInterfacesToImplement(relatedResourceType);
 
