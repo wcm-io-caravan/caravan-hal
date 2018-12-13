@@ -119,7 +119,7 @@ public class TemplateVariablesTest {
     Link createLink();
   }
 
-  @TemplateVariables
+
   public static class VariablesDto {
 
     public Integer id;
@@ -130,7 +130,7 @@ public class TemplateVariablesTest {
   interface ResourceWithTemplateVariablesDto {
 
     @RelatedResource(relation = ITEM)
-    Single<LinkedResourceWithSingleState> getItem(VariablesDto dto);
+    Single<LinkedResourceWithSingleState> getItem(@TemplateVariables VariablesDto dto);
   }
 
   @Test
@@ -207,8 +207,6 @@ public class TemplateVariablesTest {
     assertThat(link.getHref()).isEqualTo(template);
   }
 
-
-  @TemplateVariables
   public interface VariablesInterface {
 
     Integer getId();
@@ -220,7 +218,7 @@ public class TemplateVariablesTest {
   interface ResourceWithTemplateVariablesInterface {
 
     @RelatedResource(relation = ITEM)
-    Single<LinkedResourceWithSingleState> getItem(VariablesInterface dto);
+    Single<LinkedResourceWithSingleState> getItem(@TemplateVariables VariablesInterface dto);
   }
 
   @Test

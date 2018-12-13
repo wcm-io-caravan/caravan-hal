@@ -178,7 +178,7 @@ public final class HalApiReflectionUtils {
     }
     catch (IllegalArgumentException | IllegalAccessException ex) {
       throw new IllegalArgumentException("Failed to read value of field " + field.getName() + " from class " + instance.getClass().getSimpleName()
-          + ". Make sure that all fields in your classes annotated with @" + TemplateVariables.class.getSimpleName() + " are public");
+          + ". Make sure that all fields in your classes used as parameters annotated with @" + TemplateVariables.class.getSimpleName() + " are public");
     }
   }
 

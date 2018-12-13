@@ -1,6 +1,8 @@
 /* Copyright (c) pro!vision GmbH. All rights reserved. */
 package io.wcm.caravan.hal.microservices.impl.client;
 
+import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.getTemplateVariablesFrom;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.HashMap;
@@ -17,7 +19,6 @@ import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
-import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 
 
@@ -48,13 +49,13 @@ public class HalApiMethodInvocation {
 
       TemplateVariable variable = parameter.getAnnotation(TemplateVariable.class);
       LinkName name = parameter.getAnnotation(LinkName.class);
-      TemplateVariables variables = parameter.getType().getAnnotation(TemplateVariables.class);
+      TemplateVariables variables = parameter.getAnnotation(TemplateVariables.class);
 
       if (variable != null) {
         templateVariables.put(variable.value(), parameterValue);
       }
       else if (variables != null) {
-        templateVariables.putAll(HalApiReflectionUtils.getTemplateVariablesFrom(parameterValue, parameter.getType()));
+        templateVariables.putAll(getTemplateVariablesFrom(parameterValue, parameter.getType()));
       }
       else if (name != null) {
         if (foundLinkName != null) {
