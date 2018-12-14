@@ -28,16 +28,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import io.reactivex.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.server.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
@@ -57,37 +55,16 @@ public class AsyncHalResponseRendererImplTest {
   @Mock
   private RequestMetricsCollector metrics;
 
-  private ExceptionStatusAndLoggingStrategy statusAndLogging;
+  private ExceptionStatusAndLoggingStrategy exceptionStrategy;
 
   @Mock
   private LinkableTestResource resource;
 
-  private AsyncHalResponseRenderer responseRenderer;
+  private HalResponse renderResponse() {
 
+    AsyncHalResponseRenderer responseRenderer = new AsyncHalResponseRendererImpl(renderer, metrics, exceptionStrategy);
 
-  @HalApiInterface
-  interface LinkableResource {
-
-    @ResourceLink
-    Link createLink();
-  }
-
-  @Before
-  public void setUp() {
-
-    statusAndLogging = new ExceptionStatusAndLoggingStrategy() {
-
-      @Override
-      public Integer extractStatusCode(Throwable error) {
-        if (error instanceof HalApiClientException) {
-          return ((HalApiClientException)error).getStatusCode();
-        }
-        return null;
-      }
-    };
-
-    responseRenderer = new AsyncHalResponseRendererImpl(renderer, metrics, statusAndLogging);
-
+    return responseRenderer.renderResponse(resource).blockingGet();
   }
 
   private HalResource mockRenderedResource() {
@@ -107,17 +84,18 @@ public class AsyncHalResponseRendererImplTest {
 
     mockRenderedResource();
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     assertThat(response.getStatus()).isEqualTo(200);
   }
+
 
   @Test
   public void response_should_have_hal_content_type_if_resource_was_rendered_succesfully() throws Exception {
 
     mockRenderedResource();
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     assertThat(response.getContentType()).isEqualTo("application/hal+json");
   }
@@ -127,7 +105,7 @@ public class AsyncHalResponseRendererImplTest {
 
     HalResource hal = mockRenderedResource();
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     assertThat(response.getBody().getModel()).isEqualTo(hal.getModel());
   }
@@ -140,7 +118,7 @@ public class AsyncHalResponseRendererImplTest {
     HalResource metadata = new HalResource();
     when(metrics.createMetadataResource(any())).thenReturn(metadata);
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     HalResource hal = response.getBody();
     assertThat(hal.hasEmbedded(CARAVAN_METADATA_RELATION));
@@ -152,7 +130,7 @@ public class AsyncHalResponseRendererImplTest {
 
     mockRenderedResource();
     when(metrics.getOutputMaxAge()).thenReturn(null);
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     assertThat(response.getMaxAge()).isNull();
   }
@@ -163,17 +141,17 @@ public class AsyncHalResponseRendererImplTest {
     mockRenderedResource();
     when(metrics.getOutputMaxAge()).thenReturn(99);
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     assertThat(response.getMaxAge()).isEqualTo(99);
   }
 
   @Test
-  public void error_response_should_have_status_code_500_for_runtime_exceptions() {
+  public void error_response_should_have_status_code_500_for_unknown_exceptions() {
 
     mockExceptionDuringRendering(new RuntimeException("Something went wrong"));
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     assertThat(response.getStatus()).isEqualTo(500);
   }
@@ -183,7 +161,29 @@ public class AsyncHalResponseRendererImplTest {
 
     mockExceptionDuringRendering(new HalApiClientException("Something went wrong", 404, "uri"));
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
+
+    assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void error_response_should_use_status_code_from_strategy() {
+
+    exceptionStrategy = new ExceptionStatusAndLoggingStrategy() {
+
+      @Override
+      public Integer extractStatusCode(Throwable error) {
+        if (error instanceof NoSuchElementException) {
+          return 404;
+        }
+        return null;
+      }
+
+    };
+
+    mockExceptionDuringRendering(new NoSuchElementException("Something was not found"));
+
+    HalResponse response = renderResponse();
 
     assertThat(response.getStatus()).isEqualTo(404);
   }
@@ -193,7 +193,7 @@ public class AsyncHalResponseRendererImplTest {
 
     mockExceptionDuringRendering(new RuntimeException("Something went wrong"));
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     assertThat(response.getContentType()).isEqualTo("application/vnd.error+json");
   }
@@ -203,7 +203,7 @@ public class AsyncHalResponseRendererImplTest {
 
     RuntimeException ex = mockExceptionDuringRendering(new RuntimeException("Something went wrong"));
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     assertThat(response.getBody().getModel().path("message").asText()).isEqualTo(ex.getMessage());
   }
@@ -214,7 +214,7 @@ public class AsyncHalResponseRendererImplTest {
     RuntimeException cause = new RuntimeException("This was the root cause");
     mockExceptionDuringRendering(new RuntimeException("Something went wrong", cause));
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     HalResource vndError = response.getBody();
     assertThat(vndError.hasEmbedded(ERRORS)).isTrue();
@@ -229,7 +229,7 @@ public class AsyncHalResponseRendererImplTest {
     Link resourceLink = new Link("/path/to/resource");
     when(resource.createLink()).thenReturn(resourceLink);
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     HalResource vndError = response.getBody();
     assertThat(vndError.hasLink(ABOUT)).isTrue();
@@ -243,7 +243,7 @@ public class AsyncHalResponseRendererImplTest {
 
     when(resource.createLink()).thenThrow(new RuntimeException());
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     HalResource vndError = response.getBody();
     assertThat(vndError.hasLink(ABOUT)).isFalse();
@@ -270,7 +270,7 @@ public class AsyncHalResponseRendererImplTest {
 
     mockExceptionDuringRendering(ex);
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     HalResource cause = response.getBody().getEmbeddedResource(ERRORS);
     assertThat(cause).isNotNull();
@@ -296,7 +296,7 @@ public class AsyncHalResponseRendererImplTest {
 
     mockExceptionDuringRendering(ex);
 
-    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+    HalResponse response = renderResponse();
 
     List<HalResource> causes = response.getBody().getEmbedded(ERRORS);
     assertThat(causes).hasSize(2);

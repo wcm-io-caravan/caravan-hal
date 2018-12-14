@@ -23,6 +23,8 @@ import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOU
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl.CARAVAN_METADATA_RELATION;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,6 +32,8 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.ImmutableList;
 
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
@@ -47,10 +51,12 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
 
   static final String CONTENT_TYPE = "application/vnd.error+json";
 
-  private final ExceptionStatusAndLoggingStrategy statusCodeExtractor;
+  private static final DefaultExceptionStatusAndLoggingStrategy DEFAULT_STRATEGY = new DefaultExceptionStatusAndLoggingStrategy();
 
-  public VndErrorResponseRendererImpl(ExceptionStatusAndLoggingStrategy statusCodeExtractor) {
-    this.statusCodeExtractor = statusCodeExtractor;
+  private final ExceptionStatusAndLoggingStrategy strategy;
+
+  public VndErrorResponseRendererImpl(ExceptionStatusAndLoggingStrategy customStrategy) {
+    this.strategy = DEFAULT_STRATEGY.decorateWith(customStrategy);
   }
 
   @Override
@@ -63,7 +69,7 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
     AsyncHalResponseRendererImpl.addMetadata(metrics, vndResource, resourceImpl);
 
     String uri = addAboutLinkAndReturnResourceUri(vndResource, resourceImpl);
-    int status = ObjectUtils.defaultIfNull(statusCodeExtractor.extractStatusCode(error), 500);
+    int status = ObjectUtils.defaultIfNull(strategy.extractStatusCode(error), 500);
     logError(error, uri, status);
 
     return new HalResponse()
@@ -74,7 +80,7 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
 
   private void logError(Throwable error, String uri, int status) {
 
-    if (statusCodeExtractor.logAsCompactWarning(error)) {
+    if (strategy.logAsCompactWarning(error)) {
       // if this error was caused by an upstream request, there is no need to include the full stack traces
       String messages = Stream.of(ExceptionUtils.getThrowables(error))
           .map(t -> t.getClass().getSimpleName() + ": " + t.getMessage())
@@ -143,5 +149,65 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
       }
     }
     return vndErrorsFoundInBody;
+  }
+
+
+  private static final class DefaultExceptionStatusAndLoggingStrategy implements ExceptionStatusAndLoggingStrategy {
+
+    @Override
+    public Integer extractStatusCode(Throwable error) {
+
+      if (error instanceof HalApiClientException) {
+        return ((HalApiClientException)error).getStatusCode();
+      }
+
+      return null;
+    }
+
+    @Override
+    public boolean logAsCompactWarning(Throwable error) {
+
+      if (error instanceof HalApiClientException) {
+        return true;
+      }
+
+      return false;
+    }
+
+    public ExceptionStatusAndLoggingStrategy decorateWith(ExceptionStatusAndLoggingStrategy customStrategy) {
+
+      if (customStrategy == null) {
+        return this;
+      }
+
+      return new MultiExceptionStatusAndLoggingStrategy(ImmutableList.of(customStrategy, this));
+    }
+  }
+
+  private static final class MultiExceptionStatusAndLoggingStrategy implements ExceptionStatusAndLoggingStrategy {
+
+    private final List<ExceptionStatusAndLoggingStrategy> strategies;
+
+    MultiExceptionStatusAndLoggingStrategy(List<ExceptionStatusAndLoggingStrategy> strategies) {
+      this.strategies = strategies;
+    }
+
+    @Override
+    public Integer extractStatusCode(Throwable error) {
+
+      return strategies.stream()
+          .map(s -> s.extractStatusCode(error))
+          .filter(Objects::nonNull)
+          .findFirst()
+          .orElse(null);
+    }
+
+    @Override
+    public boolean logAsCompactWarning(Throwable error) {
+
+      return strategies.stream()
+          .map(s -> s.logAsCompactWarning(error))
+          .reduce(false, (logAsWarning1, logAsWarning2) -> logAsWarning1 || logAsWarning2);
+    }
   }
 }

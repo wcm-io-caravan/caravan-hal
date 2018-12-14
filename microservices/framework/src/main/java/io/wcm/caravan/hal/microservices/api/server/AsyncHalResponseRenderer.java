@@ -28,9 +28,9 @@ public interface AsyncHalResponseRenderer {
 
   Single<HalResponse> renderResponse(LinkableResource resourceImpl);
 
-  static AsyncHalResponseRenderer create(RequestMetricsCollector metrics, ExceptionStatusAndLoggingStrategy statusCodeExtractor) {
+  static AsyncHalResponseRenderer create(RequestMetricsCollector metrics, ExceptionStatusAndLoggingStrategy exceptionStrategy) {
 
     AsyncHalResourceRenderer resourceRenderer = AsyncHalResourceRenderer.create(metrics);
-    return new AsyncHalResponseRendererImpl(resourceRenderer, metrics, statusCodeExtractor);
+    return new AsyncHalResponseRendererImpl(resourceRenderer, metrics, exceptionStrategy);
   }
 }

@@ -41,10 +41,10 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
   private final VndErrorResponseRenderer errorRenderer;
 
   public AsyncHalResponseRendererImpl(AsyncHalResourceRenderer renderer, RequestMetricsCollector metrics,
-      ExceptionStatusAndLoggingStrategy statusCodeExtractor) {
+      ExceptionStatusAndLoggingStrategy exceptionStrategy) {
     this.renderer = renderer;
     this.metrics = metrics;
-    this.errorRenderer = new VndErrorResponseRendererImpl(statusCodeExtractor);
+    this.errorRenderer = new VndErrorResponseRendererImpl(exceptionStrategy);
   }
 
   @Override
