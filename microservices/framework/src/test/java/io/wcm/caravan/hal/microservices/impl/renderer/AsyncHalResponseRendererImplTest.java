@@ -34,9 +34,11 @@ import java.util.NoSuchElementException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.server.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
@@ -92,7 +94,6 @@ public class AsyncHalResponseRendererImplTest {
     assertThat(response.getStatus()).isEqualTo(200);
   }
 
-
   @Test
   public void response_should_have_hal_content_type_if_resource_was_rendered_succesfully() throws Exception {
 
@@ -102,6 +103,24 @@ public class AsyncHalResponseRendererImplTest {
 
     assertThat(response.getContentType()).isEqualTo("application/hal+json");
   }
+
+  @HalApiInterface(contentType = "foo/bar")
+  interface CustomContentTypeResource extends LinkableTestResource {
+
+  }
+
+  @Test
+  public void response_should_use_custom_content_type_if_defined_in_annotation() throws Exception {
+
+    resource = Mockito.mock(CustomContentTypeResource.class);
+
+    mockRenderedResource();
+
+    HalResponse response = renderResponse();
+
+    assertThat(response.getContentType()).isEqualTo("foo/bar");
+  }
+
 
   @Test
   public void response_should_contain_hal_resource_from_renderer() throws Exception {

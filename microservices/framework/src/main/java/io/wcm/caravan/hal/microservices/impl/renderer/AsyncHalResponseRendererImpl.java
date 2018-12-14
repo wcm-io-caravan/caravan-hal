@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
@@ -27,6 +28,7 @@ import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
+import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
 
 
@@ -59,9 +61,13 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
     addMetadata(metrics, halResource, resourceImpl);
 
+    String contentType = HalApiReflectionUtils.findHalApiInterface(resourceImpl)
+        .getAnnotation(HalApiInterface.class)
+        .contentType();
+
     HalResponse response = new HalResponse()
         .withStatus(200)
-        .withContentType(HalResource.CONTENT_TYPE)
+        .withContentType(contentType)
         .withReason("Ok")
         .withBody(halResource)
         .withMaxAge(metrics.getOutputMaxAge());
