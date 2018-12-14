@@ -26,19 +26,22 @@ import io.wcm.caravan.hal.resource.HalResource;
 public class HalResponse {
 
   private final Integer status;
+  private final String contentType;
   private final String reason;
   private final HalResource body;
   private final Integer maxAge;
 
   public HalResponse() {
     this.status = null;
+    this.contentType = null;
     this.reason = null;
     this.body = null;
     this.maxAge = null;
   }
 
-  private HalResponse(Integer status, String reason, HalResource body, Integer maxAge) {
+  private HalResponse(Integer status, String contentType, String reason, HalResource body, Integer maxAge) {
     this.status = status;
+    this.contentType = contentType;
     this.reason = reason;
     this.body = body;
     this.maxAge = maxAge;
@@ -49,7 +52,15 @@ public class HalResponse {
   }
 
   public HalResponse withStatus(Integer value) {
-    return new HalResponse(value, reason, body, maxAge);
+    return new HalResponse(value, contentType, reason, body, maxAge);
+  }
+
+  public String getContentType() {
+    return contentType;
+  }
+
+  public HalResponse withContentType(String value) {
+    return new HalResponse(status, value, reason, body, maxAge);
   }
 
   public String getReason() {
@@ -57,7 +68,7 @@ public class HalResponse {
   }
 
   public HalResponse withReason(String value) {
-    return new HalResponse(status, value, body, maxAge);
+    return new HalResponse(status, contentType, value, body, maxAge);
   }
 
   public HalResource getBody() {
@@ -65,12 +76,12 @@ public class HalResponse {
   }
 
   public HalResponse withBody(HalResource value) {
-    return new HalResponse(status, reason, value, maxAge);
+    return new HalResponse(status, contentType, reason, value, maxAge);
   }
 
   public HalResponse withBody(JsonNode value) {
     HalResource hal = value != null ? new HalResource(value) : null;
-    return new HalResponse(status, reason, hal, maxAge);
+    return new HalResponse(status, contentType, reason, hal, maxAge);
   }
 
   public Integer getMaxAge() {
@@ -78,6 +89,6 @@ public class HalResponse {
   }
 
   public HalResponse withMaxAge(Integer value) {
-    return new HalResponse(status, reason, body, value);
+    return new HalResponse(status, contentType, reason, body, value);
   }
 }

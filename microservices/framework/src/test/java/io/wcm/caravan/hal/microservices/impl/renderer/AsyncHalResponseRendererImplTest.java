@@ -113,6 +113,16 @@ public class AsyncHalResponseRendererImplTest {
   }
 
   @Test
+  public void response_should_have_hal_content_type_if_resource_was_rendered_succesfully() throws Exception {
+
+    mockRenderedResource();
+
+    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+
+    assertThat(response.getContentType()).isEqualTo("application/hal+json");
+  }
+
+  @Test
   public void response_should_contain_hal_resource_from_renderer() throws Exception {
 
     HalResource hal = mockRenderedResource();
@@ -176,6 +186,16 @@ public class AsyncHalResponseRendererImplTest {
     HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
 
     assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  @Test
+  public void error_response_should_have_vnderror_content_type() {
+
+    mockExceptionDuringRendering(new RuntimeException("Something went wrong"));
+
+    HalResponse response = responseRenderer.renderResponse(resource).blockingGet();
+
+    assertThat(response.getContentType()).isEqualTo("application/vnd.error+json");
   }
 
   @Test

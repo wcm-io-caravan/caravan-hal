@@ -45,6 +45,8 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
 
   private static final Logger log = LoggerFactory.getLogger(VndErrorResponseRendererImpl.class);
 
+  static final String CONTENT_TYPE = "application/vnd.error+json";
+
   private final ExceptionStatusAndLoggingStrategy statusCodeExtractor;
 
   public VndErrorResponseRendererImpl(ExceptionStatusAndLoggingStrategy statusCodeExtractor) {
@@ -66,6 +68,7 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
 
     return new HalResponse()
         .withStatus(status)
+        .withContentType(CONTENT_TYPE)
         .withBody(vndResource);
   }
 

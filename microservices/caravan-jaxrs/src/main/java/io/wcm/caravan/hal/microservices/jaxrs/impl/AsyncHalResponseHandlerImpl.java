@@ -30,72 +30,61 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.reactivex.Single;
-import io.reactivex.SingleObserver;
-import io.reactivex.disposables.Disposable;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.jaxrs.AsyncHalResponseHandler;
-import io.wcm.caravan.hal.resource.HalResource;
 
 @Component(service = { AsyncHalResponseHandler.class })
 public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
 
   private static final Logger log = LoggerFactory.getLogger(AsyncHalResponseHandlerImpl.class);
 
-  private final ExceptionStrategy exceptionStrategy = new ExceptionStrategy();
+  private final JaxRsExceptionStrategy exceptionStrategy = new JaxRsExceptionStrategy();
 
   @Override
-  public void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse, RequestMetricsCollector metrics) {
+  public void respondWith(LinkableResource resourceImpl, AsyncResponse suspended, RequestMetricsCollector metrics) {
 
+    // create a response renderer with a strategy that is able to extract the status code
+    // from any JAX-RS WebApplicationException that might be thrown in the resource implementations
     AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics, exceptionStrategy);
 
-    Single<HalResponse> rxHalResource = renderer.renderResponse(resourceImpl);
+    // asynchronously render the given resource (or create a vnd.error response if any exceptions are thrown)
+    Single<HalResponse> rxResponse = renderer.renderResponse(resourceImpl);
 
-    rxHalResource.subscribe(new SingleObserver<HalResponse>() {
-
-      @Override
-      public void onSubscribe(Disposable d) {
-        // nothing to do here
-      }
-
-      @Override
-      public void onSuccess(HalResponse jsonResponse) {
-
-        ResponseBuilder response = Response
-            .status(jsonResponse.getStatus())
-            .entity(jsonResponse.getBody());
-
-        Integer maxAge = jsonResponse.getMaxAge();
-        if (maxAge != null) {
-          CacheControl cacheControl = new CacheControl();
-          cacheControl.setMaxAge(maxAge);
-          response.cacheControl(cacheControl);
-        }
-
-        if (jsonResponse.getStatus() >= 400) {
-          response.type("application/vnd.error+json");
-        }
-        else {
-          response.type(HalResource.CONTENT_TYPE);
-        }
-
-        asyncResponse.resume(response.build());
-      }
-
-      @Override
-      public void onError(Throwable error) {
-
-        log.error("Failed to handle request", error);
-        asyncResponse.resume(error);
-      }
-
-    });
+    rxResponse.subscribe(
+        // return the HAL or VND+Error response when it is available
+        halResponse -> resumeWithResponse(suspended, halResponse),
+        // or fall back to the regular JAX-RS error handling if an exception was not caught
+        fatalException -> resumeWithError(suspended, fatalException));
   }
 
-  private static class ExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
+  private void resumeWithResponse(AsyncResponse suspended, HalResponse halResponse) {
+
+    ResponseBuilder jaxRsResponse = Response
+        .status(halResponse.getStatus())
+        .type(halResponse.getContentType())
+        .entity(halResponse.getBody());
+
+    Integer maxAge = halResponse.getMaxAge();
+    if (maxAge != null) {
+      CacheControl cacheControl = new CacheControl();
+      cacheControl.setMaxAge(maxAge);
+      jaxRsResponse.cacheControl(cacheControl);
+    }
+
+    suspended.resume(jaxRsResponse.build());
+  }
+
+  private void resumeWithError(AsyncResponse suspended, Throwable error) {
+    log.error("Failed to handle request", error);
+
+    suspended.resume(error);
+  }
+
+  private static class JaxRsExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
 
     @Override
     public Integer extractStatusCode(Throwable error) {
@@ -106,7 +95,5 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
 
       return null;
     }
-
   }
-
 }
