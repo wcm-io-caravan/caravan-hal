@@ -19,32 +19,18 @@
  */
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
-import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOUT;
-import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
-
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import io.reactivex.Single;
-import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.hal.resource.Link;
 
 
 public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
-
-  private static final Logger log = LoggerFactory.getLogger(AsyncHalResourceRendererImpl.class);
 
   static final String CARAVAN_METADATA_RELATION = "caravan:metadata";
 
@@ -52,133 +38,41 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
   private final RequestMetricsCollector metrics;
 
-  private final ExceptionStatusAndLoggingStrategy statusCodeExtractor;
+  private final VndErrorResponseRenderer errorRenderer;
 
   public AsyncHalResponseRendererImpl(AsyncHalResourceRenderer renderer, RequestMetricsCollector metrics,
       ExceptionStatusAndLoggingStrategy statusCodeExtractor) {
     this.renderer = renderer;
     this.metrics = metrics;
-    this.statusCodeExtractor = statusCodeExtractor;
+    this.errorRenderer = new VndErrorResponseRendererImpl(statusCodeExtractor);
   }
 
   @Override
   public Single<HalResponse> renderResponse(LinkableResource resourceImpl) {
 
     return renderer.renderResource(resourceImpl)
-        .flatMap(hal -> this.createResponse(resourceImpl, hal))
-        .onErrorResumeNext(ex -> this.handleError(resourceImpl, ex));
+        .map(halResource -> createResponse(resourceImpl, halResource))
+        .onErrorReturn(ex -> errorRenderer.renderError(resourceImpl, ex, metrics));
   }
 
-  Single<HalResponse> createResponse(LinkableResource resourceImpl, HalResource hal) {
+  HalResponse createResponse(LinkableResource resourceImpl, HalResource halResource) {
 
-    addMetadata(hal, resourceImpl);
+    addMetadata(metrics, halResource, resourceImpl);
 
     HalResponse response = new HalResponse()
         .withStatus(200)
         .withReason("Ok")
-        .withBody(hal)
+        .withBody(halResource)
         .withMaxAge(metrics.getOutputMaxAge());
 
-    return Single.just(response);
+    return response;
   }
 
-  private void addMetadata(HalResource hal, LinkableResource resourceImpl) {
+  static void addMetadata(RequestMetricsCollector metrics, HalResource hal, LinkableResource resourceImpl) {
 
     HalResource metadata = metrics.createMetadataResource(resourceImpl);
     if (metadata != null) {
       hal.addEmbedded(CARAVAN_METADATA_RELATION, metadata);
     }
-  }
-
-  Single<HalResponse> handleError(LinkableResource resourceImpl, Throwable error) {
-
-    HalResource vndResource = new HalResource();
-
-    addProperties(vndResource, error);
-    addEmbeddedCauses(vndResource, error);
-    addMetadata(vndResource, resourceImpl);
-
-    String uri = addAboutLinkAndReturnResourceUri(vndResource, resourceImpl);
-    int status = ObjectUtils.defaultIfNull(statusCodeExtractor.extractStatusCode(error), 500);
-    logError(error, uri, status);
-
-    HalResponse response = new HalResponse()
-        .withStatus(status)
-        .withBody(vndResource);
-
-    return Single.just(response);
-  }
-
-  private void logError(Throwable error, String uri, int status) {
-
-    if (statusCodeExtractor.logAsCompactWarning(error)) {
-      // if this error was caused by an upstream request, there is no need to include the full stack traces
-      String messages = Stream.of(ExceptionUtils.getThrowables(error))
-          .map(t -> t.getClass().getSimpleName() + ": " + t.getMessage())
-          .collect(Collectors.joining("\n"));
-
-      log.warn("Responding with " + status + " for " + uri + ":\n" + messages);
-    }
-    else {
-      log.error("Responding with " + status + " for " + uri, error);
-    }
-  }
-
-  private void addProperties(HalResource vndResource, Throwable error) {
-
-    vndResource.getModel().put("message", error.getMessage());
-    vndResource.getModel().put("title", error.getClass().getName() + ": " + error.getMessage());
-  }
-
-  private String addAboutLinkAndReturnResourceUri(HalResource vndResource, LinkableResource resourceImpl) {
-    Link clonedLink = null;
-    try {
-      Link link = resourceImpl.createLink();
-      clonedLink = new Link(link.getModel().deepCopy());
-    }
-    catch (RuntimeException ex) {
-      //
-    }
-
-    if (clonedLink != null) {
-      vndResource.addLinks(ABOUT, clonedLink);
-    }
-
-    return clonedLink != null ? clonedLink.getHref() : "(unknown URI)";
-  }
-
-  private void addEmbeddedCauses(HalResource vndResource, Throwable error) {
-    Throwable cause = error.getCause();
-    if (cause != null) {
-      HalResource embedded = new HalResource();
-      addProperties(embedded, cause);
-
-      boolean vndErrorsFoundInBody = embeddErrorsFromUpstreamResponse(embedded, cause);
-
-      vndResource.addEmbedded(ERRORS, embedded);
-
-      if (!vndErrorsFoundInBody) {
-        addEmbeddedCauses(vndResource, cause);
-      }
-    }
-  }
-
-  private boolean embeddErrorsFromUpstreamResponse(HalResource embedded, Throwable cause) {
-    boolean vndErrorsFoundInBody = false;
-    if (cause instanceof HalApiClientException) {
-      HalApiClientException hace = (HalApiClientException)cause;
-
-      Link link = new Link(hace.getRequestUrl()).setTitle("The upstream resource that could not be loaded");
-      embedded.addLinks(ABOUT, link);
-
-      HalResponse upstreamJson = hace.getErrorResponse();
-      if (upstreamJson.getBody() != null && upstreamJson.getBody().getModel().size() > 0) {
-        HalResource causeFromBody = new HalResource(upstreamJson.getBody().getModel().deepCopy());
-        causeFromBody.removeEmbedded(CARAVAN_METADATA_RELATION);
-        embedded.addEmbedded(ERRORS, causeFromBody);
-        vndErrorsFoundInBody = true;
-      }
-    }
-    return vndErrorsFoundInBody;
   }
 }

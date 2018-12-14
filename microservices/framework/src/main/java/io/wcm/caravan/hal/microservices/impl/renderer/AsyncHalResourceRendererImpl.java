@@ -37,7 +37,6 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.impl.metadata.CachingEmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
@@ -51,7 +50,6 @@ import io.wcm.caravan.hal.resource.Link;
 public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRenderer {
 
   private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-  private static final ObjectNode EMPTY_OBJECT = JsonNodeFactory.instance.objectNode();
 
   private final RelatedResourcesRendererImpl relatedRenderer;
   private final RequestMetricsCollector metrics;
