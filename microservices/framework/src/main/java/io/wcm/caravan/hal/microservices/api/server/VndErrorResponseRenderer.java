@@ -26,7 +26,7 @@ import io.wcm.caravan.hal.microservices.impl.renderer.VndErrorResponseRendererIm
 
 public interface VndErrorResponseRenderer {
 
-  HalResponse renderError(LinkableResource resourceImpl, Throwable error, RequestMetricsCollector metrics);
+  HalResponse renderError(LinkableResource resourceImpl, Throwable error, String requestUri, RequestMetricsCollector metrics);
 
   public static VndErrorResponseRenderer create(ExceptionStatusAndLoggingStrategy exceptionStrategy) {
 

@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
+import static io.wcm.caravan.hal.api.annotations.StandardRelations.CANONICAL;
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOUT;
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl.CARAVAN_METADATA_RELATION;
@@ -49,6 +50,8 @@ import io.wcm.caravan.hal.resource.Link;
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncHalResponseRendererImplTest {
 
+  private static final String REQUEST_URI = "/requestUri";
+
   @Mock
   private AsyncHalResourceRenderer renderer;
 
@@ -64,7 +67,7 @@ public class AsyncHalResponseRendererImplTest {
 
     AsyncHalResponseRenderer responseRenderer = new AsyncHalResponseRendererImpl(renderer, metrics, exceptionStrategy);
 
-    return responseRenderer.renderResponse(resource).blockingGet();
+    return responseRenderer.renderResponse(REQUEST_URI, resource).blockingGet();
   }
 
   private HalResource mockRenderedResource() {
@@ -222,7 +225,7 @@ public class AsyncHalResponseRendererImplTest {
   }
 
   @Test
-  public void error_response_should_contain_about_link_to_resource() {
+  public void error_response_should_contain_about_and_canonical_link_to_resource() {
 
     mockExceptionDuringRendering(new RuntimeException("Something went wrong"));
 
@@ -233,11 +236,13 @@ public class AsyncHalResponseRendererImplTest {
 
     HalResource vndError = response.getBody();
     assertThat(vndError.hasLink(ABOUT)).isTrue();
-    assertThat(vndError.getLink(ABOUT)).isEqualTo(resourceLink);
+    assertThat(vndError.getLink(ABOUT).getHref()).isEqualTo(REQUEST_URI);
+    assertThat(vndError.hasLink(CANONICAL)).isTrue();
+    assertThat(vndError.getLink(CANONICAL).getHref()).isEqualTo(resourceLink.getHref());
   }
 
   @Test
-  public void error_response_should_ignore_exception_when_creating_about_link() {
+  public void error_response_should_ignore_exception_when_creating_canonical_link() {
 
     mockExceptionDuringRendering(new RuntimeException("Something went wrong"));
 
@@ -246,7 +251,9 @@ public class AsyncHalResponseRendererImplTest {
     HalResponse response = renderResponse();
 
     HalResource vndError = response.getBody();
-    assertThat(vndError.hasLink(ABOUT)).isFalse();
+    assertThat(vndError.hasLink(ABOUT)).isTrue();
+    assertThat(vndError.getLink(ABOUT).getHref()).isEqualTo(REQUEST_URI);
+    assertThat(vndError.hasLink(CANONICAL)).isFalse();
   }
 
   private RuntimeException createWrappedHalClientExceptionWithVndErrorBody(Integer status, String message) {

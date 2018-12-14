@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.microservices.jaxrs;
 
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.UriInfo;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -29,6 +30,6 @@ import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 @ProviderType
 public interface AsyncHalResponseHandler {
 
-  void respondWith(LinkableResource resourceImpl, AsyncResponse asyncResponse, RequestMetricsCollector metrics);
+  void respondWith(LinkableResource resourceImpl, UriInfo uriInfo, AsyncResponse asyncResponse, RequestMetricsCollector metrics);
 
 }

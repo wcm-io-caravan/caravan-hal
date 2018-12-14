@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableList;
 
+import io.wcm.caravan.hal.api.annotations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -60,17 +61,18 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
   }
 
   @Override
-  public HalResponse renderError(LinkableResource resourceImpl, Throwable error, RequestMetricsCollector metrics) {
+  public HalResponse renderError(LinkableResource resourceImpl, Throwable error, String requestUri, RequestMetricsCollector metrics) {
 
     HalResource vndResource = new HalResource();
 
     addProperties(vndResource, error);
+    addAboutLinkAndReturnResourceUri(vndResource, resourceImpl, requestUri);
+
     addEmbeddedCauses(vndResource, error);
     AsyncHalResponseRendererImpl.addMetadata(metrics, vndResource, resourceImpl);
 
-    String uri = addAboutLinkAndReturnResourceUri(vndResource, resourceImpl);
     int status = ObjectUtils.defaultIfNull(strategy.extractStatusCode(error), 500);
-    logError(error, uri, status);
+    logError(error, requestUri, status);
 
     return new HalResponse()
         .withStatus(status)
@@ -99,21 +101,24 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
     vndResource.getModel().put("title", error.getClass().getName() + ": " + error.getMessage());
   }
 
-  private String addAboutLinkAndReturnResourceUri(HalResource vndResource, LinkableResource resourceImpl) {
-    Link clonedLink = null;
+  private void addAboutLinkAndReturnResourceUri(HalResource vndResource, LinkableResource resourceImpl, String requestUri) {
+
+    Link aboutLink = new Link(requestUri).setTitle("The URI of this resource as it was actually requested");
+    vndResource.addLinks(ABOUT, aboutLink);
+
+    Link selfLink = null;
     try {
-      Link link = resourceImpl.createLink();
-      clonedLink = new Link(link.getModel().deepCopy());
+      selfLink = resourceImpl.createLink()
+          .setTitle("The URI as reported by the self-link of this resource");
     }
     catch (RuntimeException ex) {
       //
     }
 
-    if (clonedLink != null) {
-      vndResource.addLinks(ABOUT, clonedLink);
+    if (selfLink != null && !requestUri.endsWith(selfLink.getHref())) {
+      vndResource.addLinks(StandardRelations.CANONICAL, selfLink);
     }
 
-    return clonedLink != null ? clonedLink.getHref() : "(unknown URI)";
   }
 
   private void addEmbeddedCauses(HalResource vndResource, Throwable error) {

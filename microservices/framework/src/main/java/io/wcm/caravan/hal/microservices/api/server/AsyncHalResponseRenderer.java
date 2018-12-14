@@ -26,7 +26,7 @@ import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererIm
 
 public interface AsyncHalResponseRenderer {
 
-  Single<HalResponse> renderResponse(LinkableResource resourceImpl);
+  Single<HalResponse> renderResponse(String requestUri, LinkableResource resourceImpl);
 
   static AsyncHalResponseRenderer create(RequestMetricsCollector metrics, ExceptionStatusAndLoggingStrategy exceptionStrategy) {
 

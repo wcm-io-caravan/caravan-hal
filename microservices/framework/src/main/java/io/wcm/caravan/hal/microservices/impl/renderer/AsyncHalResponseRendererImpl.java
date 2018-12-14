@@ -48,11 +48,11 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
   }
 
   @Override
-  public Single<HalResponse> renderResponse(LinkableResource resourceImpl) {
+  public Single<HalResponse> renderResponse(String requestUri, LinkableResource resourceImpl) {
 
     return renderer.renderResource(resourceImpl)
         .map(halResource -> createResponse(resourceImpl, halResource))
-        .onErrorReturn(ex -> errorRenderer.renderError(resourceImpl, ex, metrics));
+        .onErrorReturn(ex -> errorRenderer.renderError(resourceImpl, ex, requestUri, metrics));
   }
 
   HalResponse createResponse(LinkableResource resourceImpl, HalResource halResource) {

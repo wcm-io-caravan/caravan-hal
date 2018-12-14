@@ -24,6 +24,7 @@ import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.CacheControl;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.UriInfo;
 
 import org.osgi.service.component.annotations.Component;
 import org.slf4j.Logger;
@@ -45,14 +46,15 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
   private final JaxRsExceptionStrategy exceptionStrategy = new JaxRsExceptionStrategy();
 
   @Override
-  public void respondWith(LinkableResource resourceImpl, AsyncResponse suspended, RequestMetricsCollector metrics) {
+  public void respondWith(LinkableResource resourceImpl, UriInfo uriInfo, AsyncResponse suspended, RequestMetricsCollector metrics) {
 
     // create a response renderer with a strategy that is able to extract the status code
     // from any JAX-RS WebApplicationException that might be thrown in the resource implementations
     AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics, exceptionStrategy);
 
     // asynchronously render the given resource (or create a vnd.error response if any exceptions are thrown)
-    Single<HalResponse> rxResponse = renderer.renderResponse(resourceImpl);
+    String requestUri = uriInfo.getRequestUri().toString();
+    Single<HalResponse> rxResponse = renderer.renderResponse(requestUri, resourceImpl);
 
     rxResponse.subscribe(
         // return the HAL or VND+Error response when it is available
