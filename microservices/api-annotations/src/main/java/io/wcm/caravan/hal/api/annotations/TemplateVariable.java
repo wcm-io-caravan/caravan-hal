@@ -24,9 +24,18 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation to be used on parameters of methods annotated with {@link RelatedResource} to define
+ * which variable in the URI template should be expanded with the given parameter value. If you
+ * have link templates with many variables, consider using {@link TemplateVariables} to simplify
+ * your method signatures.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface TemplateVariable {
 
+  /**
+   * @return the name of the template variable that corresponds to this method parameter
+   */
   String value();
 }

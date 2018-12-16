@@ -25,12 +25,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * A marker annotation for all HAL API interfaces. This is required to generate a HalResource from a server-side HAL
- * resource implementation (to find the relevant API interface if the class implements multiple interfaces)
+ * A marker annotation that is required for all HAL API interfaces, to indicate that it should be scanned for the
+ * presence of methods annotated with {@link RelatedResource}, {@link ResourceState}, etc that actually define the API.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface HalApiInterface {
 
+  /**
+   * Allows to define a custom content type that is used when rendering server-side resource instances implementing
+   * this interface
+   * @return the custom content type (or default value of "application/hal+json")
+   */
   String contentType() default "application/hal+json";
 }

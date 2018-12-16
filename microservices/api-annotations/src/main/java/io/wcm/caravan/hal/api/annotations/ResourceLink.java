@@ -24,8 +24,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.wcm.caravan.hal.resource.Link;
+
+/**
+ * Used to define methods that allow clients to only access URI of a resource, or the
+ * {@link Link} instance that is pointing to a resource (with actually fetching the resource).
+ * The return type of the method must be {@link Link} or {@link String}
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface ResourceLink {
-
+  // this is just a marker interface that does not have any configurable options
 }

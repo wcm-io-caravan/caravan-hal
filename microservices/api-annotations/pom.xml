@@ -48,6 +48,15 @@
     <site.url.module.prefix>hal/microservices/api-annotations</site.url.module.prefix>
   </properties>
 
+  <dependencies>
+    <dependency>
+      <groupId>io.wcm.caravan</groupId>
+      <artifactId>io.wcm.caravan.hal.resource</artifactId>
+      <version>1.1.0</version>
+      <scope>compile</scope>
+    </dependency>
+  </dependencies>
+
   <build>
     <plugins>
 

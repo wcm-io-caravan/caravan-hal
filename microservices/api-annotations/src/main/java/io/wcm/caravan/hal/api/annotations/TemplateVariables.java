@@ -24,8 +24,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Annotation to be used on parameters of methods annotated with {@link RelatedResource} to mark
+ * a single DTO parameter that is used to expand multiple template variables. This can be used
+ * to simply method signatures with a lot of parameters, by defining a single composite DTO type with
+ * multiple fields that are named exactly as the corresponding template variables. Parameters with
+ * this annotation can either be of a class with public fields, or an interface with public getters.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface TemplateVariables {
-
+  // this is just a marker interface that does not have any configurable options
 }

@@ -24,15 +24,28 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Used to annotate methods that allow access to linked or embedded resources. The return value of methods
+ * annotated with {@link RelatedResource} must be a reactive stream of another interface annotated with
+ * {@link HalApiInterface}. Methods with this annotation can have parameters with {@link TemplateVariable} or
+ * {@link TemplateVariables} annotations to allow clients to expand link templates with the values specified
+ * in those parameters.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface RelatedResource {
 
   /**
-   * This property defines the relation between the context resource and the related resource
+   * Defines the relation of the target resource to this context resource.
    * @return a standard relation or CURI of a custom relation (i.e. "prefix:relation")
    */
   String relation();
 
-  String[] method() default "GET";
+  /**
+   * Defines the HTTP method that should be used by clients when following links with this relation
+   * @return "GET" or any other HTTP method explicitly defined in the annotation
+   */
+  // TODO: this parameter should be removed as long as we don't actually support anything but "GET"
+  String method() default "GET";
+
 }

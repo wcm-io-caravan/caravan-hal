@@ -2,7 +2,7 @@
 package io.wcm.caravan.hal.api.annotations;
 
 /**
- * Constants for the standard link relations used in the SDL REST APIs
+ * Constants for standard link relations used in {@link RelatedResource} annotations.
  * @see <a href="http://www.iana.org/assignments/link-relations/link-relations.xhtml">IANA Link Relation Types</a>
  */
 public final class StandardRelations {

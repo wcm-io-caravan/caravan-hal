@@ -24,8 +24,17 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import io.wcm.caravan.hal.resource.HalResource;
+
+/**
+ * Used to annotate a method that allows clients to get the full JSON representation of the resource
+ * (including the _links and _embedded properties). The return type of the method must be a reactive
+ * stream of {@link JsonNode} or {@link HalResource}.
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface ResourceRepresentation {
-
+  // this is just a marker interface that does not have any configurable options
 }

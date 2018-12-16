@@ -24,6 +24,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * Used to annotate the method that allows to access the state/properties of a HAL resource.
+ * The return value of the method must be a reactive single of a JSON node or Java
+ * class that matches the JSON object structure (either with public properties or following bean conventions)
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface ResourceState {
