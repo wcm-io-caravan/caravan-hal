@@ -19,7 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
-import static io.wcm.caravan.hal.api.annotations.StandardRelations.ITEM;
+import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
@@ -33,7 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
-import io.wcm.caravan.hal.api.annotations.StandardRelations;
+import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;

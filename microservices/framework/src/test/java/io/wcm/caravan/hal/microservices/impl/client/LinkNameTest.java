@@ -19,7 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
-import static io.wcm.caravan.hal.api.annotations.StandardRelations.ITEM;
+import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
