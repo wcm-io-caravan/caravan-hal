@@ -31,6 +31,7 @@ import java.lang.annotation.Target;
  * {@link TemplateVariables} annotations to allow clients to expand link templates with the values specified
  * in those parameters.
  */
+// TODO: this could be renamed to @Related which is shorter and doesn't imply that it returns just a single resource
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface RelatedResource {
@@ -46,6 +47,8 @@ public @interface RelatedResource {
    * @return "GET" or any other HTTP method explicitly defined in the annotation
    */
   // TODO: this parameter should be removed as long as we don't actually support anything but "GET"
+  // another benefit of removing this parameter is that if we only have a single parameter
+  // we could just use "value" so using the annotation would be as simple as @RelatedResource("relation")
   String method() default "GET";
 
 }
