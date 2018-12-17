@@ -45,7 +45,8 @@ import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 /**
- * Asynchronously generate a {@link HalResource} instance from the given server-side HAL resource implementation
+ * Full implementation of {@link AsyncHalResourceRenderer} that will collect detailed performance information
+ * while rendering the {@link HalResource}
  */
 public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRenderer {
 
@@ -54,6 +55,11 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
   private final RelatedResourcesRendererImpl relatedRenderer;
   private final RequestMetricsCollector metrics;
 
+  /**
+   * Create a new renderer to use (only) for the current incoming request
+   * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
+   *          the current incoming request
+   */
   public AsyncHalResourceRendererImpl(RequestMetricsCollector metrics) {
     this.relatedRenderer = new RelatedResourcesRendererImpl(this::renderLinkedOrEmbeddedResource, metrics);
     this.metrics = metrics;
@@ -61,6 +67,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
 
   @Override
   public Single<HalResource> renderResource(LinkableResource resourceImpl) {
+
     return renderLinkedOrEmbeddedResource(resourceImpl);
   }
 
@@ -100,7 +107,6 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     // find the first method annotated with @ResourceState (and return an empty object if there is none)
     Optional<Method> method = HalApiReflectionUtils.findResourceStateMethod(apiInterface);
     if (!method.isPresent()) {
-
       return emptyObject;
     }
 

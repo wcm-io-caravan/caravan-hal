@@ -106,7 +106,7 @@ public class AsyncHalResponseRendererImplTest {
 
   @HalApiInterface(contentType = "foo/bar")
   interface CustomContentTypeResource extends LinkableTestResource {
-
+    // extended only to add a custom content type in the annotation
   }
 
   @Test

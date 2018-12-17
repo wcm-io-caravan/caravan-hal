@@ -37,8 +37,22 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 
-public class RxJavaReflectionUtils {
+/**
+ * Internal utility methods to invoke methods returning reactive streams, and converting between various
+ * reactive types.
+ */
+public final class RxJavaReflectionUtils {
 
+  private RxJavaReflectionUtils() {
+    // this class contains only static methods
+  }
+
+  /**
+   * @param resourceImplInstance the object on which to invoke the method
+   * @param method a method that returns a {@link Single}, {@link Maybe}, {@link Observable} or {@link Publisher}
+   * @param metrics to track the method invocation time
+   * @return an {@link Observable} that emits the items from the reactive stream returned by the method
+   */
   public static Observable<?> invokeMethodAndReturnObservable(Object resourceImplInstance, Method method, RequestMetricsCollector metrics) {
 
     Stopwatch stopwatch = Stopwatch.createStarted();
@@ -110,6 +124,12 @@ public class RxJavaReflectionUtils {
     return Observable.class.isAssignableFrom(returnType) || Single.class.isAssignableFrom(returnType) || Maybe.class.isAssignableFrom(returnType);
   }
 
+  /**
+   * @param reactiveInstance a {@link Single}, {@link Maybe}, {@link Observable} or {@link Publisher}
+   * @param targetType {@link Single}, {@link Maybe}, {@link Observable} or {@link Publisher} class
+   * @return an instance of the target type that will replay (and cache!) the items emitted by the given reactive
+   *         instance
+   */
   public static Object convertAndCacheReactiveType(Object reactiveInstance, Class<?> targetType) {
 
     Observable<?> observable = convertToObservable(reactiveInstance)

@@ -41,6 +41,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import com.google.common.collect.Lists;
 
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
+import io.wcm.caravan.hal.api.annotations.Related;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
@@ -54,7 +55,7 @@ public final class HalApiReflectionUtils {
     // static methods only
   }
 
-  static Comparator<Method> methodRelationComparator = (method1, method2) -> {
+  private static final Comparator<Method> METHOD_RELATION_COMPARATOR = (method1, method2) -> {
     String curi1 = method1.getAnnotation(RelatedResource.class).relation();
     String curi2 = method2.getAnnotation(RelatedResource.class).relation();
 
@@ -118,6 +119,10 @@ public final class HalApiReflectionUtils {
                 + HalApiInterface.class.getSimpleName() + " annotation"));
   }
 
+  /**
+   * @param relatedResourceType an interface used as emission type of a reactive stream
+   * @return true if the given interface is (or extends another interface) annotated with {@link HalApiInterface}
+   */
   public static boolean isHalApiInterface(Class<?> relatedResourceType) {
 
     if (!relatedResourceType.isInterface()) {
@@ -127,24 +132,38 @@ public final class HalApiReflectionUtils {
       return true;
     }
 
-    return Stream.of(relatedResourceType.getInterfaces())
+    return collectInterfaces(relatedResourceType).stream()
         .anyMatch(i -> i.getAnnotation(HalApiInterface.class) != null);
   }
 
+  /**
+   * @param apiInterface an interface annotated with {@link HalApiInterface} (either directly or by extending)
+   * @return the method annotated with {@link ResourceState}
+   */
   public static Optional<Method> findResourceStateMethod(Class<?> apiInterface) {
+
     return Stream.of(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(ResourceState.class) != null)
         .findFirst();
   }
 
+  /**
+   * @param apiInterface an interface annotated with {@link HalApiInterface} (either directly or by extending)
+   * @return a list of all methods annotated with {@link Related}
+   */
   public static List<Method> getSortedRelatedResourceMethods(Class<?> apiInterface) {
 
     return Stream.of(apiInterface.getMethods())
         .filter(method -> method.getAnnotation(RelatedResource.class) != null)
-        .sorted((m1, m2) -> HalApiReflectionUtils.methodRelationComparator.compare(m1, m2))
+        .sorted((m1, m2) -> HalApiReflectionUtils.METHOD_RELATION_COMPARATOR.compare(m1, m2))
         .collect(Collectors.toList());
   }
 
+  /**
+   * @param dto the DTO objet from which to extract the template variables
+   * @param dtoClass the type of the object that was used in the parameter definition
+   * @return a map with the names and values of all fields in the given object
+   */
   public static Map<String, Object> getTemplateVariablesFrom(Object dto, Class dtoClass) {
 
     if (dtoClass.isInterface()) {
@@ -190,6 +209,11 @@ public final class HalApiReflectionUtils {
     }
   }
 
+  /**
+   * @param instance of any object
+   * @param method a method of this class
+   * @return a string with the simple class name and method name
+   */
   public static String getClassAndMethodName(Object instance, Method method) {
     return instance.getClass().getSimpleName() + "#" + method.getName();
   }

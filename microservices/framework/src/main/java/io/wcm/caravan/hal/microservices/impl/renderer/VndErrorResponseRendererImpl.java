@@ -45,7 +45,9 @@ import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
-
+/**
+ * Full implementation of {@link VndErrorResponseRenderer}
+ */
 public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
 
   private static final Logger log = LoggerFactory.getLogger(VndErrorResponseRendererImpl.class);
@@ -56,6 +58,9 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
 
   private final ExceptionStatusAndLoggingStrategy strategy;
 
+  /**
+   * @param customStrategy allows to control the status code and logging of exceptions
+   */
   public VndErrorResponseRendererImpl(ExceptionStatusAndLoggingStrategy customStrategy) {
     this.strategy = DEFAULT_STRATEGY.decorateWith(customStrategy);
   }
@@ -111,8 +116,9 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
       selfLink = resourceImpl.createLink()
           .setTitle("The URI as reported by the self-link of this resource");
     }
+    // CHECKSTYLE:OFF - we really want to ignore any exceptions that could be thrown when creating the self-link
     catch (RuntimeException ex) {
-      //
+      // CHECKSTYLE:ON
     }
 
     if (selfLink != null && !requestUri.endsWith(selfLink.getHref())) {

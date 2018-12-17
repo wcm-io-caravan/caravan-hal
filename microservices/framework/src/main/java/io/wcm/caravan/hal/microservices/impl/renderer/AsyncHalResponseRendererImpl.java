@@ -31,7 +31,10 @@ import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
 
-
+/**
+ * A full implementation of {@link AsyncHalResourceRenderer} that uses {@link VndErrorResponseRendererImpl}
+ * to handle any errors that occured when rendering the {@link HalResource}
+ */
 public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
   static final String CARAVAN_METADATA_RELATION = "caravan:metadata";
@@ -42,6 +45,12 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
   private final VndErrorResponseRenderer errorRenderer;
 
+  /**
+   * @param renderer used to asynchronously render a {@link HalResource}
+   * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
+   *          the current incoming request
+   * @param exceptionStrategy allows to control the status code and logging of exceptions being thrown during rendering
+   */
   public AsyncHalResponseRendererImpl(AsyncHalResourceRenderer renderer, RequestMetricsCollector metrics,
       ExceptionStatusAndLoggingStrategy exceptionStrategy) {
     this.renderer = renderer;

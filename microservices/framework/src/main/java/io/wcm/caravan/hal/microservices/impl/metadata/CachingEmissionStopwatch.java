@@ -32,7 +32,12 @@ import io.reactivex.SingleTransformer;
 import io.reactivex.schedulers.Schedulers;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
-public class CachingEmissionStopwatch<T> implements SingleTransformer<T, T>, ObservableTransformer<T, T> {
+/**
+ * An alternative to {@link EmissionStopwatch} that is caching the source observables, to avoid that the measured
+ * times include the time spent in other observer methods.
+ * @param <T> type of the emitted objects
+ */
+public final class CachingEmissionStopwatch<T> implements SingleTransformer<T, T>, ObservableTransformer<T, T> {
 
   private final Stopwatch stopwatch = Stopwatch.createUnstarted();
 
@@ -44,8 +49,14 @@ public class CachingEmissionStopwatch<T> implements SingleTransformer<T, T>, Obs
     this.message = message;
   }
 
-  public static <T> EmissionStopwatch<T> collectMetrics(String message, RequestMetricsCollector metrics) {
-    return EmissionStopwatch.collectMetrics(message, metrics);
+  /**
+   * @param message describes the task that was executed
+   * @param metrics to collect the emisison times
+   * @return a Transformer to use with {@link Single#compose(SingleTransformer)} or
+   *         {@link Observable#compose(ObservableTransformer)}
+   */
+  public static <T> CachingEmissionStopwatch<T> collectMetrics(String message, RequestMetricsCollector metrics) {
+    return new CachingEmissionStopwatch<T>(metrics, message);
   }
 
   @Override

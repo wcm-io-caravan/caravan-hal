@@ -32,6 +32,10 @@ import io.reactivex.SingleTransformer;
 import io.reactivex.disposables.Disposable;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
+/**
+ * A transformer that measures the time between subscription and completion of any {@link Single} or {@link Observable}
+ * @param <T> type of the emitted objects
+ */
 public class EmissionStopwatch<T> implements SingleTransformer<T, T>, ObservableTransformer<T, T> {
 
   private final Stopwatch stopwatch = Stopwatch.createUnstarted();
@@ -44,6 +48,12 @@ public class EmissionStopwatch<T> implements SingleTransformer<T, T>, Observable
     this.message = message;
   }
 
+  /**
+   * @param message describes the task that was executed
+   * @param metrics to collect the emisison times
+   * @return a Transformer to use with {@link Single#compose(SingleTransformer)} or
+   *         {@link Observable#compose(ObservableTransformer)}
+   */
   public static <T> EmissionStopwatch<T> collectMetrics(String message, RequestMetricsCollector metrics) {
     return new EmissionStopwatch<T>(metrics, message);
   }

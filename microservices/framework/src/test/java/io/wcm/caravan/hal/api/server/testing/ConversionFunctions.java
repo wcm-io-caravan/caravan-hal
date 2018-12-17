@@ -22,7 +22,11 @@ package io.wcm.caravan.hal.api.server.testing;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.resource.HalResource;
 
-public class ConversionFunctions {
+public final class ConversionFunctions {
+
+  private ConversionFunctions() {
+    // this class contains only static methods
+  }
 
   public static HalResponse toJsonResponse(HalResource resource) {
 

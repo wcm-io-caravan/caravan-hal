@@ -19,7 +19,11 @@
  */
 package io.wcm.caravan.hal.api.server.testing;
 
-public class TestRelations {
+public final class TestRelations {
+
+  private TestRelations() {
+    // this class contains only constants
+  }
 
   public static final String LINKED = "test:linked";
 

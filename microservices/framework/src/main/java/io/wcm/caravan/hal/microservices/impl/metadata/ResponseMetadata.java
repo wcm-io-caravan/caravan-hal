@@ -47,6 +47,10 @@ import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
+/**
+ * Full implementation of {@link RequestMetricsCollector} that keeps track of all upstream resources that have been
+ * retrieved, and additional invocation/emission times to analyze the performance of a request
+ */
 public class ResponseMetadata implements RequestMetricsCollector {
 
   private static final Map<TimeUnit, String> TIME_UNIT_ABBRS = ImmutableMap.of(
