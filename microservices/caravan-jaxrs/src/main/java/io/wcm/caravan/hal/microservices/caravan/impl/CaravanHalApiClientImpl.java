@@ -41,8 +41,13 @@ public class CaravanHalApiClientImpl implements CaravanHalApiClient {
   @Override
   public <T> T getEntryPoint(String serviceId, String uri, Class<T> halApiInterface, RequestMetricsCollector metrics) {
 
-    //JsonResourceLoader jsonLoader = new CaravanJsonPipelineResourceLoader(pipelineFactory, serviceId);
-    JsonResourceLoader jsonLoader = new CaravanGuavaJsonResourceLoader(httpClient, serviceId);
+    JsonResourceLoader jsonLoader = new CaravanJsonPipelineResourceLoader(pipelineFactory, serviceId);
+
+    // an alternative implementation with less performance overhead (that doesn't use JsonPipeline,
+    // and only has a simple guava based cache that does not respect maxAge)
+    // only use this for now if you want to investigate performance issues with the HalApiClient
+    // JsonResourceLoader jsonLoader = new CaravanGuavaJsonResourceLoader(httpClient, serviceId);
+
     CaravanBinaryResourceLoader binaryLoader = new CaravanBinaryResourceLoader(httpClient, serviceId);
 
     HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);

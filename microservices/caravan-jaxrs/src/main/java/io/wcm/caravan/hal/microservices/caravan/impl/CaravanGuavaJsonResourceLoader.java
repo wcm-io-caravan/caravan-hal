@@ -59,6 +59,8 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
   public Single<HalResponse> loadJsonResource(String uri) {
 
     HalResponse cached = SHARED_CACHE.getIfPresent(uri);
+
+    // TODO: ignore stale cache entries (based on their original maxAge value)
     if (cached != null) {
       return Single.just(cached);
     }
