@@ -24,9 +24,9 @@ import org.osgi.annotation.versioning.ConsumerType;
 import io.wcm.caravan.hal.resource.Link;
 
 /**
- * An interface to be implemented by all resources that should be available via HTTP. If you don't implement this
- * interface in your server-side implementation of a HAL API interface, then that resource can only be embedded (and you
- * must implement EmbeddableResource instead).
+ * An interface to be implemented by all resources that should be accessible directly via a http(s) URL. If you don't
+ * implement this interface in your server-side implementation of a HAL API interface, then that resource can only be
+ * embedded (and you must implement EmbeddableResource instead).
  */
 @ConsumerType
 public interface LinkableResource {
@@ -34,8 +34,8 @@ public interface LinkableResource {
   /**
    * Create a link to this resource, including meaningful title and name properties where appropriate. If all required
    * parameters of the resource are set, then the link should have a resolved URI as href property. If some or all
-   * parameters are null, a link with a URI template is created instead.
-   * <b>You can use the {@link LinkBuilder} to generate a Link with the correct URI(Template) for a resource
+   * required parameters are null, a link with a URI template should be created instead.
+   * <b>You can use the {@link LinkBuilder} to simplify generating a Link with the correct URI(Template) for a resource
    * instance.</b>
    * @return a {@link Link} instance where href, title and names properties are already set as required
    * @see LinkBuilder

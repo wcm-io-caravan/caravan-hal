@@ -43,7 +43,6 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 public class ErrorHandlingTest {
 
   private static final String ENTRY_POINT_URI = "/";
-  private static final String RESOURCE_URI = "/linked";
 
   private RequestMetricsCollector metrics;
   private BinaryResourceLoader binaryLoader;
@@ -66,7 +65,7 @@ public class ErrorHandlingTest {
   private void mockFailedResponse(Integer statusCode, String uri) {
 
     when(jsonLoader.loadJsonResource(uri))
-        .thenReturn(Single.error(new HalApiClientException("Simulated failed response", statusCode, uri)));
+        .thenReturn(Single.error(new HalApiClientException("Simulated failed response", statusCode, uri, null)));
   }
 
   @HalApiInterface

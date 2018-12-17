@@ -25,11 +25,27 @@ import org.osgi.annotation.versioning.ProviderType;
 
 import io.wcm.caravan.hal.resource.Link;
 
+/**
+ * A builder for {@link Link} instances that can be used when implementing {@link LinkableResource#createLink()}
+ * in your server-side resource implementations.
+ */
 @ProviderType
 public interface LinkBuilder {
 
+  /**
+   * @param parameters additional names and values of query parameters that should be added to the link
+   * @return this
+   */
   LinkBuilder withAdditionalParameters(Map<String, ? extends Object> parameters);
 
+  // TODO: this interface as it is is only useful if implementations use annotations or reflections
+  // to read the available template variables and values (e.g. the JaxRsLinkBuilder).
+  // There should be another implementation where the link is build programmatically
+
+  /**
+   * @param resource the resource to which the link should be pointing
+   * @return a link to the given resource
+   */
   Link buildLinkTo(LinkableResource resource);
 
 }

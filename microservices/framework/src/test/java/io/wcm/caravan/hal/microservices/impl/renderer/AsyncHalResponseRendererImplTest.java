@@ -181,7 +181,7 @@ public class AsyncHalResponseRendererImplTest {
   @Test
   public void error_response_should_use_status_code_from_HalApiClientException() {
 
-    mockExceptionDuringRendering(new HalApiClientException("Something went wrong", 404, "uri"));
+    mockExceptionDuringRendering(new HalApiClientException("Something went wrong", 404, "uri", null));
 
     HalResponse response = renderResponse();
 

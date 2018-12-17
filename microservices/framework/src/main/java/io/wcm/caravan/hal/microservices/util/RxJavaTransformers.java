@@ -42,8 +42,8 @@ public final class RxJavaTransformers {
 
       return upstream
           .flatMapSingle(this::createPairOfItemAndFilterFlag)
-          .filter(pair -> pair.getRight())
-          .map(pair -> pair.getLeft());
+          .filter(Pair::getValue)
+          .map(Pair::getKey);
     }
 
     private Single<Pair<T, Boolean>> createPairOfItemAndFilterFlag(T item) {

@@ -100,7 +100,7 @@ public class MaxAgeTest {
   @Test
   public void explicit_max_age_should_be_used_if_no_headers_found_in_response() {
 
-    metrics.setOutputMaxAge(45);
+    metrics.limitOutputMaxAge(45);
 
     loadEntryPoint();
 
@@ -121,7 +121,7 @@ public class MaxAgeTest {
   @Test
   public void max_age_from_entrypoint_response_should_be_used_if_smaller_than_explicit_value() {
 
-    metrics.setOutputMaxAge(125);
+    metrics.limitOutputMaxAge(125);
     entryPoint.withMaxAge(55);
 
     loadEntryPoint();
@@ -132,7 +132,7 @@ public class MaxAgeTest {
   @Test
   public void explicit_max_age_should_be_used_if_smaller_than_header_from_entry_point() {
 
-    metrics.setOutputMaxAge(45);
+    metrics.limitOutputMaxAge(45);
     entryPoint.withMaxAge(180);
 
     loadEntryPoint();

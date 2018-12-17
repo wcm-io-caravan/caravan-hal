@@ -66,7 +66,8 @@ final class HalApiInvocationHandler implements InvocationHandler {
 
   private Single<HalResource> addContextToHalApiClientException(Throwable ex, HalApiMethodInvocation invocation) {
     if (ex instanceof HalApiClientException) {
-      return Single.error(new HalApiClientException(invocation, (HalApiClientException)ex));
+      String msg = "Failed to load an upstream resource that was requested by calling " + invocation;
+      return Single.error(new HalApiClientException(msg, (HalApiClientException)ex));
     }
     return Single.error(ex);
   }

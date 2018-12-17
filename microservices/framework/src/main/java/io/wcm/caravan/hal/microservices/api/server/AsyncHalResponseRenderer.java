@@ -20,14 +20,34 @@
 package io.wcm.caravan.hal.microservices.api.server;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl;
+import io.wcm.caravan.hal.resource.HalResource;
 
+/**
+ * Asynchronously creates a {@link HalResponse} from a server-side {@link HalApiInterface} implementation instance,
+ * using {@link AsyncHalResourceRenderer} to render a {@link HalResource}, and {@link VndErrorResponseRenderer} to
+ * handle any errors that might happen during resource rendering.
+ * @see AsyncHalResourceRenderer
+ * @see VndErrorResponseRenderer
+ */
 public interface AsyncHalResponseRenderer {
 
+  /**
+   * @param requestUri the URI of the incoming request
+   * @param resourceImpl a server-side implementation instance of an interface annotated with {@link HalApiInterface}
+   * @return a {@link Single} that emits a {@link HalResponse}
+   */
   Single<HalResponse> renderResponse(String requestUri, LinkableResource resourceImpl);
 
+  /**
+   * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
+   *          the current incoming request
+   * @param exceptionStrategy allows to control the status code and logging of exceptions being thrown during rendering
+   * @return a new {@link AsyncHalResponseRenderer} to use for the current incoming request
+   */
   static AsyncHalResponseRenderer create(RequestMetricsCollector metrics, ExceptionStatusAndLoggingStrategy exceptionStrategy) {
 
     AsyncHalResourceRenderer resourceRenderer = AsyncHalResourceRenderer.create(metrics);

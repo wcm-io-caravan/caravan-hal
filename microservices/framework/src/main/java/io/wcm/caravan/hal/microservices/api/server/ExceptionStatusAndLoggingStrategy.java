@@ -19,13 +19,27 @@
  */
 package io.wcm.caravan.hal.microservices.api.server;
 
+import org.osgi.annotation.versioning.ConsumerType;
 
+/**
+ * Allows users of this framework to specify how {@link VndErrorResponseRenderer} handles specific exceptions that the
+ * framework doesn't know about
+ */
+@ConsumerType
 public interface ExceptionStatusAndLoggingStrategy {
 
+  /**
+   * @param error an exception that was thrown when rendering a resource
+   * @return the status code that should be used for the response
+   */
   default Integer extractStatusCode(Throwable error) {
     return null;
   }
 
+  /**
+   * @param error an exception that was thrown when rendering a resource
+   * @return true if this exception should not be logged as an error with full stack trace
+   */
   default boolean logAsCompactWarning(Throwable error) {
     return false;
   }

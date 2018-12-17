@@ -34,8 +34,8 @@ import org.osgi.annotation.versioning.ConsumerType;
 public interface EmbeddableResource {
 
   /**
-   * Determines if this resource should be embedded rather then linked to from the context resource that created the
-   * resource implementation instance
+   * Determines if this resource should be embedded (rather then just linked to) from the context resource that created
+   * the resource implementation instance
    * @return true if this resource should be embedded
    */
   boolean isEmbedded();

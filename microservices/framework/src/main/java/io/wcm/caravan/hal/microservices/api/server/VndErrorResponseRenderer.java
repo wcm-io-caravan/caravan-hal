@@ -19,16 +19,33 @@
  */
 package io.wcm.caravan.hal.microservices.api.server;
 
+import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.renderer.VndErrorResponseRendererImpl;
 
 
+/**
+ * Creates an error response according to the "application/vnd.error+json" media type for any
+ * exception thrown when rendering resources with {@link AsyncHalResourceRenderer#renderResource(LinkableResource)}
+ */
 public interface VndErrorResponseRenderer {
 
-  HalResponse renderError(LinkableResource resourceImpl, Throwable error, String requestUri, RequestMetricsCollector metrics);
+  /**
+   * @param requestUri the URI of the incoming request
+   * @param resourceImpl a server-side implementation instance of an interface annotated with {@link HalApiInterface}
+   * @param error the exception that was emitted by {@link AsyncHalResourceRenderer#renderResource(LinkableResource)}
+   * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
+   *          the current incoming request
+   * @return a HalResponse with status code and a HAL body with detailed error information
+   */
+  HalResponse renderError(String requestUri, LinkableResource resourceImpl, Throwable error, RequestMetricsCollector metrics);
 
-  public static VndErrorResponseRenderer create(ExceptionStatusAndLoggingStrategy exceptionStrategy) {
+  /**
+   * @param exceptionStrategy allows to control the status code and logging of exceptions
+   * @return a new instance of {@link VndErrorResponseRenderer}
+   */
+  static VndErrorResponseRenderer create(ExceptionStatusAndLoggingStrategy exceptionStrategy) {
 
     return new VndErrorResponseRendererImpl(exceptionStrategy);
   }

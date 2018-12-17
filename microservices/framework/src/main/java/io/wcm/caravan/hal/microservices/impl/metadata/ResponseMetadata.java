@@ -49,7 +49,7 @@ import io.wcm.caravan.hal.resource.Link;
 
 public class ResponseMetadata implements RequestMetricsCollector {
 
-  private static Map<TimeUnit, String> TIME_UNIT_ABBRS = ImmutableMap.of(
+  private static final Map<TimeUnit, String> TIME_UNIT_ABBRS = ImmutableMap.of(
       TimeUnit.MINUTES, "m",
       TimeUnit.SECONDS, "s",
       TimeUnit.MILLISECONDS, "ms",
@@ -87,7 +87,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
 
 
   @Override
-  public void setOutputMaxAge(int value) {
+  public void limitOutputMaxAge(int value) {
     maxAgeOverride = value;
   }
 

@@ -62,17 +62,17 @@ public class TestResourceTree implements JsonResourceLoader {
 
     Link link = new Link(uri);
     if (link.isTemplated()) {
-      return Single.error(new HalApiClientException("An unresolved link template was requested", 400, uri));
+      return Single.error(new HalApiClientException("An unresolved link template was requested", 400, uri, null));
     }
 
     TestResource requestedResource = urlResourceMap.get(uri);
     if (requestedResource == null) {
-      return Single.error(new HalApiClientException("No resource with path " + uri + " was created by this " + getClass().getSimpleName(), 404, uri));
+      return Single.error(new HalApiClientException("No resource with path " + uri + " was created by this " + getClass().getSimpleName(), 404, uri, null));
     }
 
     Integer status = requestedResource.getStatus();
     if (status == null || status >= 400) {
-      return Single.error(new HalApiClientException("A failure to retrieve a HAL resource was simulated", status, uri));
+      return Single.error(new HalApiClientException("A failure to retrieve a HAL resource was simulated", status, uri, null));
     }
 
     HalResponse response = new HalResponse()

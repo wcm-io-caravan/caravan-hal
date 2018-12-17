@@ -19,22 +19,60 @@
  */
 package io.wcm.caravan.hal.microservices.api.common;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadata;
 import io.wcm.caravan.hal.resource.HalResource;
 
+/**
+ * Keeps track of all upstream resource that have been fetched while handling the current-request, and collects
+ * additional data for performance analyze and caching.
+ */
+@ProviderType
 public interface RequestMetricsCollector {
 
-  void onResponseRetrieved(String resourceUri, String resourceTitle, Integer maxAgeSeconds, long responseTimeMicros);
-
-  void onMethodInvocationFinished(Class category, String methodDescription, long invocationDurationMicros);
-
+  /**
+   * Calculates the "max-age" Cache-Control header value to be used when rendering the response.
+   * @return the minimum "max-age" value of all upstream requests and the limit set via {@link #limitOutputMaxAge(int)}
+   */
   Integer getOutputMaxAge();
 
-  void setOutputMaxAge(int value);
+  /**
+   * Set the upper limit for the max-age header of the response to the current incoming request.
+   * @param value the maximum cache duration in seconds
+   */
+  void limitOutputMaxAge(int value);
 
+  /**
+   * Create a resource with performance analysis data that can be embedded in the response
+   * @param resourceImpl the main resource being rendered in the current request
+   * @return a {@link HalResource} with detailed performance information for the current request
+   */
   HalResource createMetadataResource(LinkableResource resourceImpl);
 
+  /**
+   * Internal method called by the framework whenever an upstream resource has been retrieved
+   * @param resourceUri the URI of the resource that has been retrieved
+   * @param resourceTitle the title of the resource that has been retrieved
+   * @param maxAgeSeconds the value of the "max-age" header (or null if not available)
+   * @param responseTimeMicros the time in microseconds between initiating the request and finishing parsing the
+   *          response
+   */
+  void onResponseRetrieved(String resourceUri, String resourceTitle, Integer maxAgeSeconds, long responseTimeMicros);
+
+  /**
+   * Internal method called by the framework to measure execution times of specific request processing stages
+   * @param category a class used to group measurements
+   * @param methodDescription describes what task was executed
+   * @param invocationDurationMicros the time in microseconds used to execute that task
+   */
+  void onMethodInvocationFinished(Class category, String methodDescription, long invocationDurationMicros);
+
+  /**
+   * Create a new instance to collect performance data for the current incoming request
+   * @return a new instance of {@link RequestMetricsCollector}
+   */
   static RequestMetricsCollector create() {
     return new ResponseMetadata();
   }

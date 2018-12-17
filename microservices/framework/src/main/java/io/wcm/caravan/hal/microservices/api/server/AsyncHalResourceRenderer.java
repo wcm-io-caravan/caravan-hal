@@ -22,15 +22,30 @@ package io.wcm.caravan.hal.microservices.api.server;
 import org.osgi.annotation.versioning.ProviderType;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 
+/**
+ * Asynchronously creates a {@link HalResource} representation from a server-side implementation instance of an
+ * interface annotated with {@link HalApiInterface}
+ */
 @ProviderType
 public interface AsyncHalResourceRenderer {
 
+  /**
+   * @param resourceImpl a server-side implementation instance of an interface annotated with {@link HalApiInterface}
+   * @return a {@link Single} that emits a {@link HalResource} which contains the resource state, linked and embedded
+   *         resources as defined in the HAL API interface
+   */
   Single<HalResource> renderResource(LinkableResource resourceImpl);
 
+  /**
+   * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
+   *          the current incoming request
+   * @return a new {@link AsyncHalResourceRenderer} to use for the current incoming request
+   */
   static AsyncHalResourceRenderer create(RequestMetricsCollector metrics) {
     return new AsyncHalResourceRendererImpl(metrics);
   }

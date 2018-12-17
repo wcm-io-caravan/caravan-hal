@@ -61,7 +61,7 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
   }
 
   @Override
-  public HalResponse renderError(LinkableResource resourceImpl, Throwable error, String requestUri, RequestMetricsCollector metrics) {
+  public HalResponse renderError(String requestUri, LinkableResource resourceImpl, Throwable error, RequestMetricsCollector metrics) {
 
     HalResource vndResource = new HalResource();
 

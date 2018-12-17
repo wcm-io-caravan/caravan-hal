@@ -29,7 +29,6 @@ import hu.akarnokd.rxjava.interop.RxJavaInterop;
 import io.reactivex.Single;
 import io.reactivex.SingleSource;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.io.http.CaravanHttpClient;
 import io.wcm.caravan.io.http.IllegalResponseRuntimeException;
 import io.wcm.caravan.io.http.RequestFailedRuntimeException;
@@ -51,7 +50,7 @@ public class CaravanBinaryResourceLoader implements BinaryResourceLoader {
   }
 
   @Override
-  public Single<InputStream> loadBinaryResource(String uri, RequestMetricsCollector metrics) {
+  public Single<InputStream> loadBinaryResource(String uri) {
 
     CaravanHttpRequest request = createRequest(uri);
 

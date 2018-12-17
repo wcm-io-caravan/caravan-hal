@@ -54,7 +54,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
     return renderer.renderResource(resourceImpl)
         .map(halResource -> createResponse(resourceImpl, halResource))
-        .onErrorReturn(ex -> errorRenderer.renderError(resourceImpl, ex, requestUri, metrics));
+        .onErrorReturn(ex -> errorRenderer.renderError(requestUri, resourceImpl, ex, metrics));
   }
 
   HalResponse createResponse(LinkableResource resourceImpl, HalResource halResource) {
