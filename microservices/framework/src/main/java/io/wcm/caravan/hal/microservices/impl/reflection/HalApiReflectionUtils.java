@@ -25,18 +25,20 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
+
+import com.google.common.collect.Lists;
 
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
@@ -70,29 +72,35 @@ public final class HalApiReflectionUtils {
 
   static Set<Class<?>> collectInterfaces(Class clazz) {
 
-    Set<Class<?>> interfaces = new HashSet<>();
-
-    Consumer<Class<?>> addInterfaces = new Consumer<Class<?>>() {
-
-      @Override
-      public void accept(Class<?> c) {
-        for (Class interfaze : c.getInterfaces()) {
-          interfaces.add(interfaze);
-          accept(interfaze);
-        }
-
-      }
-    };
-
-    Class c = clazz;
-    do {
-      addInterfaces.accept(c);
-      c = c.getSuperclass();
-    }
-    while (c != null);
-
-    return interfaces;
+    return new InterfaceCollector()
+        .collectFromClassAndAllSuperClasses(clazz);
   }
+
+  private static final class InterfaceCollector {
+
+    private final Set<Class<?>> collected = new LinkedHashSet<>();
+
+    Set<Class<?>> collectFromClassAndAllSuperClasses(Class clazz) {
+
+      Class c = clazz;
+      while (c != null) {
+        addInterfacesImplementedBy(c);
+        c = c.getSuperclass();
+      }
+
+      return collected;
+    }
+
+    private void addInterfacesImplementedBy(Class<?> clazz) {
+      ArrayList<Class<?>> interfaces = Lists.newArrayList(clazz.getInterfaces());
+
+      interfaces.forEach(this.collected::add);
+
+      // each interface can extend other interfaces
+      interfaces.forEach(this::addInterfacesImplementedBy);
+    }
+  }
+
 
   /**
    * Checks which of the interfaces implemented by the given implementation instance is the one which is annotated with
