@@ -41,16 +41,19 @@ public final class RxJavaTransformers {
     public ObservableSource<T> apply(Observable<T> upstream) {
 
       return upstream
-          .flatMapSingle(this::createPairOfItemAndFilterFlag)
+          .concatMapEager(this::createPairOfItemAndFilterFlag)
           .filter(Pair::getValue)
           .map(Pair::getKey);
     }
 
-    private Single<Pair<T, Boolean>> createPairOfItemAndFilterFlag(T item) {
+    private Observable<Pair<T, Boolean>> createPairOfItemAndFilterFlag(T item) {
 
       Single<Boolean> filterFlags = asyncFilterFunc.apply(item);
 
-      return filterFlags.map(flag -> Pair.of(item, flag));
+      return filterFlags
+          .map(flag -> Pair.of(item, flag))
+          // convert the Single to an Observable so that we can use concatMapEager
+          .toObservable();
     }
   }
 
