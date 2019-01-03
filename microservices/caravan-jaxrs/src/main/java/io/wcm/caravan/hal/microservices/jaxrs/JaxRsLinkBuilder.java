@@ -35,7 +35,7 @@ import com.google.common.collect.Lists;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.jaxrs.impl.FastJaxRsReflectionUtils;
+import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsReflectionUtils;
 import io.wcm.caravan.hal.resource.Link;
 
 public class JaxRsLinkBuilder implements LinkBuilder {
@@ -112,8 +112,8 @@ public class JaxRsLinkBuilder implements LinkBuilder {
   private Map<String, Object> collectAndAppendParameters(UriTemplateBuilder uriTemplateBuilder, LinkableResource resource) {
 
     // use reflection to find the names and values of all fields annotated with JAX-RS @PathParam and @QueryParam annotations
-    Map<String, Object> pathParams = FastJaxRsReflectionUtils.getPathParameterMap(resource, resource.getClass());
-    Map<String, Object> queryParams = FastJaxRsReflectionUtils.getQueryParameterMap(resource, resource.getClass());
+    Map<String, Object> pathParams = JaxRsReflectionUtils.getPathParameterMap(resource, resource.getClass());
+    Map<String, Object> queryParams = JaxRsReflectionUtils.getQueryParameterMap(resource, resource.getClass());
 
     // add all parameters specified in #withAdditionalParameters that are not yet included in the template
     ArrayList<String> pathVariables = Lists.newArrayList(uriTemplateBuilder.build().getVariables());
