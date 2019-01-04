@@ -21,14 +21,23 @@ package io.wcm.caravan.hal.microservices.jaxrs;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import javax.ws.rs.Path;
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.commons.lang3.NotImplementedException;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.glassfish.jersey.uri.UriComponent;
 import org.junit.Test;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.jaxrs.JaxRsLinkBuilder;
 import io.wcm.caravan.hal.resource.Link;
 
 
@@ -44,6 +53,8 @@ public abstract class JaxRsLinkBuilderTest {
 
   protected static final String QUERY_PARAM_B = "queryB";
 
+  protected static final String QUERY_PARAM_C = "queryC";
+
   protected static final String PATH_PARAM_A = "pathA";
 
   protected static final String PATH_PARAM_B = "pathB";
@@ -57,6 +68,16 @@ public abstract class JaxRsLinkBuilderTest {
     LinkBuilder linkBuilder = new JaxRsLinkBuilder(CONTEXT_PATH);
 
     return linkBuilder.buildLinkTo(targetResource);
+  }
+
+  private Map<String, String> getQueryParametersFrom(Link link) {
+
+    String queryString = StringUtils.substringAfter(link.getHref(), "?");
+    MultivaluedMap<String, String> query = UriComponent.decodeQuery(queryString, false, true);
+
+    return query.entrySet().stream()
+        .map(entry -> Pair.of(entry.getKey(), Iterables.getFirst(entry.getValue(), null)))
+        .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
   }
 
   static class LinkableResourceAdapter implements LinkableResource {
@@ -90,12 +111,14 @@ public abstract class JaxRsLinkBuilderTest {
   public void should_resolve_query_parameters_with_non_null_value() throws Exception {
 
     String valueOfA = "testA";
-    String valueOfB = "testB";
+    String valueOfB = "t:/est?B";
 
     Link link = buildLinkTo(createResourceWithTwoQueryParameters(valueOfA, valueOfB));
 
     assertThat(link.isTemplated()).isFalse();
-    assertThat(link.getHref()).endsWith("?" + QUERY_PARAM_A + "=" + valueOfA + "&" + QUERY_PARAM_B + "=" + valueOfB);
+    Map<String, String> queryParams = getQueryParametersFrom(link);
+    assertThat(queryParams).contains(Pair.of(QUERY_PARAM_A, valueOfA));
+    assertThat(queryParams).contains(Pair.of(QUERY_PARAM_B, valueOfB));
   }
 
   @Test
@@ -133,5 +156,22 @@ public abstract class JaxRsLinkBuilderTest {
 
     assertThat(link.isTemplated());
     assertThat(link.getHref()).isEqualTo(ABSOLUTE_RESOURCE_PATH_TEMPLATE);
+  }
+
+  @Test
+  public void should_add_additional_query_parameters() throws Exception {
+
+    String valueOfA = "testA";
+    String valueOfB = "t:/est?B";
+    String valueOfC = "testC";
+
+    LinkableResource targetResource = createResourceWithTwoQueryParameters(valueOfA, valueOfB);
+
+    LinkBuilder linkBuilder = new JaxRsLinkBuilder(CONTEXT_PATH);
+    linkBuilder.withAdditionalParameters(ImmutableMap.of(QUERY_PARAM_C, valueOfC));
+    Link link = linkBuilder.buildLinkTo(targetResource);
+
+    assertThat(!link.isTemplated());
+    assertThat(getQueryParametersFrom(link)).contains(Pair.of(QUERY_PARAM_C, valueOfC));
   }
 }

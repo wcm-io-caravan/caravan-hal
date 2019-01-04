@@ -107,7 +107,7 @@ public class JaxRsReflectionUtils {
 
   }
 
-  private static class QueryParamFinder extends AnnotatedParameterFinder<QueryParam> {
+  static class QueryParamFinder extends AnnotatedParameterFinder<QueryParam> {
 
     QueryParamFinder(Class clazz) {
       super(clazz, QueryParam.class);
