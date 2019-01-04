@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.jaxrs;
 
+import static io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsLinkBuilderFactory.createLinkBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;
@@ -63,9 +64,10 @@ public abstract class JaxRsLinkBuilderTest {
 
   protected static final String ABSOLUTE_RESOURCE_PATH_TEMPLATE = CONTEXT_PATH + RESOURCE_PATH_TEMPLATE;
 
+
   protected static Link buildLinkTo(LinkableResource targetResource) {
 
-    LinkBuilder linkBuilder = new JaxRsLinkBuilder(CONTEXT_PATH);
+    LinkBuilder linkBuilder = createLinkBuilder(CONTEXT_PATH);
 
     return linkBuilder.buildLinkTo(targetResource);
   }
@@ -167,7 +169,7 @@ public abstract class JaxRsLinkBuilderTest {
 
     LinkableResource targetResource = createResourceWithTwoQueryParameters(valueOfA, valueOfB);
 
-    LinkBuilder linkBuilder = new JaxRsLinkBuilder(CONTEXT_PATH);
+    LinkBuilder linkBuilder = createLinkBuilder(CONTEXT_PATH);
     linkBuilder.withAdditionalParameters(ImmutableMap.of(QUERY_PARAM_C, valueOfC));
     Link link = linkBuilder.buildLinkTo(targetResource);
 

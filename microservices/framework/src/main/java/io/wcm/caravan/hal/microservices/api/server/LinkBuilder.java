@@ -23,6 +23,7 @@ import java.util.Map;
 
 import org.osgi.annotation.versioning.ProviderType;
 
+import io.wcm.caravan.hal.microservices.impl.links.LinkBuilderImpl;
 import io.wcm.caravan.hal.resource.Link;
 
 /**
@@ -36,7 +37,7 @@ public interface LinkBuilder {
    * @param parameters additional names and values of query parameters that should be added to the link
    * @return this
    */
-  LinkBuilder withAdditionalParameters(Map<String, ? extends Object> parameters);
+  LinkBuilder withAdditionalParameters(Map<String, Object> parameters);
 
   // TODO: this interface as it is is only useful if implementations use annotations or reflections
   // to read the available template variables and values (e.g. the JaxRsLinkBuilder).
@@ -47,5 +48,15 @@ public interface LinkBuilder {
    * @return a link to the given resource
    */
   Link buildLinkTo(LinkableResource resource);
+
+  /**
+   * @param baseUrl the absolute base URL for all resources for which the link builder will be used
+   * @param componentProvider implements the logic of extracting resource path and template variables from a server-side
+   *          resource instance
+   * @return a {@link LinkBuilder} instance
+   */
+  static LinkBuilder create(String baseUrl, LinkTemplateComponentProvider componentProvider) {
+    return new LinkBuilderImpl(baseUrl, componentProvider);
+  }
 
 }

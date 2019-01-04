@@ -2,7 +2,7 @@
  * #%L
  * wcm.io
  * %%
- * Copyright (C) 2017 wcm.io
+ * Copyright (C) 2019 wcm.io
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,12 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.jaxrs;
+package io.wcm.caravan.hal.microservices.impl.links;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.Path;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,28 +32,34 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
+import io.wcm.caravan.hal.microservices.api.server.LinkTemplateComponentProvider;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsReflectionUtils;
 import io.wcm.caravan.hal.resource.Link;
 
-public class JaxRsLinkBuilder implements LinkBuilder {
+public class LinkBuilderImpl implements LinkBuilder {
 
   private final String baseUrl;
 
-  private Map<String, ? extends Object> additionalParameters = new HashMap<>();
+  private final LinkTemplateComponentProvider componentProvider;
+
+  private Map<String, Object> additionalParameters = new HashMap<>();
 
   /**
    * @param baseUrl the base path (or full URI) for which the current service bundle is registered
+   * @param componentProvider
    */
-  public JaxRsLinkBuilder(String baseUrl) {
+  public LinkBuilderImpl(String baseUrl, LinkTemplateComponentProvider componentProvider) {
 
     Preconditions.checkArgument(StringUtils.isNotBlank(baseUrl), "A baseUrl must be provided");
+    Preconditions.checkNotNull(componentProvider, "a " + LinkTemplateComponentProvider.class.getSimpleName() + " must be specified");
 
     this.baseUrl = baseUrl;
+
+    this.componentProvider = componentProvider;
   }
 
   @Override
-  public LinkBuilder withAdditionalParameters(Map<String, ? extends Object> parameters) {
+  public LinkBuilder withAdditionalParameters(Map<String, Object> parameters) {
     this.additionalParameters = parameters;
     return this;
   }
@@ -90,16 +94,12 @@ public class JaxRsLinkBuilder implements LinkBuilder {
   /**
    * build the resource path template (by concatenating the baseUrl of the service,
    * and the value of the linked resource's @Path annotation (that may contain path parameter variables)
-   * @param resource TODO:
+   * @param resource target resource for the link
    * @return an absolute path template to the resource
    */
   private String buildResourcePath(LinkableResource resource) {
 
-    Path pathAnnotation = resource.getClass().getAnnotation(Path.class);
-    Preconditions.checkNotNull(pathAnnotation,
-        "A @Path annotation must be present on the resource implementation class (" + resource.getClass().getName() + ")");
-
-    String pathTemplate = pathAnnotation.value();
+    String pathTemplate = componentProvider.getResourcePathTemplate(resource);
 
     String resourcePath = baseUrl;
     if (StringUtils.isNotBlank(pathTemplate)) {
@@ -112,8 +112,8 @@ public class JaxRsLinkBuilder implements LinkBuilder {
   private Map<String, Object> collectAndAppendParameters(UriTemplateBuilder uriTemplateBuilder, LinkableResource resource) {
 
     // use reflection to find the names and values of all fields annotated with JAX-RS @PathParam and @QueryParam annotations
-    Map<String, Object> pathParams = JaxRsReflectionUtils.getPathParameterMap(resource, resource.getClass());
-    Map<String, Object> queryParams = JaxRsReflectionUtils.getQueryParameterMap(resource, resource.getClass());
+    Map<String, Object> pathParams = componentProvider.getPathParameters(resource);
+    Map<String, Object> queryParams = componentProvider.getQueryParameters(resource);
 
     // add all parameters specified in #withAdditionalParameters that are not yet included in the template
     ArrayList<String> pathVariables = Lists.newArrayList(uriTemplateBuilder.build().getVariables());
@@ -142,5 +142,4 @@ public class JaxRsLinkBuilder implements LinkBuilder {
 
     return parametersThatAreSet;
   }
-
 }

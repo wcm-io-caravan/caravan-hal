@@ -42,15 +42,16 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
+import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.jaxrs.JaxRsLinkBuilder;
+import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsLinkBuilderFactory;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 
 public class AsyncHalResourceRendererImplPT {
 
-  private JaxRsLinkBuilder linkBuilder = new JaxRsLinkBuilder("/test");
+  private LinkBuilder linkBuilder = JaxRsLinkBuilderFactory.createLinkBuilder("/test");
 
   static HalResource render(LinkableResource resourceImplInstance) {
 

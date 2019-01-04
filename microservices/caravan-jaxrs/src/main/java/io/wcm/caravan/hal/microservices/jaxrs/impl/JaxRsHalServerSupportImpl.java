@@ -30,7 +30,6 @@ import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.caravan.CaravanHalApiClient;
 import io.wcm.caravan.hal.microservices.jaxrs.AsyncHalResponseHandler;
 import io.wcm.caravan.hal.microservices.jaxrs.JaxRsHalServerSupport;
-import io.wcm.caravan.hal.microservices.jaxrs.JaxRsLinkBuilder;
 import io.wcm.caravan.jaxrs.publisher.ApplicationPath;
 import io.wcm.caravan.jaxrs.publisher.JaxRsComponent;
 
@@ -80,6 +79,6 @@ public class JaxRsHalServerSupportImpl implements JaxRsComponent, JaxRsHalServer
 
   @Override
   public LinkBuilder getLinkBuilder() {
-    return new JaxRsLinkBuilder(contextPath);
+    return JaxRsLinkBuilderFactory.createLinkBuilder(contextPath);
   }
 }
