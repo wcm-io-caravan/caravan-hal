@@ -19,17 +19,18 @@
  */
 package io.wcm.caravan.hal.microservices.impl.links;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.damnhandy.uri.template.UriTemplate;
 import com.damnhandy.uri.template.UriTemplateBuilder;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkTemplateComponentProvider;
@@ -42,7 +43,7 @@ public class LinkBuilderImpl implements LinkBuilder {
 
   private final LinkTemplateComponentProvider componentProvider;
 
-  private Map<String, Object> additionalParameters = new HashMap<>();
+  private final Map<String, Object> additionalParameters = new LinkedHashMap<>();
 
   /**
    * @param baseUrl the base path (or full URI) for which the current service bundle is registered
@@ -60,7 +61,7 @@ public class LinkBuilderImpl implements LinkBuilder {
 
   @Override
   public LinkBuilder withAdditionalParameters(Map<String, Object> parameters) {
-    this.additionalParameters = parameters;
+    this.additionalParameters.putAll(parameters);
     return this;
   }
 
@@ -90,10 +91,9 @@ public class LinkBuilderImpl implements LinkBuilder {
     return new Link(partiallyExpandedUriTemplate);
   }
 
-
   /**
-   * build the resource path template (by concatenating the baseUrl of the service,
-   * and the value of the linked resource's @Path annotation (that may contain path parameter variables)
+   * build the resource path template by concatenating the baseUrl of the service,
+   * and the value of the linked resource's relative path template (that may contain path parameter variables)
    * @param resource target resource for the link
    * @return an absolute path template to the resource
    */
@@ -109,37 +109,50 @@ public class LinkBuilderImpl implements LinkBuilder {
     return resourcePath;
   }
 
+  /**
+   * @param uriTemplateBuilder to which append all query parameter template variables
+   * @param resource target resource for the link
+   * @return a map of all non-null path and query variables that should be expanded in the template
+   */
   private Map<String, Object> collectAndAppendParameters(UriTemplateBuilder uriTemplateBuilder, LinkableResource resource) {
 
     // use reflection to find the names and values of all fields annotated with JAX-RS @PathParam and @QueryParam annotations
     Map<String, Object> pathParams = componentProvider.getPathParameters(resource);
     Map<String, Object> queryParams = componentProvider.getQueryParameters(resource);
 
-    // add all parameters specified in #withAdditionalParameters that are not yet included in the template
-    ArrayList<String> pathVariables = Lists.newArrayList(uriTemplateBuilder.build().getVariables());
-    additionalParameters.forEach((name, value) -> {
-      if (!pathVariables.contains(name) && !queryParams.containsKey(name)) {
-        queryParams.put(name, value);
-      }
-    });
+    // make sure that
+    ensureThatNamesAreUnique(pathParams, queryParams, "Duplicate names detected in path and query params");
+    ensureThatNamesAreUnique(pathParams, additionalParameters, "Duplicate names detected in path and additional params");
+    ensureThatNamesAreUnique(queryParams, additionalParameters, "Duplicate names detected in query and additional params");
+
+    // add all parameters specified in #withAdditionalParameters to the query parameter map
+    if (!additionalParameters.isEmpty()) {
+      queryParams = new LinkedHashMap<>(queryParams);
+      queryParams.putAll(additionalParameters);
+    }
 
     // add all available query parameters to the URI template
-    String[] queryParamNames = queryParams.keySet().stream().toArray(String[]::new);
-    if (queryParamNames.length > 0) {
+    if (!queryParams.isEmpty()) {
+      String[] queryParamNames = queryParams.keySet().stream().toArray(String[]::new);
       uriTemplateBuilder.query(queryParamNames);
     }
 
     // now merge the template variables from the query and path parameters
-    Map<String, Object> parameters = new HashMap<>();
-    parameters.putAll(additionalParameters);
-    parameters.putAll(pathParams);
-    parameters.putAll(queryParams);
-
-    // and filter only the parameters that have a non-null value
-    Map<String, Object> parametersThatAreSet = parameters.entrySet().stream()
+    Map<String, Object> parametersThatAreSet = Stream.concat(queryParams.entrySet().stream(), pathParams.entrySet().stream())
+        // and filter only the parameters that have a non-null value
         .filter(entry -> entry.getValue() != null)
         .collect(Collectors.toMap(entry -> entry.getKey(), e -> e.getValue()));
 
     return parametersThatAreSet;
   }
+
+  private static void ensureThatNamesAreUnique(Map<String, Object> params1, Map<String, Object> params2, String message) {
+
+    Set<String> commonKeys = Sets.intersection(params1.keySet(), params2.keySet());
+    if (!commonKeys.isEmpty()) {
+      String names = commonKeys.stream().collect(Collectors.joining(","));
+      throw new UnsupportedOperationException(message + ": " + names);
+    }
+  }
+
 }
