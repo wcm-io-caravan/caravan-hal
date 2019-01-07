@@ -33,13 +33,16 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestState;
+import io.wcm.caravan.hal.resource.HalResource;
 
 public class ErrorHandlingTest {
 
@@ -76,8 +79,10 @@ public class ErrorHandlingTest {
     Maybe<TestState> getState();
 
     @RelatedResource(relation = ITEM)
-    Observable<LinkedResource> getLinked();
+    Observable<LinkableTestResource> getLinked();
 
+    @ResourceRepresentation
+    Single<HalResource> asHalResource();
   }
 
   @HalApiInterface
@@ -88,7 +93,7 @@ public class ErrorHandlingTest {
   }
 
   @Test
-  public void status_code_from_response_should_be_available_in_exception() {
+  public void status_code_from_response_should_be_available_in_exception_when_calling_ResourceState_method() {
 
     mockFailedResponse(403, ENTRY_POINT_URI);
 
@@ -101,6 +106,41 @@ public class ErrorHandlingTest {
     }
     catch (HalApiClientException ex) {
       assertThat(ex.getStatusCode()).isEqualTo(403);
+    }
+  }
+
+  @Test
+  public void status_code_from_response_should_be_available_in_exception_when_calling_RelatedResource_method() {
+
+    mockFailedResponse(501, ENTRY_POINT_URI);
+
+    try {
+      createClientProxy(EntryPoint.class)
+          .getLinked()
+          .flatMapMaybe(LinkableTestResource::getState)
+          .toList().blockingGet();
+
+      fail("Expected " + HalApiClientException.class.getSimpleName() + " was not thrown");
+    }
+    catch (HalApiClientException ex) {
+      assertThat(ex.getStatusCode()).isEqualTo(501);
+    }
+  }
+
+  @Test
+  public void status_code_from_response_should_be_available_in_exception_when_calling_ResourceRepresentation_method() {
+
+    mockFailedResponse(502, ENTRY_POINT_URI);
+
+    try {
+      createClientProxy(EntryPoint.class)
+          .asHalResource()
+          .blockingGet();
+
+      fail("Expected " + HalApiClientException.class.getSimpleName() + " was not thrown");
+    }
+    catch (HalApiClientException ex) {
+      assertThat(ex.getStatusCode()).isEqualTo(502);
     }
   }
 
