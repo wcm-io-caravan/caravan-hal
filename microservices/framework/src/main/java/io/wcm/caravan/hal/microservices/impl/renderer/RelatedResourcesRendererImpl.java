@@ -105,7 +105,7 @@ final class RelatedResourcesRendererImpl {
 
     // get the emitted result resource type from the method signature
     Class<?> relatedResourceInterface = RxJavaReflectionUtils.getObservableEmissionType(method);
-    if (relatedResourceInterface.getAnnotation(HalApiInterface.class) == null && !LinkableResource.class.equals(relatedResourceInterface)) {
+    if (!HalApiReflectionUtils.isHalApiInterface(relatedResourceInterface) && !LinkableResource.class.equals(relatedResourceInterface)) {
 
       String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
       throw new UnsupportedOperationException("The method " + fullMethodName + " returns an Observable<" + relatedResourceInterface.getName() + ">, "

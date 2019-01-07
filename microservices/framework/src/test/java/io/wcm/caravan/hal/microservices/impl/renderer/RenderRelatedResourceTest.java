@@ -35,6 +35,7 @@ import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.renderer.RenderLinkedResourceTest.TestResourceWithObservableLinks;
+import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestResource;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -135,6 +136,31 @@ public class RenderRelatedResourceTest {
 
       @Override
       public Maybe<TestState> getLinked() {
+        return Maybe.empty();
+      }
+    };
+
+    render(resourceImpl);
+  }
+
+  @HalApiInterface
+  public interface TestResourceWithExtendedType {
+
+    @RelatedResource(relation = LINKED)
+    Maybe<ExtendedLinkableTestResource> getLinked();
+
+    interface ExtendedLinkableTestResource extends LinkableTestResource {
+
+    }
+  }
+
+  @Test
+  public void should_allow_emission_types_that_extend_an_annotated_interface() {
+
+    TestResourceWithExtendedType resourceImpl = new TestResourceWithExtendedType() {
+
+      @Override
+      public Maybe<ExtendedLinkableTestResource> getLinked() {
         return Maybe.empty();
       }
     };
