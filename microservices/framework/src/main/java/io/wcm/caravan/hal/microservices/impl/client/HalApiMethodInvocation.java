@@ -72,7 +72,6 @@ class HalApiMethodInvocation {
             + TemplateVariable.class.getSimpleName() + " or @" + LinkName.class.getSimpleName() + ", "
             + " or have class type annotated with @" + TemplateVariables.class.getSimpleName());
       }
-
     }
 
     this.linkName = foundLinkName;
@@ -128,16 +127,16 @@ class HalApiMethodInvocation {
     return linkName;
   }
 
-  public String getDescription() {
-    String desc = "emitting " + getEmissionType().getSimpleName();
+  String getDescription() {
+    String desc = "emitting {}" + getEmissionType().getSimpleName();
     if (isForMethodAnnotatedWithRelatedResource()) {
-      desc += " proxies";
+      desc += " client proxies";
     }
     else {
-      desc += " objects";
+      desc += " client state";
     }
 
-    desc += " via #" + method.getName();
+    desc += " via " + toString();
     return desc;
   }
 

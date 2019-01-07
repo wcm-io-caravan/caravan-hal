@@ -36,6 +36,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
+import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 
 /**
  * Internal utility methods to invoke methods returning reactive streams, and converting between various
@@ -125,12 +126,15 @@ public final class RxJavaReflectionUtils {
   /**
    * @param reactiveInstance a {@link Single}, {@link Maybe}, {@link Observable} or {@link Publisher}
    * @param targetType {@link Single}, {@link Maybe}, {@link Observable} or {@link Publisher} class
+   * @param metrics to collect emission times
+   * @param description for the metrics
    * @return an instance of the target type that will replay (and cache!) the items emitted by the given reactive
    *         instance
    */
-  public static Object convertAndCacheReactiveType(Object reactiveInstance, Class<?> targetType) {
+  public static Object convertAndCacheReactiveType(Object reactiveInstance, Class<?> targetType, RequestMetricsCollector metrics, String description) {
 
     Observable<?> observable = convertToObservable(reactiveInstance)
+        .compose(EmissionStopwatch.collectMetrics(description, metrics))
         .cache();
 
     return convertObservableTo(observable, targetType);

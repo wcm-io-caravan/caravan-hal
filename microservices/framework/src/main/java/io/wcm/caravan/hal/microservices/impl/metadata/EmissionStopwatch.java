@@ -20,6 +20,9 @@
 package io.wcm.caravan.hal.microservices.impl.metadata;
 
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Stopwatch;
 
@@ -42,6 +45,7 @@ public class EmissionStopwatch<T> implements SingleTransformer<T, T>, Observable
 
   private final RequestMetricsCollector metrics;
   private final String message;
+  private final AtomicInteger itemCounter = new AtomicInteger();
 
   EmissionStopwatch(RequestMetricsCollector metrics, String message) {
     this.metrics = metrics;
@@ -71,6 +75,7 @@ public class EmissionStopwatch<T> implements SingleTransformer<T, T>, Observable
 
     return upstream
         .doOnSubscribe(this::startStopwatch)
+        .doOnNext(i -> itemCounter.incrementAndGet())
         .doOnTerminate(this::sendMetrics);
   }
 
@@ -86,7 +91,9 @@ public class EmissionStopwatch<T> implements SingleTransformer<T, T>, Observable
   }
 
   private void sendMetrics() {
-    metrics.onMethodInvocationFinished(EmissionStopwatch.class, message, stopwatch.elapsed(TimeUnit.MICROSECONDS));
+    String desc = StringUtils.replace(message, "{}", itemCounter.get() > 1 ? itemCounter.get() + " " : "");
+
+    metrics.onMethodInvocationFinished(EmissionStopwatch.class, desc, stopwatch.elapsed(TimeUnit.MICROSECONDS));
   }
 
 }
