@@ -17,15 +17,21 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.server.testing;
+package io.wcm.caravan.hal.microservices.testing;
 
-public final class TestRelations {
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
+import io.wcm.caravan.hal.resource.HalResource;
 
-  private TestRelations() {
-    // this class contains only constants
+public final class ConversionFunctions {
+
+  private ConversionFunctions() {
+    // this class contains only static methods
   }
 
-  public static final String LINKED = "test:linked";
+  public static HalResponse toJsonResponse(HalResource resource) {
 
-  public static final String EMBEDDED = "test:embedded";
+    return new HalResponse()
+        .withStatus(200)
+        .withBody(resource);
+  }
 }

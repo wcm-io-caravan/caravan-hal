@@ -17,16 +17,27 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.server.testing;
+package io.wcm.caravan.hal.microservices.testing;
 
-import io.wcm.caravan.hal.api.annotations.ResourceLink;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.resource.Link;
+public class TestState {
 
-public interface LinkableTestResource extends TestResource, LinkableResource {
+  public String string;
+  public Integer number;
 
-  @Override
-  @ResourceLink
-  Link createLink();
+  public TestState() {
 
+  }
+
+  public TestState(String string) {
+    this.string = string;
+  }
+
+  public TestState(int number) {
+    this.number = number;
+  }
+
+  public TestState(String string, int number) {
+    this.string = string;
+    this.number = number;
+  }
 }

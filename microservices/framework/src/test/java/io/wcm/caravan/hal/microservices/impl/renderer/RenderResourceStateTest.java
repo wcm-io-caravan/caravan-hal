@@ -33,7 +33,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.api.server.testing.TestState;
+import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.resource.HalResource;
 
 public class RenderResourceStateTest {

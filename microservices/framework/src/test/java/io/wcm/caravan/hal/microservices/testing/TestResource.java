@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.server.testing;
+package io.wcm.caravan.hal.microservices.testing;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;

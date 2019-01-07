@@ -19,9 +19,9 @@
  */
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
-import static io.wcm.caravan.hal.api.server.testing.TestRelations.LINKED;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.createSingleExternalLinkedResource;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.render;
+import static io.wcm.caravan.hal.microservices.testing.TestRelations.LINKED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -36,9 +36,9 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
-import io.wcm.caravan.hal.api.server.testing.LinkableTestResource;
-import io.wcm.caravan.hal.api.server.testing.TestResource;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
+import io.wcm.caravan.hal.microservices.testing.TestResource;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
