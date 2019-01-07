@@ -25,7 +25,6 @@ import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRel
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.RESPONSE_TIMES;
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.SOURCE_LINKS;
 
-import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +32,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
+
+import org.apache.commons.lang3.ObjectUtils;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -66,7 +67,7 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
       TimeUnit.MICROSECONDS, "μs",
       TimeUnit.NANOSECONDS, "ns");
 
-  private final Stopwatch overalResponseTImeStopwatch = Stopwatch.createStarted();
+  private final Stopwatch overalResponseTimeStopwatch = Stopwatch.createStarted();
 
   private final List<TimeMeasurement> inputMaxAgeSeconds = Collections.synchronizedList(new ArrayList<>());
   private final List<TimeMeasurement> inputResponseTimes = Collections.synchronizedList(new ArrayList<>());
@@ -74,7 +75,7 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
 
   private final List<Link> sourceLinks = Collections.synchronizedList(new ArrayList<>());
 
-  private Integer maxAgeOverride;
+  private Integer maxAgeLimit;
 
   @Override
   public void onResponseRetrieved(String resourceUri, String resourceTitle, Integer maxAgeSeconds, long responseTimeMicros) {
@@ -98,7 +99,7 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
 
   @Override
   public void limitOutputMaxAge(int value) {
-    maxAgeOverride = value;
+    maxAgeLimit = value;
   }
 
   /**
@@ -108,25 +109,22 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
   @Override
   public Integer getOutputMaxAge() {
 
-    if (inputMaxAgeSeconds.isEmpty() && maxAgeOverride == null) {
+    if (maxAgeLimit == null && inputMaxAgeSeconds.isEmpty()) {
       return null;
     }
 
-    int oneYear = (int)TimeUnit.DAYS.toSeconds(365);
+    int upperLimit = ObjectUtils.defaultIfNull(maxAgeLimit, (int)TimeUnit.DAYS.toSeconds(365));
 
     int inputMaxAge = inputMaxAgeSeconds.stream()
         // find the max-age values of all requested resources
         .mapToInt(triple -> Math.round(triple.getTime()))
-        .filter(maxAge -> maxAge >= 0)
         // get the minimum max age time
         .min()
-        .orElse(oneYear);
+        // or fall back to the upper limit if no resources were retrieved
+        .orElse(upperLimit);
 
-    int specifiedMaxAge = maxAgeOverride != null ? maxAgeOverride : oneYear;
-
-    return Math.min(inputMaxAge, specifiedMaxAge);
+    return Math.min(inputMaxAge, upperLimit);
   }
-
 
   List<TimeMeasurement> getSortedInputMaxAgeSeconds() {
     return TimeMeasurement.LONGEST_TIME_FIRST.sortedCopy(inputMaxAgeSeconds);
@@ -135,7 +133,6 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
   List<TimeMeasurement> getSortedInputResponseTimes() {
     return TimeMeasurement.LONGEST_TIME_FIRST.sortedCopy(inputResponseTimes);
   }
-
 
   List<TimeMeasurement> getGroupedAndSortedInvocationTimes(Class category, boolean useMax) {
 
@@ -163,7 +160,7 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
   }
 
   float getOverallResponseTimeMillis() {
-    return overalResponseTImeStopwatch.elapsed(TimeUnit.MICROSECONDS) / 1000.f;
+    return overalResponseTimeStopwatch.elapsed(TimeUnit.MICROSECONDS) / 1000.f;
   }
 
   float getSumOfResponseTimeMillis() {
@@ -172,7 +169,7 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
         .sum();
   }
 
-  float getSumOfProxyInvocationMillis(Class category) {
+  float getSumOfInvocationMillis(Class category) {
     return (float)methodInvocationTimes.get(category.getSimpleName()).stream()
         .mapToDouble(m -> m.getTime())
         .sum();
@@ -234,14 +231,11 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
     metadataResource.getModel().put("maxAge", getOutputMaxAge() + " s");
 
     // and a summary of the important timing results
-    metadataResource.getModel().put("sumOfProxyInvocationTime", getSumOfProxyInvocationMillis(HalApiClient.class) + "ms");
-    metadataResource.getModel().put("sumOfResourceAssemblyTime", getSumOfProxyInvocationMillis(AsyncHalResourceRenderer.class) + "ms");
+    metadataResource.getModel().put("sumOfProxyInvocationTime", getSumOfInvocationMillis(HalApiClient.class) + "ms");
+    metadataResource.getModel().put("sumOfResourceAssemblyTime", getSumOfInvocationMillis(AsyncHalResourceRenderer.class) + "ms");
     metadataResource.getModel().put("sumOfResponseAndParseTimes", getSumOfResponseTimeMillis() + "ms");
-    metadataResource.getModel().put("metadataGenerationTime", stopwatch.elapsed(TimeUnit.MILLISECONDS) + "ms");
     metadataResource.getModel().put("overallServerSideResponseTime", getOverallResponseTimeMillis() + "ms");
-
-    // this was useful to verify the total number of threads in the system if there are many concurrent incoming requests
-    metadataResource.getModel().put("threadCount", ManagementFactory.getThreadMXBean().getThreadCount());
+    metadataResource.getModel().put("metadataGenerationTime", stopwatch.elapsed(TimeUnit.MILLISECONDS) + "ms");
 
     return metadataResource;
   }
