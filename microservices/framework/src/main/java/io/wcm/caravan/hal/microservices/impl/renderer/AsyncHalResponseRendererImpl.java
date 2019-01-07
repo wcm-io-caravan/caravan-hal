@@ -54,7 +54,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
       ExceptionStatusAndLoggingStrategy exceptionStrategy) {
     this.renderer = renderer;
     this.metrics = metrics;
-    this.errorRenderer = new VndErrorResponseRendererImpl(exceptionStrategy);
+    this.errorRenderer = VndErrorResponseRenderer.create(exceptionStrategy);
   }
 
   @Override

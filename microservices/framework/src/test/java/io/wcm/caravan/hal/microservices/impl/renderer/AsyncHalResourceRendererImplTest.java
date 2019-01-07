@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Test;
 import org.reactivestreams.Publisher;
 
@@ -113,6 +114,7 @@ public class AsyncHalResourceRendererImplTest {
 
     assertThat(hal.adaptTo(TestState.class)).isEqualToComparingFieldByField(state);
   }
+
 
   @HalApiInterface
   public interface TestResourceWithSingleState {
@@ -529,6 +531,118 @@ public class AsyncHalResourceRendererImplTest {
     HalResource hal = render(resourceImpl);
     assertThat(hal.getEmbedded(ITEM)).isEmpty();
     assertThat(hal.getLinks(ITEM)).hasSameSizeAs(states);
+  }
 
+  public interface ResourceWithoutAnnotation {
+
+    @ResourceState
+    Maybe<TestState> getState();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_exception_if_no_HalApiInterface_annotation_can_be_found() {
+
+    ResourceWithoutAnnotation resourceImpl = new ResourceWithoutAnnotation() {
+
+      @Override
+      public Maybe<TestState> getState() {
+        return Maybe.empty();
+      }
+    };
+
+    render(resourceImpl);
+  }
+
+  @HalApiInterface
+  interface ResourceWithNonPublicInterface {
+
+    @ResourceState
+    Maybe<TestState> getState();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_exception_if_no_HalApiInterface_is_not_public() {
+
+    ResourceWithNonPublicInterface resourceImpl = new ResourceWithNonPublicInterface() {
+
+      @Override
+      public Maybe<TestState> getState() {
+        return Maybe.empty();
+      }
+    };
+
+    render(resourceImpl);
+  }
+
+  @HalApiInterface
+  public interface ResourceWithNonReactiveReturnType {
+
+    @ResourceState
+    TestState getState();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_exception_if_ResourceState_method_does_not_have_reactive_return_type() {
+
+    ResourceWithNonReactiveReturnType resourceImpl = new ResourceWithNonReactiveReturnType() {
+
+      @Override
+      public TestState getState() {
+        return createTestState();
+      }
+    };
+
+    render(resourceImpl);
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_exception_if_ResourceState_method_returns_null() {
+
+    TestResourceWithMaybeState resourceImpl = new TestResourceWithMaybeState() {
+
+      @Override
+      public Maybe<TestState> getState() {
+        return null;
+      }
+
+    };
+
+    render(resourceImpl);
+  }
+
+  @Test(expected = RuntimeException.class)
+  public void should_throw_runtime_exception_if_ResourceState_method_throws_exception() {
+
+    TestResourceWithMaybeState resourceImpl = new TestResourceWithMaybeState() {
+
+      @Override
+      public Maybe<TestState> getState() {
+        throw new NotImplementedException("not implemented");
+      }
+
+    };
+
+    render(resourceImpl);
+  }
+
+  @HalApiInterface
+  public interface ResourceWithInvalidRelatedMethod {
+
+    @RelatedResource(relation = ITEM)
+    Observable<TestState> getRelated();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_exception_if_RelatedResource_return_type_does_not_emit_interface() {
+
+    ResourceWithInvalidRelatedMethod resourceImpl = new ResourceWithInvalidRelatedMethod() {
+
+      @Override
+      public Observable<TestState> getRelated() {
+        return Observable.empty();
+      }
+    };
+
+    render(resourceImpl);
   }
 }

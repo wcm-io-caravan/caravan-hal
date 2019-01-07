@@ -33,6 +33,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.server.testing.TestState;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
@@ -56,7 +57,7 @@ public class MaxAgeTest {
   }
 
   private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClientImpl client = new HalApiClientImpl(jsonLoader, binaryLoader, metrics);
+    HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);
     T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
     assertThat(clientProxy).isNotNull();
     return clientProxy;

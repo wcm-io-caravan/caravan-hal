@@ -39,6 +39,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
 import io.wcm.caravan.hal.api.server.testing.ConversionFunctions;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
@@ -80,7 +81,7 @@ public class TemplateVariableTest {
 
   private <T> T createClientProxy(Class<T> halApiInterface) {
 
-    HalApiClientImpl client = new HalApiClientImpl(jsonLoader, binaryLoader, metrics);
+    HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);
     T clientProxy = client.getEntryPoint(ENTRYPOINT_URL, halApiInterface);
 
     assertThat(clientProxy).isNotNull();

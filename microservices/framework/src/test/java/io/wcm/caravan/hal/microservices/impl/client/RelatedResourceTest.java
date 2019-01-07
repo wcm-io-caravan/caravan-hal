@@ -22,6 +22,7 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ALTERNATE;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.COLLECTION;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
+import static io.wcm.caravan.hal.api.relations.StandardRelations.SECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
@@ -38,7 +39,9 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.api.server.testing.TestState;
 import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
@@ -65,7 +68,7 @@ public class RelatedResourceTest {
   }
 
   private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClientImpl client = new HalApiClientImpl(jsonLoader, binaryLoader, metrics);
+    HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);
     T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
     assertThat(clientProxy).isNotNull();
     return clientProxy;
@@ -345,6 +348,9 @@ public class RelatedResourceTest {
 
     @RelatedResource(relation = COLLECTION)
     ResourceWithSingleState notReactive();
+
+    @RelatedResource(relation = SECTION)
+    Single<TestState> notAnInterface();
   }
 
   @Test(expected = UnsupportedOperationException.class)
@@ -367,5 +373,13 @@ public class RelatedResourceTest {
 
     createClientProxy(ResourceWithIllegalAnnotations.class)
         .notReactive();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_unsupported_operation_if_return_type_does_not_emit_an_interface() {
+
+    createClientProxy(ResourceWithIllegalAnnotations.class)
+        .notAnInterface()
+        .blockingGet();
   }
 }

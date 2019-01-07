@@ -59,28 +59,25 @@ public final class RxJavaReflectionUtils {
 
     String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
 
+    if (!hasReactiveReturnType(method)) {
+      throw new UnsupportedOperationException(
+          fullMethodName + " must return a reactive type (Maybe, Single, Observable or Publisher) that emits other resource instances");
+    }
 
     Object[] args = new Object[method.getParameterCount()];
 
     try {
       Object returnValue = method.invoke(resourceImplInstance, args);
 
-      Observable<?> rxReturnValue;
       if (returnValue == null) {
-        rxReturnValue = Observable.empty();
-      }
-      else if (hasReactiveReturnType(method)) {
-        rxReturnValue = convertToObservable(returnValue);
-        //            .compose(EmissionStopwatch.collectMetrics("processing " + getObservableEmissionType(method).getSimpleName() + " emissions from " + fullMethodName,metrics));
-      }
-      else {
-        rxReturnValue = Observable.just(returnValue);
+        throw new UnsupportedOperationException(
+            fullMethodName + " must not return null. You should return an empty Maybe/Observable if the related resource does not exist");
       }
 
-      return rxReturnValue;
+      return convertToObservable(returnValue);
     }
     catch (InvocationTargetException ex) {
-      throw new RuntimeException("An exception was thrown by " + fullMethodName, ex.getTargetException());
+      throw new RuntimeException("An exception was thrown during assembly time in" + fullMethodName, ex.getTargetException());
     }
     catch (IllegalAccessException | IllegalArgumentException ex) {
       throw new RuntimeException("Failed to invoke method " + fullMethodName, ex);
