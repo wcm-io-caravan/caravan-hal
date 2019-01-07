@@ -33,7 +33,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
-import io.wcm.caravan.hal.microservices.api.server.LinkTemplateComponentProvider;
+import io.wcm.caravan.hal.microservices.api.server.LinkBuilderSupport;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -41,22 +41,23 @@ public class LinkBuilderImpl implements LinkBuilder {
 
   private final String baseUrl;
 
-  private final LinkTemplateComponentProvider componentProvider;
+  private final LinkBuilderSupport support;
 
   private final Map<String, Object> additionalParameters = new LinkedHashMap<>();
 
   /**
    * @param baseUrl the base path (or full URI) for which the current service bundle is registered
-   * @param componentProvider
+   * @param support implements the logic of extracting resource path and template variables from a server-side
+   *          resource instance
    */
-  public LinkBuilderImpl(String baseUrl, LinkTemplateComponentProvider componentProvider) {
+  public LinkBuilderImpl(String baseUrl, LinkBuilderSupport support) {
 
     Preconditions.checkArgument(StringUtils.isNotBlank(baseUrl), "A baseUrl must be provided");
-    Preconditions.checkNotNull(componentProvider, "a " + LinkTemplateComponentProvider.class.getSimpleName() + " must be specified");
+    Preconditions.checkNotNull(support, "a " + LinkBuilderSupport.class.getSimpleName() + " must be specified");
 
     this.baseUrl = baseUrl;
 
-    this.componentProvider = componentProvider;
+    this.support = support;
   }
 
   @Override
@@ -99,7 +100,7 @@ public class LinkBuilderImpl implements LinkBuilder {
    */
   private String buildResourcePath(LinkableResource resource) {
 
-    String pathTemplate = componentProvider.getResourcePathTemplate(resource);
+    String pathTemplate = support.getResourcePathTemplate(resource);
 
     String resourcePath = baseUrl;
     if (StringUtils.isNotBlank(pathTemplate)) {
@@ -117,8 +118,8 @@ public class LinkBuilderImpl implements LinkBuilder {
   private Map<String, Object> collectAndAppendParameters(UriTemplateBuilder uriTemplateBuilder, LinkableResource resource) {
 
     // use reflection to find the names and values of all fields annotated with JAX-RS @PathParam and @QueryParam annotations
-    Map<String, Object> pathParams = componentProvider.getPathParameters(resource);
-    Map<String, Object> queryParams = componentProvider.getQueryParameters(resource);
+    Map<String, Object> pathParams = support.getPathParameters(resource);
+    Map<String, Object> queryParams = support.getQueryParameters(resource);
 
     // make sure that
     ensureThatNamesAreUnique(pathParams, queryParams, "Duplicate names detected in path and query params");

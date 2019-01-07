@@ -23,9 +23,9 @@ import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 
 public class JaxRsLinkBuilderFactory {
 
-  private static final JaxRsTemplateComponentProvider COMPONENT_PROVIDER = new JaxRsTemplateComponentProvider();
+  private static final JaxRsLinkBuilderSupport SUPPORT = new JaxRsLinkBuilderSupport();
 
   public static LinkBuilder createLinkBuilder(String baseUrl) {
-    return LinkBuilder.create(baseUrl, COMPONENT_PROVIDER);
+    return LinkBuilder.create(baseUrl, SUPPORT);
   }
 }

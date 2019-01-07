@@ -36,7 +36,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import com.google.common.collect.ImmutableMap;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
-import io.wcm.caravan.hal.microservices.api.server.LinkTemplateComponentProvider;
+import io.wcm.caravan.hal.microservices.api.server.LinkBuilderSupport;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -46,14 +46,14 @@ public class LinkBuilderImplTest {
   private static final String BASE_URL = "http://server/contextPath";
 
   @Mock
-  private LinkTemplateComponentProvider componentProvider;
+  private LinkBuilderSupport support;
 
   @Mock
   private LinkableResource resource;
 
   private Link buildLink() {
 
-    LinkBuilder linkBuilder = new LinkBuilderImpl(BASE_URL, componentProvider);
+    LinkBuilder linkBuilder = new LinkBuilderImpl(BASE_URL, support);
     return linkBuilder.buildLinkTo(resource);
   }
 
@@ -63,7 +63,7 @@ public class LinkBuilderImplTest {
 
     String relativePath = "relative/path";
 
-    when(componentProvider.getResourcePathTemplate(resource)).thenReturn(relativePath);
+    when(support.getResourcePathTemplate(resource)).thenReturn(relativePath);
 
     Link link = buildLink();
 
@@ -73,7 +73,7 @@ public class LinkBuilderImplTest {
   @Test
   public void empty_resource_path_should_be_allowed() throws Exception {
 
-    when(componentProvider.getResourcePathTemplate(resource)).thenReturn("");
+    when(support.getResourcePathTemplate(resource)).thenReturn("");
 
     Link link = buildLink();
 
@@ -83,7 +83,7 @@ public class LinkBuilderImplTest {
   @Test
   public void null_resource_path_should_be_allowed() throws Exception {
 
-    when(componentProvider.getResourcePathTemplate(resource)).thenReturn(null);
+    when(support.getResourcePathTemplate(resource)).thenReturn(null);
 
     Link link = buildLink();
 
@@ -94,8 +94,8 @@ public class LinkBuilderImplTest {
 
     Map<String, Object> parameters = createMapFromPairs(parameterNamesAndValues);
 
-    when(componentProvider.getResourcePathTemplate(resource)).thenReturn(pathTemplate);
-    when(componentProvider.getPathParameters(resource)).thenReturn(parameters);
+    when(support.getResourcePathTemplate(resource)).thenReturn(pathTemplate);
+    when(support.getPathParameters(resource)).thenReturn(parameters);
   }
 
   @Test
@@ -145,7 +145,7 @@ public class LinkBuilderImplTest {
 
   private void mockQueryParameters(Map<String, Object> queryParameters) {
 
-    when(componentProvider.getQueryParameters(resource)).thenReturn(queryParameters);
+    when(support.getQueryParameters(resource)).thenReturn(queryParameters);
   }
 
   @Test
@@ -194,7 +194,7 @@ public class LinkBuilderImplTest {
     Map<String, Object> additional = ImmutableMap.of("additional", "value");
     mockQueryParameters("varA", "valueA");
 
-    Link link = new LinkBuilderImpl(BASE_URL, componentProvider)
+    Link link = new LinkBuilderImpl(BASE_URL, support)
         .withAdditionalParameters(additional)
         .buildLinkTo(resource);
 
@@ -206,7 +206,7 @@ public class LinkBuilderImplTest {
 
     mockQueryParameters("varA", null);
 
-    Link link = new LinkBuilderImpl(BASE_URL, componentProvider)
+    Link link = new LinkBuilderImpl(BASE_URL, support)
         .withAdditionalParameters(ImmutableMap.of("additional", "value"))
         .buildLinkTo(resource);
 
@@ -216,7 +216,7 @@ public class LinkBuilderImplTest {
   @Test
   public void additional_query_parameters_should_be_appended_if_there_are_no_other_query_parameters() throws Exception {
 
-    Link link = new LinkBuilderImpl(BASE_URL, componentProvider)
+    Link link = new LinkBuilderImpl(BASE_URL, support)
         .withAdditionalParameters(ImmutableMap.of("additional", "value"))
         .buildLinkTo(resource);
 
@@ -228,7 +228,7 @@ public class LinkBuilderImplTest {
 
     mockQueryParameters("varA", "valueA");
 
-    new LinkBuilderImpl(BASE_URL, componentProvider)
+    new LinkBuilderImpl(BASE_URL, support)
         .withAdditionalParameters(ImmutableMap.of("varA", "value"))
         .buildLinkTo(resource);
   }
@@ -238,7 +238,7 @@ public class LinkBuilderImplTest {
 
     mockPathParameters("/{varA}", "varA", null);
 
-    new LinkBuilderImpl(BASE_URL, componentProvider)
+    new LinkBuilderImpl(BASE_URL, support)
         .withAdditionalParameters(ImmutableMap.of("varA", "value"))
         .buildLinkTo(resource);
   }

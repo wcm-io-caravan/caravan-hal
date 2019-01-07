@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.jaxrs;
+package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -25,7 +25,7 @@ import javax.ws.rs.QueryParam;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 
-public class JaxRsLinkBuilderTestWithIndividualConstructorParamTest extends JaxRsLinkBuilderTest {
+public class JaxRsLinkBuilderSupportWithIndividualConstructorParamTest extends AbstractJaxRsLinkBuilderSupportTest {
 
   @Path(RESOURCE_PATH)
   public static class TestResourceWithTwoQueryParameters extends LinkableResourceAdapter {

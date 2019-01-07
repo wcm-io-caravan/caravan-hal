@@ -29,7 +29,7 @@ import org.osgi.annotation.versioning.ConsumerType;
  * (template) to a given server-side resource instance
  */
 @ConsumerType
-public interface LinkTemplateComponentProvider {
+public interface LinkBuilderSupport {
 
   /**
    * @param targetResource the server-side resource instance to be linked

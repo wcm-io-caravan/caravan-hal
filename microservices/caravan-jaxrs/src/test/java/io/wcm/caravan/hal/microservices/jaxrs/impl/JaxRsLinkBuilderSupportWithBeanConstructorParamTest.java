@@ -17,9 +17,11 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.jaxrs;
+package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Map;
 
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Path;
@@ -27,11 +29,10 @@ import javax.ws.rs.Path;
 import org.junit.Test;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.jaxrs.JaxRsLinkBuilderTestWithAnnotatedBeanParamTest.TwoPathParametersBean;
-import io.wcm.caravan.hal.microservices.jaxrs.JaxRsLinkBuilderTestWithAnnotatedBeanParamTest.TwoQueryParametersBean;
-import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsLinkBuilderSupportWithAnnotatedBeanParamTest.TwoPathParametersBean;
+import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsLinkBuilderSupportWithAnnotatedBeanParamTest.TwoQueryParametersBean;
 
-public class JaxRsLinkBuilderTestWithBeanConstructorParamTest extends JaxRsLinkBuilderTest {
+public class JaxRsLinkBuilderSupportWithBeanConstructorParamTest extends AbstractJaxRsLinkBuilderSupportTest {
 
 
   @Path(RESOURCE_PATH)
@@ -69,12 +70,24 @@ public class JaxRsLinkBuilderTestWithBeanConstructorParamTest extends JaxRsLinkB
 
 
   @Test
-  public void should_insert_variables_for_query_parameters_if_bean_param_is_null() throws Exception {
+  public void should_allow_query_param_bean_to_be_null() throws Exception {
 
-    Link link = buildLinkTo(new TestResourceWithTwoQueryParameters(null));
+    TestResourceWithTwoQueryParameters resource = new TestResourceWithTwoQueryParameters(null);
 
-    assertThat(link.isTemplated());
-    assertThat(link.getHref()).endsWith("{?" + QUERY_PARAM_A + "," + QUERY_PARAM_B + "}");
+    Map<String, Object> parameters = support.getQueryParameters(resource);
+
+    assertThat(parameters).containsEntry(QUERY_PARAM_A, null);
+    assertThat(parameters).containsEntry(QUERY_PARAM_B, null);
   }
 
+  @Test
+  public void should_allow_path_param_bean_to_be_null() throws Exception {
+
+    TestResourceWithTwoPathParameters resource = new TestResourceWithTwoPathParameters(null);
+
+    Map<String, Object> parameters = support.getPathParameters(resource);
+
+    assertThat(parameters).containsEntry(PATH_PARAM_A, null);
+    assertThat(parameters).containsEntry(PATH_PARAM_B, null);
+  }
 }

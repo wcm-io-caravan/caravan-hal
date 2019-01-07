@@ -74,7 +74,7 @@ public class AsyncHalResourceRendererImplPT {
     LinkableCollectionResource collectionResource = new LinkableCollectionResource() {
 
       @Override
-      public Observable<ItemResource> getLinked() {
+      public Observable<LinkableTestResource> getLinked() {
         return Observable.fromIterable(itemResources);
       }
 
@@ -103,7 +103,7 @@ public class AsyncHalResourceRendererImplPT {
 
 
     @RelatedResource(relation = TestRelations.LINKED)
-    default Observable<ItemResource> getLinked() {
+    public default Observable<LinkableTestResource> getLinked() {
       return Observable.empty();
     }
   }

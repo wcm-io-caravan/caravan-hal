@@ -51,12 +51,12 @@ public interface LinkBuilder {
 
   /**
    * @param baseUrl the absolute base URL for all resources for which the link builder will be used
-   * @param componentProvider implements the logic of extracting resource path and template variables from a server-side
+   * @param support implements the logic of extracting resource path and template variables from a server-side
    *          resource instance
    * @return a {@link LinkBuilder} instance
    */
-  static LinkBuilder create(String baseUrl, LinkTemplateComponentProvider componentProvider) {
-    return new LinkBuilderImpl(baseUrl, componentProvider);
+  static LinkBuilder create(String baseUrl, LinkBuilderSupport support) {
+    return new LinkBuilderImpl(baseUrl, support);
   }
 
 }

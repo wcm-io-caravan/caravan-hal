@@ -17,9 +17,11 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.jaxrs;
+package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Map;
 
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Path;
@@ -29,9 +31,8 @@ import javax.ws.rs.QueryParam;
 import org.junit.Test;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.resource.Link;
 
-public class JaxRsLinkBuilderTestWithAnnotatedBeanParamTest extends JaxRsLinkBuilderTest {
+public class JaxRsLinkBuilderSupportWithAnnotatedBeanParamTest extends AbstractJaxRsLinkBuilderSupportTest {
 
   static class TwoQueryParametersBean {
 
@@ -41,7 +42,7 @@ public class JaxRsLinkBuilderTestWithAnnotatedBeanParamTest extends JaxRsLinkBui
     @QueryParam(QUERY_PARAM_B)
     private String queryB;
 
-    public TwoQueryParametersBean(String a, String b) {
+    TwoQueryParametersBean(String a, String b) {
       this.queryA = a;
       this.queryB = b;
     }
@@ -53,7 +54,7 @@ public class JaxRsLinkBuilderTestWithAnnotatedBeanParamTest extends JaxRsLinkBui
     @BeanParam
     private TwoQueryParametersBean parameters;
 
-    public TestResourceWithTwoQueryParameters(TwoQueryParametersBean parameters) {
+    TestResourceWithTwoQueryParameters(TwoQueryParametersBean parameters) {
       this.parameters = parameters;
     }
   }
@@ -73,7 +74,7 @@ public class JaxRsLinkBuilderTestWithAnnotatedBeanParamTest extends JaxRsLinkBui
     @PathParam(PATH_PARAM_B)
     private String pathB;
 
-    public TwoPathParametersBean(String a, String b) {
+    TwoPathParametersBean(String a, String b) {
       this.pathA = a;
       this.pathB = b;
     }
@@ -85,7 +86,7 @@ public class JaxRsLinkBuilderTestWithAnnotatedBeanParamTest extends JaxRsLinkBui
     @BeanParam
     private TwoPathParametersBean parameters;
 
-    public TestResourceWithTwoPathParameters(TwoPathParametersBean parameters) {
+    TestResourceWithTwoPathParameters(TwoPathParametersBean parameters) {
       this.parameters = parameters;
     }
   }
@@ -96,13 +97,25 @@ public class JaxRsLinkBuilderTestWithAnnotatedBeanParamTest extends JaxRsLinkBui
     return new TestResourceWithTwoPathParameters(parameters);
   }
 
+  @Test
+  public void should_allow_query_param_bean_to_be_null() throws Exception {
+
+    TestResourceWithTwoQueryParameters resource = new TestResourceWithTwoQueryParameters(null);
+
+    Map<String, Object> parameters = support.getQueryParameters(resource);
+
+    assertThat(parameters).containsEntry(QUERY_PARAM_A, null);
+    assertThat(parameters).containsEntry(QUERY_PARAM_B, null);
+  }
 
   @Test
-  public void should_insert_variables_for_query_parameters_if_bean_param_is_null() throws Exception {
+  public void should_allow_path_param_bean_to_be_null() throws Exception {
 
-    Link link = buildLinkTo(new TestResourceWithTwoQueryParameters(null));
+    TestResourceWithTwoPathParameters resource = new TestResourceWithTwoPathParameters(null);
 
-    assertThat(link.isTemplated());
-    assertThat(link.getHref()).endsWith("{?" + QUERY_PARAM_A + "," + QUERY_PARAM_B + "}");
+    Map<String, Object> parameters = support.getPathParameters(resource);
+
+    assertThat(parameters).containsEntry(PATH_PARAM_A, null);
+    assertThat(parameters).containsEntry(PATH_PARAM_B, null);
   }
 }

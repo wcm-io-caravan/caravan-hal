@@ -52,7 +52,7 @@ public class JaxRsReflectionUtils {
       return finder.getParameterMap(resourceImpl);
     }
     catch (ExecutionException | UncheckedExecutionException ex) {
-      throw new RuntimeException("Failed to inspect fields corresponding to @PathParams in " + clazz, ex);
+      throw new RuntimeException("Failed to access @PathParam fields in " + clazz, ex);
     }
   }
 
@@ -63,7 +63,7 @@ public class JaxRsReflectionUtils {
       return finder.getParameterMap(resourceImpl);
     }
     catch (ExecutionException | UncheckedExecutionException ex) {
-      throw new RuntimeException("Failed to inspect fields corresponding to @QueryParams in " + clazz, ex);
+      throw new RuntimeException("Failed to access @QueryParam fields in " + clazz, ex);
     }
   }
 
