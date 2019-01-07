@@ -28,12 +28,16 @@ public class TestState {
 
   }
 
-  public TestState(String s) {
-    this.string = s;
+  public TestState(String string) {
+    this.string = string;
   }
 
   public TestState(int number) {
     this.number = number;
   }
 
+  public TestState(String string, int number) {
+    this.string = string;
+    this.number = number;
+  }
 }

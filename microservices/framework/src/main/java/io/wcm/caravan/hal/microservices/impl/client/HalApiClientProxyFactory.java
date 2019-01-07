@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
@@ -83,7 +84,7 @@ final class HalApiClientProxyFactory {
           return jsonLoader.loadJsonResource(url)
               .map(HalResponse::getBody);
         })
-        .compose(EmissionStopwatch.collectMetrics("fetching " + relatedResourceType.getSimpleName() + " resource from upstream server", metrics));
+        .compose(EmissionStopwatch.collectMetrics("fetching " + relatedResourceType.getSimpleName() + " from upstream server", metrics));
   }
 
 
@@ -99,7 +100,10 @@ final class HalApiClientProxyFactory {
     try {
       return (T)proxyCache.get(cacheKey, () -> createProxy(relatedResourceType, rxHal, linkToResource));
     }
-    catch (ExecutionException ex) {
+    catch (UncheckedExecutionException | ExecutionException ex) {
+      if (ex.getCause() instanceof RuntimeException) {
+        throw (RuntimeException)ex.getCause();
+      }
       throw new RuntimeException(ex);
     }
 
@@ -112,7 +116,7 @@ final class HalApiClientProxyFactory {
     try {
       // check that the given class is indeed a HAL api interface
       if (!isHalApiInterface(relatedResourceType)) {
-        throw new IllegalArgumentException(
+        throw new UnsupportedOperationException(
             "The given resource interface " + relatedResourceType.getName() + " does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
       }
 

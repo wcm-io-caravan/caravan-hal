@@ -60,9 +60,6 @@ class RelatedResourceHandler {
           " which does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
     }
 
-    log.trace(invocation + " was invoked, method is annotated with @RelatedResources cur=" + relation + " and returns an Observable<"
-        + relatedResourceType.getSimpleName() + ">");
-
     List<Link> links = filterLinksIfNamedLinkAnnotationWasUsed(invocation, contextResource.getLinks(relation));
     List<HalResource> embeddedResources = contextResource.getEmbedded(relation);
 
@@ -77,7 +74,7 @@ class RelatedResourceHandler {
 
     log.trace(embeddedResources.size() + " embedded resources with relation " + relation + " were found in the context resource");
 
-    return createObservableFromEmbeddedResources(relatedResourceType, embeddedResources, links, invocation);
+    return createProxiesFromEmbeddedResources(relatedResourceType, embeddedResources, links, invocation);
   }
 
   private Observable<Object> getLinked(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<HalResource> embeddedResources,
@@ -93,7 +90,7 @@ class RelatedResourceHandler {
     if (variables.size() > 0) {
       // if null values were specified for all method parameters, we assume that the caller is only interested in the link templates
       if (invocation.isCalledWithOnlyNullParameters()) {
-        return createObservableFromLinkTemplates(relatedResourceType, relevantLinks);
+        return createProxiesFromLinkTemplates(relatedResourceType, relevantLinks);
       }
 
       // otherwise we ignore any resolved links, and only consider link templates that are resolved with the callers values
@@ -110,7 +107,8 @@ class RelatedResourceHandler {
       }
     }
 
-    return createObservableFromLinkedHalResources(relatedResourceType, relevantLinks, variables);
+    // if the resources are linked, then we have to fetch those resources first
+    return createProxiesForLinkedHalResources(relatedResourceType, relevantLinks, variables);
   }
 
   private static List<Link> filterLinksToResourcesThatAreAlreadyEmbedded(List<Link> links, List<HalResource> embeddedResources) {
@@ -142,7 +140,7 @@ class RelatedResourceHandler {
     return filteredLinks;
   }
 
-  private Observable<Object> createObservableFromEmbeddedResources(Class<?> relatedResourceType, List<HalResource> embeddedResources, List<Link> links,
+  private Observable<Object> createProxiesFromEmbeddedResources(Class<?> relatedResourceType, List<HalResource> embeddedResources, List<Link> links,
       HalApiMethodInvocation invocation) {
 
     Map<String, Link> linksByHref = links.stream()
@@ -163,18 +161,12 @@ class RelatedResourceHandler {
         });
   }
 
-  private Observable<Object> createObservableFromLinkedHalResources(Class<?> relatedResourceType, List<Link> links, Map<String, Object> parameters) {
+  private Observable<Object> createProxiesForLinkedHalResources(Class<?> relatedResourceType, List<Link> links, Map<String, Object> parameters) {
 
-    // if the resources are linked, then we have to fetch those resources first
     return Observable.fromIterable(links)
+        // if the link is templated then expand it with the method parameters
         .map(link -> link.isTemplated() ? expandLinkTemplates(link, parameters) : link)
-        .map(link -> proxyFactory.createProxyFromLink(relatedResourceType, link));
-  }
-
-  private Observable<Object> createObservableFromLinkTemplates(Class<?> relatedResourceType, List<Link> links) {
-
-    // do not expand the link templates
-    return Observable.fromIterable(links)
+        // then create a new proxy
         .map(link -> proxyFactory.createProxyFromLink(relatedResourceType, link));
   }
 
@@ -186,6 +178,13 @@ class RelatedResourceHandler {
     clonedLink.setTemplated(false);
     clonedLink.setHref(uri);
     return clonedLink;
+  }
+
+  private Observable<Object> createProxiesFromLinkTemplates(Class<?> relatedResourceType, List<Link> links) {
+
+    // do not expand the link templates
+    return Observable.fromIterable(links)
+        .map(link -> proxyFactory.createProxyFromLink(relatedResourceType, link));
   }
 
 }

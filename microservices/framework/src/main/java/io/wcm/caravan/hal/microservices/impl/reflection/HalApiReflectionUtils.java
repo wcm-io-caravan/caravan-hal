@@ -60,14 +60,14 @@ public final class HalApiReflectionUtils {
     String curi1 = method1.getAnnotation(RelatedResource.class).relation();
     String curi2 = method2.getAnnotation(RelatedResource.class).relation();
 
-    // make sure that all links with custom link relations are displayed first
-    if (curi1.contains(":") && !curi2.contains(":")) {
+    // make sure that all standard link relations always come before custom relations
+    if (curi2.contains(":") && !curi1.contains(":")) {
       return -1;
     }
-    // make sure that all links with standard relations are displayed last
-    if (curi2.contains(":") && !curi1.contains(":")) {
+    if (curi1.contains(":") && !curi2.contains(":")) {
       return 1;
     }
+
     // otherwise the links should be sorted alphabetically
     return curi1.compareTo(curi2);
   };

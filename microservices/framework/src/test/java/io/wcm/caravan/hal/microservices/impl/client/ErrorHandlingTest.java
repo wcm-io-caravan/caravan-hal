@@ -120,4 +120,19 @@ public class ErrorHandlingTest {
       assertThat(ex.getStatusCode()).isNull();
     }
   }
+
+  interface EntryPointWithoutAnnotation {
+
+    @ResourceState
+    Maybe<TestState> getState();
+
+    @RelatedResource(relation = ITEM)
+    Observable<LinkedResource> getLinked();
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void should_throw_unsupported_operation_if_HalApiAnnotation_is_missing() {
+
+    createClientProxy(EntryPointWithoutAnnotation.class).getState().blockingGet();
+  }
 }
