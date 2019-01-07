@@ -117,8 +117,9 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
         try {
           responseNode = new JsonFactory(new ObjectMapper()).createParser(responseBody).readValueAs(JsonNode.class);
         }
-        catch (Exception exWhileParsing) {
-          // ignore
+        // CHECKSTYLE:OFF - we really want to just try to parse the response body as JSON if possible
+        catch (Exception ex) {
+          // CHECKSTYLE:ON - it's absolutely no deal if this doesn't work for whatever reason
         }
       }
     }

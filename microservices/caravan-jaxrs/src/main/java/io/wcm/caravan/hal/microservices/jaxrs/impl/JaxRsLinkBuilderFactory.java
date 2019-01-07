@@ -19,12 +19,31 @@
  */
 package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
+import javax.ws.rs.BeanParam;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 
-public class JaxRsLinkBuilderFactory {
+/**
+ * Creates JAX-RS specific instance of {@link LinkBuilder} that are able to automatically build links to server-side
+ * resource instances by scanning their classes for {@link Path}, {@link QueryParam}, {@link BeanParam} and
+ * {@link PathParam} annotations
+ */
+public final class JaxRsLinkBuilderFactory {
 
+  // it's important to reuse this instance, because it contains shared caches to reduce the performance overhead of annotation lookup for each class
   private static final JaxRsLinkBuilderSupport SUPPORT = new JaxRsLinkBuilderSupport();
 
+  private JaxRsLinkBuilderFactory() {
+    // static methods only
+  }
+
+  /**
+   * @param baseUrl for all resources of this service
+   * @return a {@link LinkBuilder} instance
+   */
   public static LinkBuilder createLinkBuilder(String baseUrl) {
     return LinkBuilder.create(baseUrl, SUPPORT);
   }

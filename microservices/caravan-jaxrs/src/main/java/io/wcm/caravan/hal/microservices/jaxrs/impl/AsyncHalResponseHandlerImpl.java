@@ -60,16 +60,18 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
         // return the HAL or VND+Error response when it is available
         halResponse -> resumeWithResponse(suspended, halResponse),
         // or fall back to the regular JAX-RS error handling if an exception was not caught
-        fatalException -> resumeWithError(suspended, fatalException));
+        fatalException -> resumeWithError(uriInfo, suspended, fatalException));
   }
 
   private void resumeWithResponse(AsyncResponse suspended, HalResponse halResponse) {
 
+    // build a JAX-RS response from the HAL response created by the AsyncHalResponseRenderer
     ResponseBuilder jaxRsResponse = Response
         .status(halResponse.getStatus())
         .type(halResponse.getContentType())
         .entity(halResponse.getBody());
 
+    // add a CacheControl header only if a max-age value should be set
     Integer maxAge = halResponse.getMaxAge();
     if (maxAge != null) {
       CacheControl cacheControl = new CacheControl();
@@ -77,15 +79,21 @@ public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
       jaxRsResponse.cacheControl(cacheControl);
     }
 
+    // send the response to the client (HalResourceMessageBodyWriter will be responsible to serialise the body)
     suspended.resume(jaxRsResponse.build());
   }
 
-  private void resumeWithError(AsyncResponse suspended, Throwable error) {
-    log.error("Failed to handle request", error);
+  private void resumeWithError(UriInfo uriInfo, AsyncResponse suspended, Throwable fatalError) {
+    log.error("A fatal exception occured when handling request for " + uriInfo.getRequestUri(), fatalError);
 
-    suspended.resume(error);
+    suspended.resume(fatalError);
   }
 
+  /**
+   * This strategy allows server-side resource implementations to throw any subclass of {@link WebApplicationException},
+   * and ensure that the correct status code is actually added to the {@link HalResponse} instance by the
+   * {@link AsyncHalResponseRenderer}
+   */
   private static class JaxRsExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
 
     @Override
