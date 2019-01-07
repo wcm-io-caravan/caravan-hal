@@ -30,6 +30,7 @@ import java.util.NoSuchElementException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.reactivestreams.Publisher;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -303,6 +304,29 @@ public class RelatedResourceTest {
     for (int i = 0; i < numItems; i++) {
       assertThat(embeddedStates.get(i).number).isEqualTo(i);
     }
+  }
+
+
+  @HalApiInterface
+  interface ResourceWithPublisherRelated {
+
+    @RelatedResource(relation = ITEM)
+    Publisher<ResourceWithSingleState> getItems();
+  }
+
+  @Test
+  public void related_resource_method_can_return_publisher() throws Exception {
+
+    entryPoint.createLinked(ITEM).setText("item text");
+
+    Observable<ResourceWithSingleState> items = Observable.fromPublisher(createClientProxy(ResourceWithPublisherRelated.class).getItems());
+    TestResourceState linkedState = items
+        .concatMapSingle(ResourceWithSingleState::getProperties)
+        .firstOrError()
+        .blockingGet();
+
+    assertThat(linkedState).isNotNull();
+    assertThat(linkedState.text).isEqualTo("item text");
   }
 
   interface ResourceWithoutAnnotation {

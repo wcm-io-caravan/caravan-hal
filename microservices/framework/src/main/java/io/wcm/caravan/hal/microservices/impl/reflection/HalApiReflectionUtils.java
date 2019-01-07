@@ -25,6 +25,7 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -111,12 +112,20 @@ public final class HalApiReflectionUtils {
    */
   public static Class<?> findHalApiInterface(Object resourceImplInstance) {
 
-    return collectInterfaces(resourceImplInstance.getClass()).stream()
+    Class<?> halApiInterface = collectInterfaces(resourceImplInstance.getClass()).stream()
         .filter(interfaze -> interfaze.getAnnotation(HalApiInterface.class) != null)
         .findFirst()
         .orElseThrow(
-            () -> new RuntimeException("None of the interfaces implemented by the given class " + resourceImplInstance.getClass().getName() + " has a @"
-                + HalApiInterface.class.getSimpleName() + " annotation"));
+            () -> new UnsupportedOperationException(
+                "None of the interfaces implemented by the given class " + resourceImplInstance.getClass().getName() + " has a @"
+                    + HalApiInterface.class.getSimpleName() + " annotation"));
+
+    if (!Modifier.isPublic(halApiInterface.getModifiers())) {
+      throw new UnsupportedOperationException(
+          "The interface " + halApiInterface.getName() + " is annotated with @HalApiInterface but it also has to be public");
+    }
+
+    return halApiInterface;
   }
 
   /**

@@ -85,13 +85,6 @@ public class HalResponse {
   }
 
   /**
-   * @return the reason from the HTTP status line
-   */
-  public String getReason() {
-    return reason;
-  }
-
-  /**
    * @param value the reason from the HTTP status line
    * @return a new instance with the given reason
    */

@@ -41,7 +41,6 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.impl.metadata.CachingEmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
@@ -109,7 +108,7 @@ final class RelatedResourcesRendererImpl {
     if (relatedResourceInterface.getAnnotation(HalApiInterface.class) == null && !LinkableResource.class.equals(relatedResourceInterface)) {
 
       String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
-      throw new RuntimeException("The method " + fullMethodName + " returns an Observable<" + relatedResourceInterface.getName() + ">, "
+      throw new UnsupportedOperationException("The method " + fullMethodName + " returns an Observable<" + relatedResourceInterface.getName() + ">, "
           + " but it must return an Observable that emits objects that implement a HAL API interface annotated with the @"
           + HalApiInterface.class.getSimpleName() + " annotation");
     }

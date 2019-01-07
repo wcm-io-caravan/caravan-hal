@@ -19,14 +19,23 @@
  */
 package io.wcm.caravan.hal.microservices.impl.metadata;
 
+/**
+ * Constants for the relation used in the embedded metadata resource created by
+ * {@link ResponseMetadataGenerator#createMetadataResource(io.wcm.caravan.hal.microservices.api.server.LinkableResource)}
+ */
+public final class ResponseMetadataRelations {
 
-public class ResponseMetadataRelations {
-
+  /** the relation used to embedd information on upstream resources and performance in every rendered resource */
   public static final String CARAVAN_METADATA_RELATION = "caravan:metadata";
+
   static final String MAX_AGE = "metrics:maxAge";
   static final String RESPONSE_TIMES = "metrics:responseTimes";
   static final String INVOCATION_TIMES = "metrics:invocationTimes";
   static final String EMISSION_TIMES = "metrics:emissionTimes";
   static final String SOURCE_LINKS = "metrics:sourceLinks";
+
+  private ResponseMetadataRelations() {
+    // constants only
+  }
 
 }

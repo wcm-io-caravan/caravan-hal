@@ -80,7 +80,7 @@ public final class RxJavaReflectionUtils {
       return rxReturnValue;
     }
     catch (InvocationTargetException ex) {
-      throw new RuntimeException("Failed to invoke method " + fullMethodName, ex.getTargetException());
+      throw new RuntimeException("An exception was thrown by " + fullMethodName, ex.getTargetException());
     }
     catch (IllegalAccessException | IllegalArgumentException ex) {
       throw new RuntimeException("Failed to invoke method " + fullMethodName, ex);
@@ -101,14 +101,14 @@ public final class RxJavaReflectionUtils {
     Type returnType = method.getGenericReturnType();
 
     Preconditions.checkArgument(returnType instanceof ParameterizedType,
-        "return types must be Observable/Single/Maybe<Class>, but " + method + " has a return type " + returnType.getTypeName());
+        "return types must be Observable/Single/Maybe/Publisher<T>, but " + method + " has a return type " + returnType.getTypeName());
 
     ParameterizedType observableType = (ParameterizedType)returnType;
 
     Type resourceType = observableType.getActualTypeArguments()[0];
 
     Preconditions.checkArgument(resourceType instanceof Class,
-        "return types must be Observable/Single/Maybe of Class type, but found " + resourceType.getTypeName());
+        "return types must be Observable/Single/Maybe/Publisher of Class type, but found " + resourceType.getTypeName());
 
     return (Class)resourceType;
   }
@@ -121,7 +121,8 @@ public final class RxJavaReflectionUtils {
 
     Class returnType = method.getReturnType();
 
-    return Observable.class.isAssignableFrom(returnType) || Single.class.isAssignableFrom(returnType) || Maybe.class.isAssignableFrom(returnType);
+    return Publisher.class.isAssignableFrom(returnType) ||
+        Observable.class.isAssignableFrom(returnType) || Single.class.isAssignableFrom(returnType) || Maybe.class.isAssignableFrom(returnType);
   }
 
   /**
