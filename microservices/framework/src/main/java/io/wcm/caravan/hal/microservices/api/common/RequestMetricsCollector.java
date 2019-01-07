@@ -22,7 +22,7 @@ package io.wcm.caravan.hal.microservices.api.common;
 import org.osgi.annotation.versioning.ProviderType;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadata;
+import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataGenerator;
 import io.wcm.caravan.hal.resource.HalResource;
 
 /**
@@ -74,6 +74,6 @@ public interface RequestMetricsCollector {
    * @return a new instance of {@link RequestMetricsCollector}
    */
   static RequestMetricsCollector create() {
-    return new ResponseMetadata();
+    return new ResponseMetadataGenerator();
   }
 }

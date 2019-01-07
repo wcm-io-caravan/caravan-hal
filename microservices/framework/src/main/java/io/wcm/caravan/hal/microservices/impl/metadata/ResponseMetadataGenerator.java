@@ -19,6 +19,12 @@
  */
 package io.wcm.caravan.hal.microservices.impl.metadata;
 
+import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.EMISSION_TIMES;
+import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.INVOCATION_TIMES;
+import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.MAX_AGE;
+import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.RESPONSE_TIMES;
+import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.SOURCE_LINKS;
+
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,7 +57,7 @@ import io.wcm.caravan.hal.resource.Link;
  * Full implementation of {@link RequestMetricsCollector} that keeps track of all upstream resources that have been
  * retrieved, and additional invocation/emission times to analyze the performance of a request
  */
-public class ResponseMetadata implements RequestMetricsCollector {
+public class ResponseMetadataGenerator implements RequestMetricsCollector {
 
   private static final Map<TimeUnit, String> TIME_UNIT_ABBRS = ImmutableMap.of(
       TimeUnit.MINUTES, "m",
@@ -97,8 +103,7 @@ public class ResponseMetadata implements RequestMetricsCollector {
 
   /**
    * @return the min max-age value of all responses that have been retrieved, or 365 days if no responses have been
-   *         fetched,
-   *         or none of them had a max-age header
+   *         fetched, or none of them had a max-age header
    */
   @Override
   public Integer getOutputMaxAge() {
@@ -173,7 +178,6 @@ public class ResponseMetadata implements RequestMetricsCollector {
         .sum();
   }
 
-
   List<Link> getSourceLinks() {
     return ImmutableList.copyOf(sourceLinks);
   }
@@ -192,57 +196,65 @@ public class ResponseMetadata implements RequestMetricsCollector {
     metadataResource.getModel().put("title", "Detailed information about the performance and input data for this request");
     metadataResource.getModel().put("class", resourceImpl.getClass().getName());
 
-    HalResource linksResource = new HalResource();
-    linksResource.getModel().put("title", "Links to all requested upstream HAL resources (in the order the responses have been retrieved)");
-    linksResource.getModel().put("developerHint", "If you see lots of untitled resources here then free feel to add a title "
-        + "to the self link in that resource in the upstream service.");
-    linksResource.addLinks(StandardRelations.VIA, getSourceLinks());
-    metadataResource.addEmbedded("sdl:sourceLinks", linksResource);
+    HalResource viaLinks = new HalResource().addLinks(StandardRelations.VIA, getSourceLinks());
+    addEmbedded(metadataResource, SOURCE_LINKS, viaLinks,
+        "Links to all requested upstream HAL resources (in the order the responses have been retrieved)",
+        "If you see lots of untitled resources here then free feel to add a title to the self link in that resource in the upstream service.");
 
-    HalResource responseTimeResource = createTimingResource(getSortedInputResponseTimes());
-    responseTimeResource.getModel().put("title", "The individual response & parse times of all retrieved HAL resources");
-    responseTimeResource.getModel().put("developerHint", "Response times > ~20ms usually indicate that the resource was not found in cache"
-        + " - a reload of this resource should then be much faser. "
-        + "If you see many individual requests here then check if the upstream "
-        + "service also provides a way to fetch this data all at once. ");
-    metadataResource.addEmbedded("metrics:responseTimes", responseTimeResource);
+    HalResource responseTimes = createTimingResource(getSortedInputResponseTimes());
+    addEmbedded(metadataResource, RESPONSE_TIMES, responseTimes,
+        "The individual response & parse times of all retrieved HAL resources",
+        "Response times > ~20ms usually indicate that the resource was not found in cache"
+            + " - a reload of this resource should then be much faster. "
+            + "If you see many individual requests here then check if the upstream "
+            + "service also provides a way to fetch this data all at once. ");
 
-    HalResource emissionResource = createTimingResource(getGroupedAndSortedInvocationTimes(EmissionStopwatch.class, true));
-    emissionResource.getModel().put("title", "A breakdown of emission and rendering times by resource and method");
-    metadataResource.addEmbedded("metrics:emissionTimes", emissionResource);
+    HalResource emissionTimes = createTimingResource(getGroupedAndSortedInvocationTimes(EmissionStopwatch.class, true));
+    addEmbedded(metadataResource, EMISSION_TIMES, emissionTimes,
+        "A breakdown of emission and rendering times by resource and method",
+        "Use these times to identify performance hotspots in your server-side implementation classes");
 
-    HalResource apiClientResource = createTimingResource(getGroupedAndSortedInvocationTimes(HalApiClient.class, false));
-    apiClientResource.getModel().put("title", "A breakdown of time spent in blocking HalApiClient proxy method calls");
-    apiClientResource.getModel().put("developerHint",
-        "If a lot of time is spent in a method that is invoked very often, then you should check if you can "
-            + "use Observable#cache() and share the same observable in different methods of this resource. "
-            + "If this resource has embedded resource than you might need to pass that observable to the constructor of the embedded resource. ");
-    metadataResource.addEmbedded("metrics:invocationTimes", apiClientResource);
+    HalResource proxyInvocationTimes = createTimingResource(getGroupedAndSortedInvocationTimes(HalApiClient.class, false));
+    addEmbedded(metadataResource, INVOCATION_TIMES, proxyInvocationTimes,
+        "A breakdown of time spent in blocking HalApiClient proxy method calls",
+        null);
 
     HalResource asyncRendererResource = createTimingResource(getGroupedAndSortedInvocationTimes(AsyncHalResourceRenderer.class, false));
-    asyncRendererResource.getModel().put("title", "A breakdown of time spent in blocking method calls by AsyncHalResourceRenderer");
-    metadataResource.addEmbedded("metrics:invocationTimes", asyncRendererResource);
+    addEmbedded(metadataResource, INVOCATION_TIMES, asyncRendererResource,
+        "A breakdown of time spent in blocking method calls by AsyncHalResourceRenderer",
+        null);
 
     HalResource maxAgeResource = createTimingResource(getSortedInputMaxAgeSeconds());
-    maxAgeResource.getModel().put("title", "The max-age cache header values of all retrieved resources");
-    maxAgeResource.getModel().put("developerHint", "If the max-age in this response's cache headers is lower then you expected, "
-        + "then check the resources at the very bottom of the list, because they will determine the overall max-age time.");
-    metadataResource.addEmbedded("metrics:maxAge", maxAgeResource);
-
+    addEmbedded(metadataResource, MAX_AGE, maxAgeResource,
+        "The max-age cache header values of all retrieved resources",
+        "If the max-age in this response's cache headers is lower then you expected, "
+            + "then check the resources at the very bottom of the list, because they will determine the overall max-age time.");
 
     // and also include the overall max-age of the response
-
     metadataResource.getModel().put("maxAge", getOutputMaxAge() + " s");
 
+    // and a summary of the important timing results
     metadataResource.getModel().put("sumOfProxyInvocationTime", getSumOfProxyInvocationMillis(HalApiClient.class) + "ms");
     metadataResource.getModel().put("sumOfResourceAssemblyTime", getSumOfProxyInvocationMillis(AsyncHalResourceRenderer.class) + "ms");
     metadataResource.getModel().put("sumOfResponseAndParseTimes", getSumOfResponseTimeMillis() + "ms");
     metadataResource.getModel().put("metadataGenerationTime", stopwatch.elapsed(TimeUnit.MILLISECONDS) + "ms");
     metadataResource.getModel().put("overallServerSideResponseTime", getOverallResponseTimeMillis() + "ms");
 
+    // this was useful to verify the total number of threads in the system if there are many concurrent incoming requests
     metadataResource.getModel().put("threadCount", ManagementFactory.getThreadMXBean().getThreadCount());
 
     return metadataResource;
+  }
+
+  private static void addEmbedded(HalResource metadataResource, String relation, HalResource toEmbed, String title, String developerHint) {
+
+    toEmbed.getModel().put("title", title);
+
+    if (developerHint != null) {
+      toEmbed.getModel().put("developerHint", developerHint);
+    }
+
+    metadataResource.addEmbedded(relation, toEmbed);
   }
 
   private static HalResource createTimingResource(List<TimeMeasurement> list) {
@@ -286,6 +298,4 @@ public class ResponseMetadata implements RequestMetricsCollector {
       return this.unit;
     }
   }
-
-
 }

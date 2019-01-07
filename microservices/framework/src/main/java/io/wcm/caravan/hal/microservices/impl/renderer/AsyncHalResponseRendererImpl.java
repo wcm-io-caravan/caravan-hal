@@ -28,6 +28,7 @@ import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
+import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations;
 import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -36,8 +37,6 @@ import io.wcm.caravan.hal.resource.HalResource;
  * to handle any errors that occured when rendering the {@link HalResource}
  */
 public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
-
-  static final String CARAVAN_METADATA_RELATION = "caravan:metadata";
 
   private final AsyncHalResourceRenderer renderer;
 
@@ -88,7 +87,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
     HalResource metadata = metrics.createMetadataResource(resourceImpl);
     if (metadata != null) {
-      hal.addEmbedded(CARAVAN_METADATA_RELATION, metadata);
+      hal.addEmbedded(ResponseMetadataRelations.CARAVAN_METADATA_RELATION, metadata);
     }
   }
 }

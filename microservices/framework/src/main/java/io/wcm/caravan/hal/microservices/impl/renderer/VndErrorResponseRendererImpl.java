@@ -21,7 +21,6 @@ package io.wcm.caravan.hal.microservices.impl.renderer;
 
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOUT;
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
-import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl.CARAVAN_METADATA_RELATION;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +41,7 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
+import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -154,7 +154,7 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
       HalResponse upstreamJson = hace.getErrorResponse();
       if (upstreamJson.getBody() != null && upstreamJson.getBody().getModel().size() > 0) {
         HalResource causeFromBody = new HalResource(upstreamJson.getBody().getModel().deepCopy());
-        causeFromBody.removeEmbedded(CARAVAN_METADATA_RELATION);
+        causeFromBody.removeEmbedded(ResponseMetadataRelations.CARAVAN_METADATA_RELATION);
         embedded.addEmbedded(ERRORS, causeFromBody);
         vndErrorsFoundInBody = true;
       }
