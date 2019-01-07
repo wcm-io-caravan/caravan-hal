@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
@@ -63,66 +64,91 @@ public class AsyncHalResourceRendererImplPT {
     return rxResource.toObservable().blockingFirst();
   }
 
-  @Ignore
+  @Ignore // this test was useful when optimizing performance of JaxRsLinkBuilderSupport, but doesn't need to be run on each build
   @Test
-  public void testLinkedResourcesnPerformance() {
+  public void test_JaxRsLinkBuilderSupport_performance() {
 
-    List<ItemResource> itemResources = IntStream.range(0, 100)
-        .mapToObj(ItemResource::new)
+    List<ItemResourceImpl> itemResources = IntStream.range(0, 1000)
+        .mapToObj(ItemResourceImpl::new)
         .collect(Collectors.toList());
 
-    LinkableCollectionResource collectionResource = new LinkableCollectionResource() {
+    CollectionResourceImpl collectionResource = new CollectionResourceImpl(itemResources);
 
-      @Override
-      public Observable<LinkableTestResource> getLinked() {
-        return Observable.fromIterable(itemResources);
-      }
-
-      @Override
-      public Link createLink() {
-        return linkBuilder.buildLinkTo(this);
-      }
-    };
-
-    IntStream.range(0, 30).forEach(i -> {
+    IntStream.range(0, 100).forEach(i -> {
       Stopwatch sw = Stopwatch.createStarted();
-      HalResource hal = render(collectionResource);
-      System.out.println(sw.elapsed(TimeUnit.MILLISECONDS) + "ms / " + hal.toString());
+      render(collectionResource);
+      System.out.println(sw.elapsed(TimeUnit.MILLISECONDS) + "ms to render resource with " + itemResources.size() + " links");
     });
+
   }
 
   @HalApiInterface
-  interface LinkableTestResource extends LinkableResource {
+  public interface CollectionResource {
+
+    @RelatedResource(relation = TestRelations.LINKED)
+    Observable<ItemResource> getLinked();
+  }
+
+  @HalApiInterface
+  interface ItemResource {
 
     @ResourceState
     Maybe<TestState> getState();
   }
 
-  @HalApiInterface
-  interface LinkableCollectionResource extends LinkableResource {
+  @Path("/items")
+  public final class CollectionResourceImpl implements CollectionResource, LinkableResource {
 
+    private final List<ItemResourceImpl> itemResources;
 
-    @RelatedResource(relation = TestRelations.LINKED)
-    public default Observable<LinkableTestResource> getLinked() {
-      return Observable.empty();
+    private CollectionResourceImpl(List<ItemResourceImpl> itemResources) {
+      this.itemResources = itemResources;
+    }
+
+    @Override
+    public Observable<ItemResource> getLinked() {
+      return Observable.fromIterable(itemResources);
+    }
+
+    @Override
+    public Link createLink() {
+      return linkBuilder.buildLinkTo(this);
     }
   }
 
-  @Path("items")
-  private final class ItemResource implements LinkableTestResource {
+  private final class ParameterDto {
+
+    @QueryParam("a")
+    private String a;
+
+    @QueryParam("b")
+    private String b;
+
+    ParameterDto(String a, String b) {
+      this.a = a;
+      this.b = b;
+    }
+  }
+
+  @Path("/items/{index}")
+  private final class ItemResourceImpl implements ItemResource, LinkableResource {
 
     @PathParam("index")
     private final int index;
-    @QueryParam("text")
-    private final String text = "Das ist doch nur ein Test";
 
-    private ItemResource(int i) {
+    @QueryParam("text")
+    private final String text = "test";
+
+    @BeanParam
+    private final ParameterDto dto;
+
+    private ItemResourceImpl(int i) {
       this.index = i;
+      this.dto = new ParameterDto("a" + i, "b" + i);
     }
 
     @Override
     public Maybe<TestState> getState() {
-
       return Maybe.just(new TestState(text));
     }
 
