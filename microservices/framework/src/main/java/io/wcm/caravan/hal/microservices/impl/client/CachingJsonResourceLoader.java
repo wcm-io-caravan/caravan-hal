@@ -79,7 +79,7 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
     metrics.onResponseRetrieved(uri, title, jsonResponse.getMaxAge(), stopwatch.elapsed(TimeUnit.MICROSECONDS));
   }
 
-  private String getResourceTitle(HalResource halResource, String uri) {
+  private static String getResourceTitle(HalResource halResource, String uri) {
 
     Link selfLink = halResource.getLink();
 

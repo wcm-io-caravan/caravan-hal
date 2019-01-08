@@ -37,6 +37,11 @@ import io.wcm.caravan.hal.microservices.api.server.LinkBuilderSupport;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.Link;
 
+/**
+ * Implementation of {@link LinkBuilder} that constructs links and link templates using the {@link UriTemplateBuilder}.
+ * The actual discovery of parameters and their values is delegated to a {@link LinkBuilderSupport} instance to be
+ * supplied in the constructor.
+ */
 public class LinkBuilderImpl implements LinkBuilder {
 
   private final String baseUrl;

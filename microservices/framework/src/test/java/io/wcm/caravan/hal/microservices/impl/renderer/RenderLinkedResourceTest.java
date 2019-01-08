@@ -44,7 +44,6 @@ import io.wcm.caravan.hal.resource.Link;
 
 public class RenderLinkedResourceTest {
 
-
   @HalApiInterface
   public interface TestResourceWithSingleLink {
 

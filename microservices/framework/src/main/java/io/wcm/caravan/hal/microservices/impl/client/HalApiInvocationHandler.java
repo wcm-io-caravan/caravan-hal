@@ -81,22 +81,22 @@ final class HalApiInvocationHandler implements InvocationHandler {
 
       if (invocation.isForMethodAnnotatedWithResourceState()) {
 
-        Maybe<Object> maybeProperties = rxResource
+        Maybe<Object> state = rxResource
             .onErrorResumeNext(ex -> addContextToHalApiClientException(ex, invocation))
             .map(hal -> new ResourceStateHandler(hal))
             .flatMapMaybe(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertAndCacheReactiveType(maybeProperties, invocation.getReturnType(), metrics, invocation.getDescription());
+        return RxJavaReflectionUtils.convertAndCacheReactiveType(state, invocation.getReturnType(), metrics, invocation.getDescription());
       }
 
       if (invocation.isForMethodAnnotatedWithRelatedResource()) {
 
-        Observable<Object> rxRelated = rxResource
+        Observable<Object> relatedProxies = rxResource
             .onErrorResumeNext(ex -> addContextToHalApiClientException(ex, invocation))
             .map(hal -> new RelatedResourceHandler(hal, proxyFactory))
             .flatMapObservable(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertAndCacheReactiveType(rxRelated, invocation.getReturnType(), metrics, invocation.getDescription());
+        return RxJavaReflectionUtils.convertAndCacheReactiveType(relatedProxies, invocation.getReturnType(), metrics, invocation.getDescription());
       }
 
       if (invocation.isForMethodAnnotatedWithResourceLink()) {
@@ -107,12 +107,12 @@ final class HalApiInvocationHandler implements InvocationHandler {
 
       if (invocation.isForMethodAnnotatedWithResourceRepresentation()) {
 
-        Single<Object> rxRepresentation = rxResource
+        Single<Object> representation = rxResource
             .onErrorResumeNext(ex -> addContextToHalApiClientException(ex, invocation))
             .map(hal -> new ResourceRepresentationHandler(hal))
             .flatMap(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertAndCacheReactiveType(rxRepresentation, invocation.getReturnType(), metrics, invocation.getDescription());
+        return RxJavaReflectionUtils.convertAndCacheReactiveType(representation, invocation.getReturnType(), metrics, invocation.getDescription());
       }
 
       // unsupported operation

@@ -32,7 +32,7 @@ import io.wcm.caravan.hal.microservices.impl.renderer.VndErrorResponseRendererIm
 public interface VndErrorResponseRenderer {
 
   /** the ContentType header used for error responses */
-  static final String CONTENT_TYPE = "application/vnd.error+json";
+  String CONTENT_TYPE = "application/vnd.error+json";
 
   /**
    * @param requestUri the URI of the incoming request

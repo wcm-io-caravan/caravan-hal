@@ -150,7 +150,8 @@ public class RenderRelatedResourceTest {
     Maybe<ExtendedLinkableTestResource> getLinked();
 
     interface ExtendedLinkableTestResource extends LinkableTestResource {
-
+      // we just want to test that the extended interface can also be used in method signatures,
+      // even though it does not have a HalApiAnnotation itself
     }
   }
 
