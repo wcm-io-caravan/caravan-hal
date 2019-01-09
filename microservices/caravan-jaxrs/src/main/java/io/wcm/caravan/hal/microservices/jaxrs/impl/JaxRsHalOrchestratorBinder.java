@@ -90,7 +90,8 @@ public class JaxRsHalOrchestratorBinder extends AbstractBinder implements JaxRsC
           .filter(Objects::nonNull)
           .switchIfEmpty(Single.error(new RuntimeException("No serviceId availbale for HAL API interface" + halApiInterface.getName())))
           .flatMap(serviceId -> registry.getEntryPointUri(serviceId, uriInfo)
-              .map(uri -> halApiClient.getEntryPoint(serviceId, uri, halApiInterface, metrics)));
+              .map(uri -> halApiClient.getEntryPoint(serviceId, uri, halApiInterface, metrics)))
+          .cache();
     }
 
 
