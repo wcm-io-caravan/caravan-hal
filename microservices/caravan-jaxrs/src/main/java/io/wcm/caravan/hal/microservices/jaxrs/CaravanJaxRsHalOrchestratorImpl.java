@@ -31,6 +31,7 @@ import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.caravan.CaravanHalApiClient;
 import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsLinkBuilderFactory;
+import io.wcm.caravan.jaxrs.publisher.OsgiReference;
 
 public class CaravanJaxRsHalOrchestratorImpl implements HalOrchestrator {
 
@@ -42,17 +43,17 @@ public class CaravanJaxRsHalOrchestratorImpl implements HalOrchestrator {
   @Context
   private AsyncResponse response;
 
-  @Context
-  private AsyncHalResponseHandler responseHandler;
-
-  @Context
+  @OsgiReference
   private UpstreamServiceRegistry registry;
 
-  @Context
+  @OsgiReference
+  private JaxRsBundleInfo bundleInfo;
+
+  @OsgiReference
   private CaravanHalApiClient halApiClient;
 
-  @Context
-  private JaxRsBundleInfo bundleInfo;
+  @OsgiReference
+  private AsyncHalResponseHandler responseHandler;
 
   @Override
   public void limitOutputMaxAge(int maxAge) {
