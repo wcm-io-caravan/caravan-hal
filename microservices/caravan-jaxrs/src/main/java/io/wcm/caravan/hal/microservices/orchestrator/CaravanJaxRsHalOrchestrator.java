@@ -19,6 +19,8 @@
  */
 package io.wcm.caravan.hal.microservices.orchestrator;
 
+import javax.ws.rs.container.AsyncResponse;
+
 import org.osgi.annotation.versioning.ProviderType;
 
 import io.reactivex.Single;
@@ -34,6 +36,6 @@ public interface CaravanJaxRsHalOrchestrator {
 
   LinkBuilder createLinkBuilder();
 
-  void respondWith(LinkableResource resourceImpl);
+  void respondWith(LinkableResource resourceImpl, AsyncResponse response);
 
 }
