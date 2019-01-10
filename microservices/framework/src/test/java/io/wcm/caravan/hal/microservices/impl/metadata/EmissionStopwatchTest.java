@@ -21,12 +21,17 @@ package io.wcm.caravan.hal.microservices.impl.metadata;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.longThat;
+import static org.mockito.Mockito.times;
+
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
+
+import com.google.common.base.Stopwatch;
 
 import io.reactivex.Single;
 import io.reactivex.subjects.PublishSubject;
@@ -41,20 +46,25 @@ public class EmissionStopwatchTest {
   @Mock
   private RequestMetricsCollector metrics;
 
+  private static long sleepAndGetTimeSlept() throws InterruptedException {
+    Stopwatch sw = Stopwatch.createStarted();
+    Thread.sleep(20);
+    return sw.elapsed(TimeUnit.MICROSECONDS);
+  }
+
   @Test
   public void should_measure_emission_times_for_single() throws Exception {
 
     SingleSubject<String> subject = SingleSubject.create();
 
-    subject
-        .compose(EmissionStopwatch.collectMetrics(METHOD_DESC, metrics))
+    subject.compose(EmissionStopwatch.collectMetrics(METHOD_DESC, metrics))
         .subscribe();
 
-    Thread.sleep(20);
+    long microsSlept = sleepAndGetTimeSlept();
 
     subject.onSuccess("item");
 
-    Mockito.verify(metrics).onMethodInvocationFinished(eq(EmissionStopwatch.class), eq(METHOD_DESC), longThat(micros -> micros > 20000));
+    Mockito.verify(metrics).onMethodInvocationFinished(eq(EmissionStopwatch.class), eq(METHOD_DESC), longThat(micros -> micros >= microsSlept));
   }
 
   @Test
@@ -62,16 +72,15 @@ public class EmissionStopwatchTest {
 
     Subject<String> subject = PublishSubject.create();
 
-    subject
-        .compose(EmissionStopwatch.collectMetrics(METHOD_DESC, metrics))
+    subject.compose(EmissionStopwatch.collectMetrics(METHOD_DESC, metrics))
         .subscribe();
 
-    Thread.sleep(20);
+    long microsSlept = sleepAndGetTimeSlept();
 
     subject.onNext("item1");
     subject.onComplete();
 
-    Mockito.verify(metrics).onMethodInvocationFinished(eq(EmissionStopwatch.class), eq(METHOD_DESC), longThat(micros -> micros > 20000));
+    Mockito.verify(metrics).onMethodInvocationFinished(eq(EmissionStopwatch.class), eq(METHOD_DESC), longThat(micros -> micros >= microsSlept));
   }
 
   @Test
@@ -83,10 +92,10 @@ public class EmissionStopwatchTest {
     obs.subscribe();
     obs.subscribe();
 
-    Thread.sleep(20);
+    long microsSlept = sleepAndGetTimeSlept();
 
     subject.onSuccess("item");
 
-    Mockito.verify(metrics, Mockito.times(2)).onMethodInvocationFinished(eq(EmissionStopwatch.class), eq(METHOD_DESC), longThat(micros -> micros > 20000));
+    Mockito.verify(metrics, times(2)).onMethodInvocationFinished(eq(EmissionStopwatch.class), eq(METHOD_DESC), longThat(micros -> micros >= microsSlept));
   }
 }
