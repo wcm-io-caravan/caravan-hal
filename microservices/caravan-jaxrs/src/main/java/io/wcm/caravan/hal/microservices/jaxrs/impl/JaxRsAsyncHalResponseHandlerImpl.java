@@ -36,12 +36,12 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.jaxrs.AsyncHalResponseHandler;
+import io.wcm.caravan.hal.microservices.jaxrs.JaxRsAsyncHalResponseHandler;
 
-@Component(service = { AsyncHalResponseHandler.class })
-public class AsyncHalResponseHandlerImpl implements AsyncHalResponseHandler {
+@Component(service = { JaxRsAsyncHalResponseHandler.class })
+public class JaxRsAsyncHalResponseHandlerImpl implements JaxRsAsyncHalResponseHandler {
 
-  private static final Logger log = LoggerFactory.getLogger(AsyncHalResponseHandlerImpl.class);
+  private static final Logger log = LoggerFactory.getLogger(JaxRsAsyncHalResponseHandlerImpl.class);
 
   private final JaxRsExceptionStrategy exceptionStrategy = new JaxRsExceptionStrategy();
 

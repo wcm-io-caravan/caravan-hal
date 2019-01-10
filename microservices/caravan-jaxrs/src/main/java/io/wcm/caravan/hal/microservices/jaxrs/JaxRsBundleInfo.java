@@ -19,7 +19,9 @@
  */
 package io.wcm.caravan.hal.microservices.jaxrs;
 
+import org.osgi.annotation.versioning.ProviderType;
 
+@ProviderType
 public interface JaxRsBundleInfo {
 
   String getApplicationPath();

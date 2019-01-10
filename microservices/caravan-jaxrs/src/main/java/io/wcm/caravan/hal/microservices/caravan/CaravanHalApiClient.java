@@ -19,8 +19,11 @@
  */
 package io.wcm.caravan.hal.microservices.caravan;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
+@ProviderType
 public interface CaravanHalApiClient {
 
   <T> T getEntryPoint(String serviceId, String uri, Class<T> halApiInterface, RequestMetricsCollector metrics);

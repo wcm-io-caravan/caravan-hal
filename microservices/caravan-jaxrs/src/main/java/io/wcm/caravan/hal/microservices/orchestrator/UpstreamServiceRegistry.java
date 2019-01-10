@@ -17,14 +17,17 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.jaxrs;
+package io.wcm.caravan.hal.microservices.orchestrator;
 
 import java.util.Map;
 
 import javax.ws.rs.core.UriInfo;
 
+import org.osgi.annotation.versioning.ConsumerType;
+
 import io.reactivex.Single;
 
+@ConsumerType
 public interface UpstreamServiceRegistry {
 
   Single<Map<Class, String>> getUpstreamServiceIds(UriInfo infomingRequestUri);

@@ -2,7 +2,7 @@
  * #%L
  * wcm.io
  * %%
- * Copyright (C) 2018 wcm.io
+ * Copyright (C) 2019 wcm.io
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,23 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.jaxrs;
+package io.wcm.caravan.hal.microservices.orchestrator;
 
+import org.osgi.annotation.versioning.ProviderType;
+
+import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
-import io.wcm.caravan.hal.microservices.caravan.CaravanHalApiClient;
+import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 
-public interface JaxRsHalServerSupport {
+@ProviderType
+public interface CaravanJaxRsHalOrchestrator {
 
-  String getContextPath();
+  void limitOutputMaxAge(int maxAge);
 
-  String getBundleVersion();
+  <T> Single<T> getEntryPoint(Class<T> halApiInterface);
 
-  AsyncHalResponseHandler getResponseHandler();
+  LinkBuilder createLinkBuilder();
 
-  CaravanHalApiClient getHalApiClient();
-
-  LinkBuilder getLinkBuilder();
+  void respondWith(LinkableResource resourceImpl);
 
 }
