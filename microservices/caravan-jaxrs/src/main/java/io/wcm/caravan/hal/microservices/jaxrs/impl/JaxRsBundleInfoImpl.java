@@ -19,35 +19,64 @@
  */
 package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
+import javax.ws.rs.core.Application;
+
 import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceReference;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
+import org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants;
 
 import io.wcm.caravan.hal.microservices.jaxrs.JaxRsBundleInfo;
 
 @Component(service = JaxRsBundleInfo.class, scope = ServiceScope.BUNDLE)
 public class JaxRsBundleInfoImpl implements JaxRsBundleInfo {
 
-  private String contextPath;
+  private String applicationPath;
   private String bundleVersion;
 
   @Activate
   void activate(ComponentContext componentCtx) {
-    Bundle bundle = componentCtx.getUsingBundle();
 
-    contextPath = "";
+    Bundle usingBundle = componentCtx.getUsingBundle();
 
-    bundleVersion = bundle.getVersion().toString();
-    if (bundleVersion.endsWith("SNAPSHOT")) {
-      bundleVersion += "-" + bundle.getHeaders().get("Bnd-LastModified");
+    applicationPath = findApplicationBasePath(usingBundle);
+
+    bundleVersion = findBundleVersion(usingBundle);
+  }
+
+  private String findApplicationBasePath(Bundle bundle) {
+
+    ServiceReference<Application> serviceRef = bundle.getBundleContext().getServiceReference(Application.class);
+    if (serviceRef == null) {
+      throw new RuntimeException("No component extending JAX-RS Application was found in the bundle " + bundle.getSymbolicName());
     }
+
+    Object applicationBaseProperty = serviceRef.getProperty(JaxrsWhiteboardConstants.JAX_RS_APPLICATION_BASE);
+    if (applicationBaseProperty == null) {
+      Application app = bundle.getBundleContext().getService(serviceRef);
+      throw new RuntimeException("No @JaxrsApplicationBase annotation present on the " + app.getClass().getName() + " class");
+    }
+
+    return applicationBaseProperty.toString();
+  }
+
+  private String findBundleVersion(Bundle bundle) {
+
+    String version = bundle.getVersion().toString();
+
+    if (version.endsWith("SNAPSHOT")) {
+      version += "-" + bundle.getHeaders().get("Bnd-LastModified");
+    }
+
+    return version;
   }
 
   @Override
   public String getApplicationPath() {
-    return contextPath;
+    return applicationPath;
   }
 
   @Override

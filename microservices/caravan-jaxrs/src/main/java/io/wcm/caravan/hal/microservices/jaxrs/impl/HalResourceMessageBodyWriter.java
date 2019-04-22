@@ -32,6 +32,7 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsApplicationSelect;
 import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsExtension;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -45,6 +46,7 @@ import io.wcm.caravan.hal.resource.HalResource;
  */
 @Component(service = MessageBodyWriter.class)
 @JaxrsExtension
+@JaxrsApplicationSelect("(osgi.jaxrs.name=*)")
 @Provider
 @Produces({ HalResource.CONTENT_TYPE, MediaType.WILDCARD })
 public class HalResourceMessageBodyWriter implements MessageBodyWriter<HalResource> {
