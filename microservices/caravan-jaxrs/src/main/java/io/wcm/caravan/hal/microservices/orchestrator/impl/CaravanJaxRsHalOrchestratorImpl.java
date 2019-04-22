@@ -22,8 +22,12 @@ package io.wcm.caravan.hal.microservices.orchestrator.impl;
 import java.util.Objects;
 
 import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ServiceScope;
+import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsExtension;
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -35,26 +39,27 @@ import io.wcm.caravan.hal.microservices.jaxrs.JaxRsBundleInfo;
 import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsLinkBuilderFactory;
 import io.wcm.caravan.hal.microservices.orchestrator.CaravanJaxRsHalOrchestrator;
 import io.wcm.caravan.hal.microservices.orchestrator.UpstreamServiceRegistry;
-import io.wcm.caravan.jaxrs.publisher.OsgiReference;
 
-class CaravanJaxRsHalOrchestratorImpl implements CaravanJaxRsHalOrchestrator {
+@Component(service = CaravanJaxRsHalOrchestrator.class, scope = ServiceScope.PROTOTYPE)
+@JaxrsExtension
+public class CaravanJaxRsHalOrchestratorImpl implements CaravanJaxRsHalOrchestrator {
 
   private final RequestMetricsCollector metrics = RequestMetricsCollector.create();
 
-  @Context
-  private UriInfo uriInfo;
-
-  @OsgiReference
+  @Reference
   private UpstreamServiceRegistry registry;
 
-  @OsgiReference
+  @Reference
   private JaxRsBundleInfo bundleInfo;
 
-  @OsgiReference
+  @Reference
   private CaravanHalApiClient halApiClient;
 
-  @OsgiReference
+  @Reference
   private JaxRsAsyncHalResponseHandler responseHandler;
+
+
+  public CaravanJaxRsHalOrchestratorImpl() {}
 
   @Override
   public void limitOutputMaxAge(int maxAge) {
@@ -68,6 +73,7 @@ class CaravanJaxRsHalOrchestratorImpl implements CaravanJaxRsHalOrchestrator {
   }
 
   private <T> Single<T> createEntryPointSingle(Class<T> halApiInterface) {
+    UriInfo uriInfo = null;
     return registry.getUpstreamServiceIds(uriInfo)
         .map(serviceIdMap -> serviceIdMap.get(halApiInterface))
         .filter(Objects::nonNull)
@@ -83,7 +89,7 @@ class CaravanJaxRsHalOrchestratorImpl implements CaravanJaxRsHalOrchestrator {
   }
 
   @Override
-  public void respondWith(LinkableResource resourceImpl, AsyncResponse response) {
+  public void respondWith(UriInfo uriInfo, LinkableResource resourceImpl, AsyncResponse response) {
     responseHandler.respondWith(resourceImpl, uriInfo, response, metrics);
   }
 }

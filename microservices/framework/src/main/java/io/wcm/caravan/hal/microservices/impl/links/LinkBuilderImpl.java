@@ -57,7 +57,7 @@ public class LinkBuilderImpl implements LinkBuilder {
    */
   public LinkBuilderImpl(String baseUrl, LinkBuilderSupport support) {
 
-    Preconditions.checkArgument(StringUtils.isNotBlank(baseUrl), "A baseUrl must be provided");
+    Preconditions.checkNotNull(baseUrl, "A baseUrl must be provided");
     Preconditions.checkNotNull(support, "a " + LinkBuilderSupport.class.getSimpleName() + " must be specified");
 
     this.baseUrl = baseUrl;

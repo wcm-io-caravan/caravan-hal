@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.microservices.orchestrator;
 
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.UriInfo;
 
 import org.osgi.annotation.versioning.ProviderType;
 
@@ -36,6 +37,6 @@ public interface CaravanJaxRsHalOrchestrator {
 
   LinkBuilder createLinkBuilder();
 
-  void respondWith(LinkableResource resourceImpl, AsyncResponse response);
+  void respondWith(UriInfo incomingUri, LinkableResource resourceImpl, AsyncResponse response);
 
 }

@@ -19,6 +19,8 @@
  */
 package io.wcm.caravan.hal.microservices.jaxrs.impl;
 
+import java.net.URI;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.container.AsyncResponse;
 import javax.ws.rs.core.CacheControl;
@@ -48,19 +50,24 @@ public class JaxRsAsyncHalResponseHandlerImpl implements JaxRsAsyncHalResponseHa
   @Override
   public void respondWith(LinkableResource resourceImpl, UriInfo uriInfo, AsyncResponse suspended, RequestMetricsCollector metrics) {
 
-    // create a response renderer with a strategy that is able to extract the status code
-    // from any JAX-RS WebApplicationException that might be thrown in the resource implementations
-    AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics, exceptionStrategy);
+    try {
+      // create a response renderer with a strategy that is able to extract the status code
+      // from any JAX-RS WebApplicationException that might be thrown in the resource implementations
+      AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics, exceptionStrategy);
 
-    // asynchronously render the given resource (or create a vnd.error response if any exceptions are thrown)
-    String requestUri = uriInfo.getRequestUri().toString();
-    Single<HalResponse> rxResponse = renderer.renderResponse(requestUri, resourceImpl);
+      // asynchronously render the given resource (or create a vnd.error response if any exceptions are thrown)
+      String requestUri = uriInfo.getRequestUri().toString();
+      Single<HalResponse> rxResponse = renderer.renderResponse(requestUri, resourceImpl);
 
-    rxResponse.subscribe(
-        // return the HAL or VND+Error response when it is available
-        halResponse -> resumeWithResponse(suspended, halResponse),
-        // or fall back to the regular JAX-RS error handling if an exception was not caught
-        fatalException -> resumeWithError(uriInfo, suspended, fatalException));
+      rxResponse.subscribe(
+          // return the HAL or VND+Error response when it is available
+          halResponse -> resumeWithResponse(suspended, halResponse),
+          // or fall back to the regular JAX-RS error handling if an exception was not caught
+          fatalException -> resumeWithError(uriInfo, suspended, fatalException));
+    }
+    catch (Exception ex) {
+      resumeWithError(uriInfo, suspended, ex);
+    }
   }
 
   private void resumeWithResponse(AsyncResponse suspended, HalResponse halResponse) {
@@ -84,7 +91,8 @@ public class JaxRsAsyncHalResponseHandlerImpl implements JaxRsAsyncHalResponseHa
   }
 
   private void resumeWithError(UriInfo uriInfo, AsyncResponse suspended, Throwable fatalError) {
-    log.error("A fatal exception occured when handling request for " + uriInfo.getRequestUri(), fatalError);
+    URI uri = uriInfo != null ? uriInfo.getRequestUri() : null;
+    log.error("A fatal exception occured when handling request for " + uri, fatalError);
 
     suspended.resume(fatalError);
   }

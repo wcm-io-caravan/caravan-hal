@@ -26,7 +26,6 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 
 import io.wcm.caravan.hal.microservices.jaxrs.JaxRsBundleInfo;
-import io.wcm.caravan.jaxrs.publisher.ApplicationPath;
 
 @Component(service = JaxRsBundleInfo.class, scope = ServiceScope.BUNDLE)
 public class JaxRsBundleInfoImpl implements JaxRsBundleInfo {
@@ -38,7 +37,7 @@ public class JaxRsBundleInfoImpl implements JaxRsBundleInfo {
   void activate(ComponentContext componentCtx) {
     Bundle bundle = componentCtx.getUsingBundle();
 
-    contextPath = ApplicationPath.get(bundle);
+    contextPath = "";
 
     bundleVersion = bundle.getVersion().toString();
     if (bundleVersion.endsWith("SNAPSHOT")) {

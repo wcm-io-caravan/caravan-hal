@@ -31,28 +31,23 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
-import org.apache.felix.scr.annotations.Component;
-import org.apache.felix.scr.annotations.Property;
-import org.apache.felix.scr.annotations.Service;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsExtension;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.wcm.caravan.hal.resource.HalResource;
-import io.wcm.caravan.jaxrs.publisher.JaxRsComponent;
 
 /**
  * A MessageBodyWriter that allows JAX-RS service functions to write {@link HalResource} objects to the response
  */
-@Component
-@Service(value = {
-    JaxRsComponent.class, HalResourceMessageBodyWriter.class
-}, serviceFactory = true)
-@Property(name = JaxRsComponent.PROPERTY_GLOBAL_COMPONENT, value = "true")
+@Component(service = MessageBodyWriter.class)
+@JaxrsExtension
 @Provider
 @Produces({ HalResource.CONTENT_TYPE, MediaType.WILDCARD })
-public class HalResourceMessageBodyWriter implements MessageBodyWriter<HalResource>, JaxRsComponent {
+public class HalResourceMessageBodyWriter implements MessageBodyWriter<HalResource> {
 
   private ObjectMapper objectMapper = new ObjectMapper();
   private JsonFactory jsonFactory = new JsonFactory(objectMapper);
