@@ -24,6 +24,7 @@ import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRen
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.render;
 import static io.wcm.caravan.hal.microservices.testing.TestRelations.LINKED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Test;
@@ -108,7 +109,7 @@ public class RenderRelatedResourceTest {
     assertThat(hal.getLinks().keys()).containsExactly("self", "alternate", "canonical", "item", "custom:abc", "custom:def");
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void should_throw_runtime_exception_if_RelatedResource_method_throws_exception() {
 
     TestResourceWithObservableLinks resourceImpl = new TestResourceWithObservableLinks() {
@@ -119,7 +120,14 @@ public class RenderRelatedResourceTest {
       }
     };
 
-    render(resourceImpl);
+    try {
+      render(resourceImpl);
+      fail("Expected RuntimeException to be thrown");
+
+    }
+    catch (RuntimeException ex) {
+      assertThat(ex.getMessage()).isEqualTo("An exception was thrown during assembly time in #getLinked");
+    }
   }
 
   @HalApiInterface

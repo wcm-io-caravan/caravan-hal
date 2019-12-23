@@ -78,7 +78,7 @@ public final class RxJavaReflectionUtils {
       return convertToObservable(returnValue);
     }
     catch (InvocationTargetException ex) {
-      throw new RuntimeException("An exception was thrown during assembly time in" + fullMethodName, ex.getTargetException());
+      throw new RuntimeException("An exception was thrown during assembly time in " + fullMethodName, ex.getTargetException());
     }
     catch (IllegalAccessException | IllegalArgumentException ex) {
       throw new RuntimeException("Failed to invoke method " + fullMethodName, ex);
