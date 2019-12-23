@@ -37,7 +37,6 @@ import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -51,18 +50,16 @@ public class LazyLoadingTest {
   private static final String RESOURCE_URI = "/linked";
 
   private RequestMetricsCollector metrics;
-  private BinaryResourceLoader binaryLoader;
   private JsonResourceLoader jsonLoader;
 
   @Before
   public void setUp() {
     metrics = RequestMetricsCollector.create();
-    binaryLoader = Mockito.mock(BinaryResourceLoader.class);
     jsonLoader = Mockito.mock(JsonResourceLoader.class);
   }
 
   private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);
+    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
     T clientProxy = client.getEntryPoint(ENTRY_POINT_URI, halApiInterface);
     assertThat(clientProxy).isNotNull();
     return clientProxy;

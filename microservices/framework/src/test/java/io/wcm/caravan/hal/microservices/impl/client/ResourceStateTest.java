@@ -33,7 +33,6 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -47,18 +46,16 @@ public class ResourceStateTest {
   private static final String RESOURCE_URL = "/";
 
   private RequestMetricsCollector metrics;
-  private BinaryResourceLoader binaryLoader;
   private JsonResourceLoader jsonLoader;
 
   @Before
   public void setUp() {
     metrics = RequestMetricsCollector.create();
-    binaryLoader = Mockito.mock(BinaryResourceLoader.class);
     jsonLoader = Mockito.mock(JsonResourceLoader.class);
   }
 
   private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);
+    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
     T clientProxy = client.getEntryPoint(RESOURCE_URL, halApiInterface);
     assertThat(clientProxy).isNotNull();
     return clientProxy;

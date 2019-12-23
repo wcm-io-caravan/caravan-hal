@@ -48,9 +48,7 @@ public class CaravanHalApiClientImpl implements CaravanHalApiClient {
     // only use this for now if you want to investigate performance issues with the HalApiClient
     // JsonResourceLoader jsonLoader = new CaravanGuavaJsonResourceLoader(httpClient, serviceId);
 
-    CaravanBinaryResourceLoader binaryLoader = new CaravanBinaryResourceLoader(httpClient, serviceId);
-
-    HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);
+    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
 
     return client.getEntryPoint(uri, halApiInterface);
   }

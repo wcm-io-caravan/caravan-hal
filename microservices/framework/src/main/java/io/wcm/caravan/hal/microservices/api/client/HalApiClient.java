@@ -26,13 +26,12 @@ public interface HalApiClient {
 
   /**
    * @param jsonLoader implements the actual loading (and caching) of JSON/HAL resources via any HTTP client library
-   * @param binaryLoader implements the actual loading of other resources via any HTTP client library
    * @param metrics an instance of {@link RequestMetricsCollector} to collect performance relevant data for the current
    *          incoming request
    * @return an instance of {@link HalApiClient} that should be re-used for all upstream requests required by the
    *         current incoming request
    */
-  static HalApiClient create(JsonResourceLoader jsonLoader, BinaryResourceLoader binaryLoader, RequestMetricsCollector metrics) {
-    return new HalApiClientImpl(jsonLoader, binaryLoader, metrics);
+  static HalApiClient create(JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
+    return new HalApiClientImpl(jsonLoader, metrics);
   }
 }

@@ -24,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.w3c.dom.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -34,7 +33,6 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.relations.StandardRelations;
-import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -45,14 +43,12 @@ import io.wcm.caravan.hal.resource.HalResource;
 public class ResourceRepresentationTest {
 
   private RequestMetricsCollector metrics;
-  private BinaryResourceLoader binaryLoader;
   private JsonResourceLoader jsonLoader;
   private TestResource entryPoint;
 
   @Before
   public void setUp() {
     metrics = RequestMetricsCollector.create();
-    binaryLoader = Mockito.mock(BinaryResourceLoader.class);
 
     TestResourceTree testResourceTree = new TestResourceTree();
     jsonLoader = testResourceTree;
@@ -66,7 +62,7 @@ public class ResourceRepresentationTest {
   }
 
   private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, binaryLoader, metrics);
+    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
     T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
     assertThat(clientProxy).isNotNull();
     return clientProxy;

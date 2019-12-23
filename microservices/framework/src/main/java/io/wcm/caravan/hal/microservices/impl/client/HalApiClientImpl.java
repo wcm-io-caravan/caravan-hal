@@ -19,30 +19,26 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
-import io.wcm.caravan.hal.microservices.api.client.BinaryResourceLoader;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
 /**
- * A full implementation of {@link HalApiClientImpl} that delegates the actual loading of resource via the
- * {@link JsonResourceLoader} and {@link BinaryResourceLoader} interfaces
+ * A full implementation of {@link HalApiClientImpl} that delegates the actual loading of resources via the
+ * {@link JsonResourceLoader} interface
  */
 public class HalApiClientImpl implements HalApiClient {
 
   private final CachingJsonResourceLoader jsonLoader;
-  private final BinaryResourceLoader binaryLoader;
   private final RequestMetricsCollector metrics;
 
   /**
    * jsonLoader implements the actual loading (and caching) of JSON/HAL resources via any HTTP client library
-   * @param binaryLoader implements the actual loading of other resources via any HTTP client library
    * @param metrics an instance of {@link RequestMetricsCollector} to collect performance relevant data for the current
    *          incoming request
    */
-  public HalApiClientImpl(JsonResourceLoader jsonLoader, BinaryResourceLoader binaryLoader, RequestMetricsCollector metrics) {
+  public HalApiClientImpl(JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
     this.jsonLoader = new CachingJsonResourceLoader(jsonLoader, metrics);
-    this.binaryLoader = binaryLoader;
     this.metrics = metrics;
   }
 
