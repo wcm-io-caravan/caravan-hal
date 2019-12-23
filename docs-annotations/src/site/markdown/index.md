@@ -18,4 +18,4 @@ See [HAL Interface Documentation][hal-docs] for a usage description.
 
 [apidocs]: apidocs/
 [changelog]: changes-report.html
-[hal-docs]: http://caravan.wcm.io/hal/docs/
+[hal-docs]: https://caravan.wcm.io/hal/docs/

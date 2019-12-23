@@ -22,4 +22,4 @@ See [Usage][usage] for a detailed description.
 
 [usage]: usage.html
 [changelog]: changes-report.html
-[hal-browser]: http://caravan.wcm.io/hal/browser/
+[hal-browser]: https://caravan.wcm.io/hal/browser/
