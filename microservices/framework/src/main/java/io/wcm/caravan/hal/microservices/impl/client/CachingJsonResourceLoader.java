@@ -60,6 +60,7 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
 
         return delegate.loadJsonResource(uri)
             .doOnSubscribe(d -> stopwatch.start())
+            .doOnError(ex -> registerErrorMetrics(uri, ex, stopwatch))
             .doOnSuccess(jsonResponse -> registerResponseMetrics(uri, jsonResponse, stopwatch))
             .cache();
       });
@@ -67,6 +68,13 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
     catch (ExecutionException ex) {
       throw new RuntimeException(ex.getCause());
     }
+  }
+
+  private void registerErrorMetrics(String uri, Throwable ex, Stopwatch stopwatch) {
+
+    String title = "Upstream resource that failed to load: " + ex.getMessage();
+
+    metrics.onResponseRetrieved(uri, title, null, stopwatch.elapsed(TimeUnit.MICROSECONDS));
   }
 
   private void registerResponseMetrics(String uri, HalResponse jsonResponse, Stopwatch stopwatch) {

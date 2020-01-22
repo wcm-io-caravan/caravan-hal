@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
 import static io.wcm.caravan.hal.api.relations.StandardRelations.CANONICAL;
+import static io.wcm.caravan.hal.api.relations.StandardRelations.VIA;
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOUT;
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -245,6 +246,22 @@ public class AsyncHalResponseRendererImplTest {
   }
 
   @Test
+  public void error_response_should_contain_multiple_embedded_resources_for_causes_of_exception() {
+
+    RuntimeException rootCause = new RuntimeException("This was the root cause");
+    RuntimeException cause = new RuntimeException("This was an intermediate", rootCause);
+    mockExceptionDuringRendering(new RuntimeException("Something went wrong", cause));
+
+    HalResponse response = renderResponse();
+
+    HalResource vndError = response.getBody();
+    List<HalResource> errors = vndError.getEmbedded(ERRORS);
+    assertThat(errors).hasSize(2);
+    assertThat(errors.get(0).getModel().path("message").asText()).isEqualTo(cause.getMessage());
+    assertThat(errors.get(1).getModel().path("message").asText()).isEqualTo(rootCause.getMessage());
+  }
+
+  @Test
   public void error_response_should_contain_about_and_canonical_link_to_resource() {
 
     mockExceptionDuringRendering(new RuntimeException("Something went wrong"));
@@ -284,7 +301,7 @@ public class AsyncHalResponseRendererImplTest {
         .withStatus(status)
         .withBody(vndErrorResource);
 
-    HalApiClientException cause = new HalApiClientException(upstreamResponse, "/some/url", null);
+    HalApiClientException cause = new HalApiClientException(upstreamResponse, "/failed/upstream/url", null);
     RuntimeException ex = new RuntimeException(cause);
     return ex;
   }
@@ -293,24 +310,26 @@ public class AsyncHalResponseRendererImplTest {
   public void error_response_should_contain_embedded_errors_from_upstream() {
 
     String upstreamMessage = "Upstream error message";
-    RuntimeException ex = createWrappedHalClientExceptionWithVndErrorBody(404, upstreamMessage);
+    RuntimeException ex = createWrappedHalClientExceptionWithVndErrorBody(501, upstreamMessage);
 
     mockExceptionDuringRendering(ex);
 
     HalResponse response = renderResponse();
 
-    HalResource cause = response.getBody().getEmbeddedResource(ERRORS);
-    assertThat(cause).isNotNull();
+    Link viaLink = response.getBody().getLink(VIA);
+    assertThat(viaLink.getHref()).isEqualTo("/failed/upstream/url");
 
-    HalResource rootCause = cause.getEmbeddedResource(ERRORS);
-    assertThat(rootCause.getModel().path("message").asText()).isEqualTo(upstreamMessage);
+    List<HalResource> causes = response.getBody().getEmbedded(ERRORS);
+    assertThat(causes).hasSize(2);
+    assertThat(causes.get(0).getModel().path("message").asText()).isEqualTo("HTTP request failed with status code 501");
+    assertThat(causes.get(1).getModel().path("message").asText()).isEqualTo(upstreamMessage);
   }
 
-  private RuntimeException createWrappedHalClientExceptionWithoutVndErrorBody(Integer status, String message) {
+  private RuntimeException createWrappedHalClientExceptionWithoutVndErrorBody(String causeMessage) {
 
-    RuntimeException rootCause = new RuntimeException(message);
+    RuntimeException rootCause = new RuntimeException(causeMessage);
 
-    HalApiClientException cause = new HalApiClientException("Failed to load resource", 500, "/some/url", rootCause);
+    HalApiClientException cause = new HalApiClientException("Failed to load resource", null, "/failed/upstream/url", rootCause);
     RuntimeException ex = new RuntimeException(cause);
     return ex;
   }
@@ -318,15 +337,19 @@ public class AsyncHalResponseRendererImplTest {
   @Test
   public void error_response_should_contain_root_cause_if_no_body_available_from_upstream() {
 
-    String upstreamMessage = "Upstream error message";
-    RuntimeException ex = createWrappedHalClientExceptionWithoutVndErrorBody(500, upstreamMessage);
+    String clientMessage = "Client root cause message";
+    RuntimeException ex = createWrappedHalClientExceptionWithoutVndErrorBody(clientMessage);
 
     mockExceptionDuringRendering(ex);
 
     HalResponse response = renderResponse();
 
+    Link viaLink = response.getBody().getLink(VIA);
+    assertThat(viaLink.getHref()).isEqualTo("/failed/upstream/url");
+
     List<HalResource> causes = response.getBody().getEmbedded(ERRORS);
     assertThat(causes).hasSize(2);
-    assertThat(causes.get(1).getModel().path("message").asText()).isEqualTo(upstreamMessage);
+    assertThat(causes.get(0).getModel().path("message").asText()).isEqualTo("Failed to load resource");
+    assertThat(causes.get(1).getModel().path("message").asText()).isEqualTo(clientMessage);
   }
 }
