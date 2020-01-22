@@ -17,36 +17,35 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.impl.client;
+package io.wcm.caravan.hal.microservices.impl.client.blocking;
 
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ALTERNATE;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
-import static io.wcm.caravan.hal.api.relations.StandardRelations.SECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.reactivestreams.Publisher;
 
-import io.reactivex.Maybe;
 import io.reactivex.Observable;
-import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
-import io.wcm.caravan.hal.microservices.testing.TestState;
+import io.wcm.caravan.hal.microservices.impl.client.blocking.ResourceStateTest.ResourceWithRequiredState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 
-
+/**
+ * Variation of the tests in {@link io.wcm.caravan.hal.microservices.impl.client.RelatedResourceTest}
+ * for blocking HAL API interfaces (i.e. that are not using reactive return types for their methods)
+ */
 public class RelatedResourceTest {
 
   private RequestMetricsCollector metrics;
@@ -74,55 +73,52 @@ public class RelatedResourceTest {
   interface ResourceWithSingleRelated {
 
     @RelatedResource(relation = ITEM)
-    Single<ResourceWithSingleState> getItem();
+    ResourceWithRequiredState getItem();
   }
 
   @Test
-  public void single_linked_resource_should_be_emitted() throws Exception {
+  public void required_linked_resource_should_be_emitted() throws Exception {
 
     entryPoint.createLinked(ITEM).setText("item text");
 
     TestResourceState linkedState = createClientProxy(ResourceWithSingleRelated.class)
         .getItem()
-        .flatMap(ResourceWithSingleState::getProperties)
-        .blockingGet();
+        .getProperties();
 
     assertThat(linkedState).isNotNull();
     assertThat(linkedState.text).isEqualTo("item text");
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void single_linked_resource_should_fail_if_link_is_not_present() throws Exception {
+  public void required_linked_resource_should_fail_if_link_is_not_present() throws Exception {
 
     entryPoint.createLinked(ALTERNATE).setText("item text");
 
     createClientProxy(ResourceWithSingleRelated.class)
-        .getItem()
-        .blockingGet();
+        .getItem();
   }
 
   @Test
-  public void single_embedded_resource_should_be_emitted() throws Exception {
+  public void required_embedded_resource_should_be_emitted() throws Exception {
 
     entryPoint.createEmbedded(ITEM).setText("item text");
 
     TestResourceState linkedState = createClientProxy(ResourceWithSingleRelated.class)
         .getItem()
-        .flatMap(ResourceWithSingleState::getProperties)
-        .blockingGet();
+        .getProperties();
 
     assertThat(linkedState).isNotNull();
     assertThat(linkedState.text).isEqualTo("item text");
   }
 
   @Test(expected = NoSuchElementException.class)
-  public void single_embedded_resource_should_fail_if_resource_is_not_present() throws Exception {
+  public void required_embedded_resource_should_fail_if_resource_is_not_present() throws Exception {
 
     entryPoint.createEmbedded(ALTERNATE).setText("item text");
 
     createClientProxy(ResourceWithSingleRelated.class)
         .getItem()
-        .blockingGet();
+        .getProperties();
   }
 
 
@@ -130,59 +126,59 @@ public class RelatedResourceTest {
   interface ResourceWithOptionalRelated {
 
     @RelatedResource(relation = ITEM)
-    Maybe<ResourceWithSingleState> getOptionalItem();
+    Optional<ResourceWithRequiredState> getOptionalItem();
   }
 
   @Test
-  public void maybe_linked_resource_should_be_emitted() throws Exception {
+  public void optional_linked_resource_should_be_emitted() throws Exception {
 
     entryPoint.createLinked(ITEM).setText("item text");
 
     TestResourceState linkedState = createClientProxy(ResourceWithOptionalRelated.class)
         .getOptionalItem()
-        .flatMapSingleElement(ResourceWithSingleState::getProperties)
-        .blockingGet();
+        .map(ResourceWithRequiredState::getProperties)
+        .get();
 
     assertThat(linkedState).isNotNull();
     assertThat(linkedState.text).isEqualTo("item text");
   }
 
   @Test
-  public void maybe_linked_resource_should_be_empty_if_link_is_not_present() throws Exception {
+  public void optional_linked_resource_should_be_empty_if_link_is_not_present() throws Exception {
 
     // create a link with a different relation then defined in the interface
     entryPoint.createLinked(ALTERNATE).setText("item text");
 
-    Maybe<ResourceWithSingleState> maybeLinked = createClientProxy(ResourceWithOptionalRelated.class)
+    Optional<ResourceWithRequiredState> maybeLinked = createClientProxy(ResourceWithOptionalRelated.class)
         .getOptionalItem();
 
-    assertThat(maybeLinked.isEmpty().blockingGet()).isTrue();
+    assertThat(maybeLinked.isPresent()).isFalse();
   }
 
   @Test
-  public void maybe_embedded_resource_should_be_emitted() throws Exception {
+  public void optional_embedded_resource_should_be_emitted() throws Exception {
 
     entryPoint.createEmbedded(ITEM).setText("item text");
 
     TestResourceState linkedState = createClientProxy(ResourceWithOptionalRelated.class)
         .getOptionalItem()
-        .flatMapSingleElement(ResourceWithSingleState::getProperties)
-        .blockingGet();
+        .map(ResourceWithRequiredState::getProperties)
+        .get();
 
     assertThat(linkedState).isNotNull();
     assertThat(linkedState.text).isEqualTo("item text");
   }
 
   @Test
-  public void maybe_embedded_resource_should_be_empty_if_resource_is_not_present() throws Exception {
+  public void optional_embedded_resource_should_be_empty_if_resource_is_not_present() throws Exception {
 
     // create a link with a different relation then defined in the interface
     entryPoint.createEmbedded(ALTERNATE).setText("item text");
 
-    Maybe<ResourceWithSingleState> maybeEmbedded = createClientProxy(ResourceWithOptionalRelated.class)
+    Optional<ResourceWithRequiredState> maybeEmbedded = createClientProxy(ResourceWithOptionalRelated.class)
         .getOptionalItem();
 
-    assertThat(maybeEmbedded.isEmpty().blockingGet()).isTrue();
+    assertThat(maybeEmbedded.isPresent()).isFalse();
   }
 
 
@@ -190,47 +186,45 @@ public class RelatedResourceTest {
   interface ResourceWithMultipleRelated {
 
     @RelatedResource(relation = ITEM)
-    Observable<ResourceWithSingleState> getItems();
+    List<ResourceWithRequiredState> getItems();
   }
 
   @Test
-  public void observable_linked_resource_should_emitted_single_item() throws Exception {
+  public void list_linked_resource_should_emitted_single_item() throws Exception {
 
     entryPoint.createLinked(ITEM).setText("item text");
 
     TestResourceState linkedState = createClientProxy(ResourceWithMultipleRelated.class)
-        .getItems()
-        .concatMapSingle(ResourceWithSingleState::getProperties)
-        .firstOrError()
-        .blockingGet();
+        .getItems().stream()
+        .map(ResourceWithRequiredState::getProperties)
+        .findFirst().orElseThrow(() -> new RuntimeException());
 
     assertThat(linkedState).isNotNull();
     assertThat(linkedState.text).isEqualTo("item text");
   }
 
   @Test
-  public void observable_linked_resource_should_be_empty_if_no_links_are_present() throws Exception {
+  public void list_linked_resource_should_be_empty_if_no_links_are_present() throws Exception {
 
     // create a link with a different relation then defined in the interface
     entryPoint.createLinked(ALTERNATE).setText("item text");
 
-    Observable<ResourceWithSingleState> rxLinkedResources = createClientProxy(ResourceWithMultipleRelated.class)
+    List<ResourceWithRequiredState> rxLinkedResources = createClientProxy(ResourceWithMultipleRelated.class)
         .getItems();
 
-    assertThat(rxLinkedResources.isEmpty().blockingGet()).isTrue();
+    assertThat(rxLinkedResources).isEmpty();
   }
 
   @Test
-  public void observable_linked_resource_should_emitted_multiple_items() throws Exception {
+  public void list_linked_resource_should_emitted_multiple_items() throws Exception {
 
     int numItems = 10;
     Observable.range(0, numItems).forEach(i -> entryPoint.createLinked(ITEM).setNumber(i));
 
     List<TestResourceState> linkedStates = createClientProxy(ResourceWithMultipleRelated.class)
-        .getItems()
-        .concatMapSingle(ResourceWithSingleState::getProperties)
-        .toList()
-        .blockingGet();
+        .getItems().stream()
+        .map(ResourceWithRequiredState::getProperties)
+        .collect(Collectors.toList());
 
     assertThat(linkedStates).hasSize(10);
     for (int i = 0; i < numItems; i++) {
@@ -239,43 +233,41 @@ public class RelatedResourceTest {
   }
 
   @Test
-  public void observable_embedded_resource_should_emitted_single_item() throws Exception {
+  public void list_embedded_resource_should_emitted_single_item() throws Exception {
 
     entryPoint.createEmbedded(ITEM).setText("item text");
 
     TestResourceState embeddedState = createClientProxy(ResourceWithMultipleRelated.class)
-        .getItems()
-        .concatMapSingle(ResourceWithSingleState::getProperties)
-        .firstOrError()
-        .blockingGet();
+        .getItems().stream()
+        .map(ResourceWithRequiredState::getProperties)
+        .findFirst().orElseThrow(() -> new RuntimeException());
 
     assertThat(embeddedState).isNotNull();
     assertThat(embeddedState.text).isEqualTo("item text");
   }
 
   @Test
-  public void observable_embedded_resource_should_be_empty_if_no_resources_are_present() throws Exception {
+  public void list_embedded_resource_should_be_empty_if_no_resources_are_present() throws Exception {
 
     // create an embeded resource with a different relation then defined in the interface
     entryPoint.createEmbedded(ALTERNATE).setText("item text");
 
-    Observable<ResourceWithSingleState> rxEmbeddedResources = createClientProxy(ResourceWithMultipleRelated.class)
+    List<ResourceWithRequiredState> rxEmbeddedResources = createClientProxy(ResourceWithMultipleRelated.class)
         .getItems();
 
-    assertThat(rxEmbeddedResources.isEmpty().blockingGet()).isTrue();
+    assertThat(rxEmbeddedResources).isEmpty();
   }
 
   @Test
-  public void observable_embedded_resource_should_emitted_multiple_items() throws Exception {
+  public void list_embedded_resource_should_emitted_multiple_items() throws Exception {
 
     int numItems = 10;
     Observable.range(0, numItems).forEach(i -> entryPoint.createEmbedded(ITEM).setNumber(i));
 
     List<TestResourceState> embeddedStates = createClientProxy(ResourceWithMultipleRelated.class)
-        .getItems()
-        .concatMapSingle(ResourceWithSingleState::getProperties)
-        .toList()
-        .blockingGet();
+        .getItems().stream()
+        .map(ResourceWithRequiredState::getProperties)
+        .collect(Collectors.toList());
 
     assertThat(embeddedStates).hasSize(10);
     for (int i = 0; i < numItems; i++) {
@@ -293,10 +285,9 @@ public class RelatedResourceTest {
     });
 
     List<TestResourceState> embeddedStates = createClientProxy(ResourceWithMultipleRelated.class)
-        .getItems()
-        .concatMapSingle(ResourceWithSingleState::getProperties)
-        .toList()
-        .blockingGet();
+        .getItems().stream()
+        .map(ResourceWithRequiredState::getProperties)
+        .collect(Collectors.toList());
 
     assertThat(embeddedStates).hasSize(10);
     for (int i = 0; i < numItems; i++) {
@@ -304,67 +295,4 @@ public class RelatedResourceTest {
     }
   }
 
-
-  @HalApiInterface
-  interface ResourceWithPublisherRelated {
-
-    @RelatedResource(relation = ITEM)
-    Publisher<ResourceWithSingleState> getItems();
-  }
-
-  @Test
-  public void related_resource_method_can_return_publisher() throws Exception {
-
-    entryPoint.createLinked(ITEM).setText("item text");
-
-    Observable<ResourceWithSingleState> items = Observable.fromPublisher(createClientProxy(ResourceWithPublisherRelated.class).getItems());
-    TestResourceState linkedState = items
-        .concatMapSingle(ResourceWithSingleState::getProperties)
-        .firstOrError()
-        .blockingGet();
-
-    assertThat(linkedState).isNotNull();
-    assertThat(linkedState.text).isEqualTo("item text");
-  }
-
-  interface ResourceWithoutAnnotation {
-
-    @ResourceState
-    Single<TestResourceState> getProperties();
-  }
-
-  @HalApiInterface
-  interface ResourceWithIllegalAnnotations {
-
-    Single<ResourceWithSingleState> noAnnotation();
-
-    @RelatedResource(relation = ITEM)
-    Single<ResourceWithoutAnnotation> getInvalidLinked();
-
-    @RelatedResource(relation = SECTION)
-    Single<TestState> notAnInterface();
-  }
-
-  @Test(expected = UnsupportedOperationException.class)
-  public void should_throw_unsupported_operation_if_annotation_is_missing_on_proxy_method() {
-
-    createClientProxy(ResourceWithIllegalAnnotations.class)
-        .noAnnotation();
-  }
-
-  @Test(expected = UnsupportedOperationException.class)
-  public void should_throw_unsupported_operation_if_annotation_is_missing_on_related_resource_type() {
-
-    createClientProxy(ResourceWithIllegalAnnotations.class)
-        .getInvalidLinked()
-        .blockingGet();
-  }
-
-  @Test(expected = UnsupportedOperationException.class)
-  public void should_throw_unsupported_operation_if_return_type_does_not_emit_an_interface() {
-
-    createClientProxy(ResourceWithIllegalAnnotations.class)
-        .notAnInterface()
-        .blockingGet();
-  }
 }

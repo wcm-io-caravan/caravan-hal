@@ -17,13 +17,13 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.impl.client;
+package io.wcm.caravan.hal.microservices.impl.client.blocking;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import java.util.concurrent.Future;
+import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +31,6 @@ import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
@@ -42,7 +41,10 @@ import io.wcm.caravan.hal.microservices.testing.ConversionFunctions;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.resource.HalResource;
 
-
+/**
+ * Variation of the tests in {@link io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest}
+ * for blocking HAL API interfaces (i.e. that are not using reactive return types for their methods)
+ */
 public class ResourceStateTest {
 
   private static final String RESOURCE_URL = "/";
@@ -72,20 +74,19 @@ public class ResourceStateTest {
   }
 
   @HalApiInterface
-  interface ResourceWithSingleState {
+  interface ResourceWithRequiredState {
 
     @ResourceState
-    Single<TestResourceState> getProperties();
+    TestResourceState getProperties();
   }
 
   @Test
-  public void single_resource_state_should_be_emitted() throws Exception {
+  public void required_resource_state_should_be_emitted() throws Exception {
 
     mockHalResponseWithSingle(new TestResourceState().withText("test"));
 
-    TestResourceState properties = createClientProxy(ResourceWithSingleState.class)
-        .getProperties()
-        .blockingGet();
+    TestResourceState properties = createClientProxy(ResourceWithRequiredState.class)
+        .getProperties();
 
     assertThat(properties).isNotNull();
     assertThat(properties.text).isEqualTo("test");
@@ -96,47 +97,29 @@ public class ResourceStateTest {
   interface ResourceWithOptionalState {
 
     @ResourceState
-    Maybe<TestResourceState> getProperties();
+    Optional<TestResourceState> getProperties();
   }
 
   @Test
-  public void maybe_resource_state_should_be_emitted() throws Exception {
+  public void optional_resource_state_should_be_emitted() throws Exception {
 
     mockHalResponseWithSingle(new TestResourceState().withText("test"));
 
     TestResourceState properties = createClientProxy(ResourceWithOptionalState.class)
-        .getProperties()
-        .blockingGet();
+        .getProperties().get();
 
     assertThat(properties).isNotNull();
     assertThat(properties.text).isEqualTo("test");
   }
 
   @Test
-  public void maybe_resource_state_should_be_empty_if_no_properties_are_set() throws Exception {
+  public void optional_resource_state_should_be_empty_if_no_properties_are_set() throws Exception {
 
     mockHalResponseWithSingle(JsonNodeFactory.instance.objectNode());
 
-    TestResourceState properties = createClientProxy(ResourceWithOptionalState.class)
-        .getProperties()
-        .blockingGet();
+    Optional<TestResourceState> optionalProperties = createClientProxy(ResourceWithOptionalState.class)
+        .getProperties();
 
-    assertThat(properties).isNull();
+    assertThat(optionalProperties.isPresent()).isFalse();
   }
-
-
-  @HalApiInterface
-  interface ResourceWithIllegalAnnotations {
-
-    @ResourceState
-    Future<TestResourceState> notSupported();
-  }
-
-  @Test(expected = UnsupportedOperationException.class)
-  public void should_throw_unsupported_operation_if_return_type_is_not_supported() {
-
-    createClientProxy(ResourceWithIllegalAnnotations.class)
-        .notSupported();
-  }
-
 }

@@ -23,6 +23,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.reactivestreams.Publisher;
@@ -60,11 +62,6 @@ public final class RxJavaReflectionUtils {
 
     String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
 
-    if (!hasReactiveReturnType(method)) {
-      throw new UnsupportedOperationException(
-          fullMethodName + " must return a reactive type (Maybe, Single, Observable or Publisher) that emits other resource instances");
-    }
-
     Object[] args = new Object[method.getParameterCount()];
 
     try {
@@ -98,8 +95,9 @@ public final class RxJavaReflectionUtils {
   public static Class<?> getObservableEmissionType(Method method) {
     Type returnType = method.getGenericReturnType();
 
-    Preconditions.checkArgument(returnType instanceof ParameterizedType,
-        "return types must be Observable/Single/Maybe/Publisher<T>, but " + method + " has a return type " + returnType.getTypeName());
+    if (!(returnType instanceof ParameterizedType)) {
+      return method.getReturnType();
+    }
 
     ParameterizedType observableType = (ParameterizedType)returnType;
 
@@ -157,6 +155,20 @@ public final class RxJavaReflectionUtils {
       return observable.toFlowable(BackpressureStrategy.BUFFER);
     }
 
+    if (targetType.isAssignableFrom(Optional.class)) {
+      return observable.singleElement()
+          .map(Optional::of)
+          .defaultIfEmpty(Optional.empty())
+          .blockingGet();
+    }
+    if (targetType.isAssignableFrom(List.class)) {
+      return observable.toList().blockingGet();
+    }
+
+    if (targetType.getTypeParameters().length == 0) {
+      return observable.singleOrError().blockingGet();
+    }
+
     throw new UnsupportedOperationException("The given target type of " + targetType.getName() + " is not a supported reactive type");
   }
 
@@ -176,6 +188,16 @@ public final class RxJavaReflectionUtils {
     }
     else if (reactiveInstance instanceof Publisher) {
       observable = Observable.fromPublisher((Publisher<?>)reactiveInstance);
+    }
+    else if (reactiveInstance instanceof Optional) {
+      Optional<?> optional = (Optional)reactiveInstance;
+      observable = optional.isPresent() ? Observable.just(optional.get()) : Observable.empty();
+    }
+    else if (reactiveInstance instanceof List) {
+      return Observable.fromIterable((List<?>)reactiveInstance);
+    }
+    else if (reactiveInstance.getClass().getTypeParameters().length == 0) {
+      return Observable.just(reactiveInstance);
     }
     else {
       throw new UnsupportedOperationException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");

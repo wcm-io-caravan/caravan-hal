@@ -3,6 +3,7 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -125,9 +126,15 @@ final class HalApiInvocationHandler implements InvocationHandler {
 
     }
     catch (UnsupportedOperationException e) {
+      // these exceptions should just be re-thrown as they are expected errors by the developer (e.g. using invalid types in the signatures of the HAL API interface)
       throw e;
     }
-    // CHECKSTYLE:OFF- we really want to catch any possible runtime exceptions here to add additional information on the method being called
+    catch (NoSuchElementException e) {
+      // these exceptions should be re-thrown with a better error message
+      throw new NoSuchElementException("The invocation of " + invocation + " has failed, "
+          + "most likely because no link or embedded resource with appropriate relation was found in the HAL resource");
+    }
+    // CHECKSTYLE:OFF- we really want to catch any other possible runtime exceptions here to add additional information on the method being called
     catch (RuntimeException e) {
       // CHECKSTYLE:ON
       throw new RuntimeException("The invocation of " + invocation + " has failed with an unexpected exception", e);

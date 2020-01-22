@@ -28,7 +28,7 @@ import io.wcm.caravan.hal.resource.Link;
 
 /**
  * Used to define methods that allow clients to only access URI of a resource, or the
- * {@link Link} instance that is pointing to a resource (with actually fetching the resource).
+ * {@link Link} instance that is pointing to a resource (without actually fetching the resource).
  * The return type of the method must be {@link Link} or {@link String}
  */
 @Retention(RetentionPolicy.RUNTIME)

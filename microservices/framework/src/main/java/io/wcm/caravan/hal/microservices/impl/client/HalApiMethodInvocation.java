@@ -5,6 +5,7 @@ import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionU
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,7 +36,7 @@ class HalApiMethodInvocation {
   HalApiMethodInvocation(Class interfaze, Method method, Object[] args) {
     this.interfaze = interfaze;
     this.method = method;
-    this.emissionType = hasReactiveReturnType() ? RxJavaReflectionUtils.getObservableEmissionType(method) : method.getReturnType();
+    this.emissionType = hasTemplatedReturnType() ? RxJavaReflectionUtils.getObservableEmissionType(method) : method.getReturnType();
 
     this.templateVariables = new HashMap<>();
 
@@ -103,8 +104,9 @@ class HalApiMethodInvocation {
     return method.getAnnotation(ResourceRepresentation.class) != null;
   }
 
-  boolean hasReactiveReturnType() {
-    return RxJavaReflectionUtils.hasReactiveReturnType(method);
+  boolean hasTemplatedReturnType() {
+    return RxJavaReflectionUtils.hasReactiveReturnType(method)
+        || method.getGenericReturnType() instanceof ParameterizedType;
   }
 
   Class<?> getReturnType() {

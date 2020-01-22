@@ -190,27 +190,6 @@ public class RenderResourceStateTest {
     render(resourceImpl);
   }
 
-  @HalApiInterface
-  public interface ResourceWithNonReactiveReturnType {
-
-    @ResourceState
-    TestState getState();
-  }
-
-  @Test(expected = UnsupportedOperationException.class)
-  public void should_throw_exception_if_ResourceState_method_does_not_have_reactive_return_type() {
-
-    ResourceWithNonReactiveReturnType resourceImpl = new ResourceWithNonReactiveReturnType() {
-
-      @Override
-      public TestState getState() {
-        return createTestState();
-      }
-    };
-
-    render(resourceImpl);
-  }
-
   @Test(expected = UnsupportedOperationException.class)
   public void should_throw_exception_if_ResourceState_method_returns_null() {
 

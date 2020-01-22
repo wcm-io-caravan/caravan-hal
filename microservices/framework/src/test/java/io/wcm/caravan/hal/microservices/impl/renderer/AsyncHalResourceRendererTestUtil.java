@@ -30,13 +30,13 @@ import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 
-final class AsyncHalResourceRendererTestUtil {
+public final class AsyncHalResourceRendererTestUtil {
 
   private AsyncHalResourceRendererTestUtil() {
     // static methods only
   }
 
-  static HalResource render(Object resourceImplInstance) {
+  public static HalResource render(Object resourceImplInstance) {
 
     RequestMetricsCollector metrics = new ResponseMetadataGenerator();
     AsyncHalResourceRendererImpl renderer = new AsyncHalResourceRendererImpl(metrics);
@@ -66,7 +66,7 @@ final class AsyncHalResourceRendererTestUtil {
     return createSingleExternalLinkedResource(new Link(uri));
   }
 
-  static TestState createTestState() {
+  public static TestState createTestState() {
     return new TestState("This is just a test", RandomUtils.nextInt(0, 100000));
   }
 

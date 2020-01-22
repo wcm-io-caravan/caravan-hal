@@ -19,6 +19,8 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
+import java.util.Optional;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,9 +43,10 @@ class ResourceStateHandler {
 
     log.trace(invocation + " was invoked, method is annotated with @ResourceState and returns type " + returnType.getSimpleName());
 
-    // if the interface is using Maybe as return type, and the HAL resource does not contain any
+    // if the interface is using Maybe or Optional as return type, and the HAL resource does not contain any
     // state properties, then an empty maybe should be returned
-    if (Maybe.class.isAssignableFrom(returnType) && contextResource.getStateFieldNames().isEmpty()) {
+    boolean isOptional = Maybe.class.isAssignableFrom(returnType) || Optional.class.isAssignableFrom(returnType);
+    if (isOptional && contextResource.getStateFieldNames().isEmpty()) {
       return Maybe.empty();
     }
 
