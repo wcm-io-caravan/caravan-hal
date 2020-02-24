@@ -35,7 +35,7 @@
   <version>1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>HAL Microservices Framework</name>
+  <name>Reactive HAL Microservices Framework</name>
 
   <modules>
     <module>api-annotations</module>
