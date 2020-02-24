@@ -42,7 +42,6 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import com.google.common.collect.Lists;
 
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.Related;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
@@ -158,7 +157,7 @@ public final class HalApiReflectionUtils {
 
   /**
    * @param apiInterface an interface annotated with {@link HalApiInterface} (either directly or by extending)
-   * @return a list of all methods annotated with {@link Related}
+   * @return a list of all methods annotated with {@link RelatedResource}
    */
   public static List<Method> getSortedRelatedResourceMethods(Class<?> apiInterface) {
 
