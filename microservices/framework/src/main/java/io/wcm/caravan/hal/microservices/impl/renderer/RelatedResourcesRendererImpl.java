@@ -109,8 +109,8 @@ final class RelatedResourcesRendererImpl {
 
       String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
       throw new UnsupportedOperationException("The method " + fullMethodName + " returns an Observable<" + relatedResourceInterface.getName() + ">, "
-          + " but it must return an Observable that emits objects that implement a HAL API interface annotated with the @"
-          + HalApiInterface.class.getSimpleName() + " annotation");
+          + " but it must return an interface annotated with the @" + HalApiInterface.class.getSimpleName()
+          + " annotation (or a reactive type that emits such instances)");
     }
   }
 

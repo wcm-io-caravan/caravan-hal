@@ -31,10 +31,10 @@ import static org.assertj.core.data.Percentage.withPercentage;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
@@ -43,7 +43,7 @@ import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataGenerator.
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class ResponseMetadataGeneratorTest {
 
   private static final String METHOD2 = "method2()";

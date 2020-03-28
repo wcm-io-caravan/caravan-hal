@@ -22,9 +22,11 @@ package io.wcm.caravan.hal.microservices.impl.renderer;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.createTestState;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.render;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.junit.Test;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
 import io.reactivex.Flowable;
@@ -155,7 +157,7 @@ public class RenderResourceStateTest {
     Maybe<TestState> getState();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_exception_if_no_HalApiInterface_annotation_can_be_found() {
 
     ResourceWithoutAnnotation resourceImpl = new ResourceWithoutAnnotation() {
@@ -166,7 +168,12 @@ public class RenderResourceStateTest {
       }
     };
 
-    render(resourceImpl);
+    Throwable ex = catchThrowable(
+        () -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageStartingWith("None of the interfaces implemented by the given class").hasMessageEndingWith("has a @HalApiInterface annotation");
+
   }
 
   @HalApiInterface
@@ -176,7 +183,7 @@ public class RenderResourceStateTest {
     Maybe<TestState> getState();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_exception_if_HalApiInterface_is_not_public() {
 
     ResourceWithNonPublicInterface resourceImpl = new ResourceWithNonPublicInterface() {
@@ -187,10 +194,14 @@ public class RenderResourceStateTest {
       }
     };
 
-    render(resourceImpl);
+    Throwable ex = catchThrowable(
+        () -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageEndingWith("is annotated with @HalApiInterface but it also has to be public");
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_exception_if_ResourceState_method_returns_null() {
 
     TestResourceWithMaybeState resourceImpl = new TestResourceWithMaybeState() {
@@ -202,22 +213,31 @@ public class RenderResourceStateTest {
 
     };
 
-    render(resourceImpl);
+    Throwable ex = catchThrowable(
+        () -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageStartingWith("#getState must not return null");
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void should_throw_runtime_exception_if_ResourceState_method_throws_exception() {
+
+    NotImplementedException cause = new NotImplementedException("not implemented");
 
     TestResourceWithMaybeState resourceImpl = new TestResourceWithMaybeState() {
 
       @Override
       public Maybe<TestState> getState() {
-        throw new NotImplementedException("not implemented");
+        throw cause;
       }
 
     };
 
-    render(resourceImpl);
+    Throwable ex = Assertions.catchThrowable(() -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(RuntimeException.class).hasMessageStartingWith("An exception was thrown during assembly time in #getState");
+    assertThat(ex).hasCause(cause);
   }
 
 }

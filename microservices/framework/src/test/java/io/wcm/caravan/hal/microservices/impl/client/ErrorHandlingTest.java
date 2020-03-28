@@ -21,11 +21,12 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import io.reactivex.Maybe;
@@ -50,7 +51,7 @@ public class ErrorHandlingTest {
   private RequestMetricsCollector metrics;
   private JsonResourceLoader jsonLoader;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
     jsonLoader = Mockito.mock(JsonResourceLoader.class);
@@ -167,9 +168,12 @@ public class ErrorHandlingTest {
     Observable<LinkedResource> getLinked();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_unsupported_operation_if_HalApiAnnotation_is_missing() {
 
-    createClientProxy(EntryPointWithoutAnnotation.class).getState().blockingGet();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(EntryPointWithoutAnnotation.class).getState().blockingGet());
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class).hasMessageEndingWith("does not have a @HalApiInterface annotation.");
   }
 }

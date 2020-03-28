@@ -22,8 +22,8 @@ package io.wcm.caravan.hal.microservices.impl.client.blocking;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
@@ -45,7 +45,7 @@ public class ResourceRepresentationTest {
   private JsonResourceLoader jsonLoader;
   private TestResource entryPoint;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
 

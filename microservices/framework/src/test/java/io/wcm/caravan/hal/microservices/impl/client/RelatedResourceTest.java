@@ -23,12 +23,13 @@ import static io.wcm.caravan.hal.api.relations.StandardRelations.ALTERNATE;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.SECTION;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
 import io.reactivex.Maybe;
@@ -53,7 +54,7 @@ public class RelatedResourceTest {
   private JsonResourceLoader jsonLoader;
   private TestResource entryPoint;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
 
@@ -91,14 +92,15 @@ public class RelatedResourceTest {
     assertThat(linkedState.text).isEqualTo("item text");
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void single_linked_resource_should_fail_if_link_is_not_present() throws Exception {
 
     entryPoint.createLinked(ALTERNATE).setText("item text");
 
-    createClientProxy(ResourceWithSingleRelated.class)
-        .getItem()
-        .blockingGet();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithSingleRelated.class).getItem().blockingGet());
+
+    assertThat(ex).isInstanceOf(NoSuchElementException.class);
   }
 
   @Test
@@ -115,14 +117,15 @@ public class RelatedResourceTest {
     assertThat(linkedState.text).isEqualTo("item text");
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void single_embedded_resource_should_fail_if_resource_is_not_present() throws Exception {
 
     entryPoint.createEmbedded(ALTERNATE).setText("item text");
 
-    createClientProxy(ResourceWithSingleRelated.class)
-        .getItem()
-        .blockingGet();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithSingleRelated.class).getItem().blockingGet());
+
+    assertThat(ex).isInstanceOf(NoSuchElementException.class);
   }
 
 
@@ -345,26 +348,32 @@ public class RelatedResourceTest {
     Single<TestState> notAnInterface();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_unsupported_operation_if_annotation_is_missing_on_proxy_method() {
 
-    createClientProxy(ResourceWithIllegalAnnotations.class)
-        .noAnnotation();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithIllegalAnnotations.class).noAnnotation());
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class).hasMessageContaining("is not annotated with one of the HAL API annotations");
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_unsupported_operation_if_annotation_is_missing_on_related_resource_type() {
 
-    createClientProxy(ResourceWithIllegalAnnotations.class)
-        .getInvalidLinked()
-        .blockingGet();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithIllegalAnnotations.class).getInvalidLinked().blockingGet());
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageContaining("has an invalid emission type").hasMessageEndingWith("which does not have a @HalApiInterface annotation.");
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_unsupported_operation_if_return_type_does_not_emit_an_interface() {
 
-    createClientProxy(ResourceWithIllegalAnnotations.class)
-        .notAnInterface()
-        .blockingGet();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithIllegalAnnotations.class).notAnInterface().blockingGet());
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageContaining("has an invalid emission type").hasMessageEndingWith("which does not have a @HalApiInterface annotation.");
   }
 }

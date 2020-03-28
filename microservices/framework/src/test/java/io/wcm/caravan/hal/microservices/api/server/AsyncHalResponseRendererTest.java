@@ -22,11 +22,11 @@ package io.wcm.caravan.hal.microservices.api.server;
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.CARAVAN_METADATA_RELATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -35,7 +35,7 @@ import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class AsyncHalResponseRendererTest {
 
   private static final String BASE_URI = "http://localhost";
@@ -46,7 +46,7 @@ public class AsyncHalResponseRendererTest {
 
   private LinkBuilder linkBuilder;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     linkBuilder = LinkBuilder.create(BASE_URI, linkBuilderSupport);
   }

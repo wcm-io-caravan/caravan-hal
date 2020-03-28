@@ -22,8 +22,8 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -43,7 +43,7 @@ public class MaxAgeTest {
   private JsonResourceLoader jsonLoader;
   private TestResource entryPoint;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
 

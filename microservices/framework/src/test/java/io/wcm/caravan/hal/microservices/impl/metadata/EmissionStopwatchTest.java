@@ -25,11 +25,11 @@ import static org.mockito.Mockito.times;
 
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.base.Stopwatch;
 
@@ -39,7 +39,7 @@ import io.reactivex.subjects.SingleSubject;
 import io.reactivex.subjects.Subject;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class EmissionStopwatchTest {
 
   private static final String METHOD_DESC = "test";

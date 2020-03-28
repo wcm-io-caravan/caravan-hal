@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.reactivex.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;

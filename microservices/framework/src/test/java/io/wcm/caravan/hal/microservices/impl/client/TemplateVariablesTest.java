@@ -27,8 +27,8 @@ import static org.mockito.Mockito.when;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.damnhandy.uri.template.UriTemplate;
@@ -55,7 +55,7 @@ public class TemplateVariablesTest {
   private JsonResourceLoader jsonLoader;
   private HalResource entryPoint;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
     jsonLoader = Mockito.mock(JsonResourceLoader.class);

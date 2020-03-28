@@ -21,9 +21,10 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,7 +47,7 @@ public class ResourceRepresentationTest {
   private JsonResourceLoader jsonLoader;
   private TestResource entryPoint;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
 
@@ -132,11 +133,13 @@ public class ResourceRepresentationTest {
     Single<Document> asXmlDocument();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_unsupported_operation_if_emission_type_is_not_supported() {
 
-    createClientProxy(ResourceWithUnsupportedRepresentations.class)
-        .asXmlDocument()
-        .blockingGet();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithUnsupportedRepresentations.class).asXmlDocument().blockingGet());
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageEndingWith("annotated with @ResourceRepresentation must return a reactive type emitting either HalResource, JsonNode, String");
   }
 }

@@ -22,14 +22,15 @@ package io.wcm.caravan.hal.microservices.impl.client.blocking;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ALTERNATE;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import io.reactivex.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
@@ -52,7 +53,7 @@ public class RelatedResourceTest {
   private JsonResourceLoader jsonLoader;
   private TestResource entryPoint;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
 
@@ -89,13 +90,16 @@ public class RelatedResourceTest {
     assertThat(linkedState.text).isEqualTo("item text");
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void required_linked_resource_should_fail_if_link_is_not_present() throws Exception {
 
     entryPoint.createLinked(ALTERNATE).setText("item text");
 
-    createClientProxy(ResourceWithSingleRelated.class)
-        .getItem();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithSingleRelated.class).getItem());
+
+    assertThat(ex).isInstanceOf(NoSuchElementException.class).hasMessageStartingWith("The invocation of ResourceWithSingleRelated#getItem() has failed");
+
   }
 
   @Test
@@ -111,14 +115,15 @@ public class RelatedResourceTest {
     assertThat(linkedState.text).isEqualTo("item text");
   }
 
-  @Test(expected = NoSuchElementException.class)
+  @Test
   public void required_embedded_resource_should_fail_if_resource_is_not_present() throws Exception {
 
     entryPoint.createEmbedded(ALTERNATE).setText("item text");
 
-    createClientProxy(ResourceWithSingleRelated.class)
-        .getItem()
-        .getProperties();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithSingleRelated.class).getItem().getProperties());
+
+    assertThat(ex).isInstanceOf(NoSuchElementException.class).hasMessageStartingWith("The invocation of ResourceWithSingleRelated#getItem() has failed");
   }
 
 

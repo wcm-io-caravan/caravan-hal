@@ -70,8 +70,8 @@ class HalApiMethodInvocation {
       }
       else {
         throw new UnsupportedOperationException("all parameters of " + toString() + " need to be either annotated with @"
-            + TemplateVariable.class.getSimpleName() + " or @" + LinkName.class.getSimpleName() + ", "
-            + " or have class type annotated with @" + TemplateVariables.class.getSimpleName());
+            + LinkName.class.getSimpleName() + ", @" + TemplateVariable.class.getSimpleName()
+            + " or @" + TemplateVariables.class.getSimpleName());
       }
     }
 

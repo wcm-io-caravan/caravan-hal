@@ -20,9 +20,9 @@
 package io.wcm.caravan.hal.microservices.util;
 
 import static io.wcm.caravan.hal.microservices.util.RxJavaTransformers.filterWith;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -37,7 +37,7 @@ public class RxJavaTransformersTest {
         .compose(filterWith(string -> Single.just(string.length() > 3)))
         .singleOrError().blockingGet();
 
-    Assertions.assertThat(filtered).isEqualTo("monkey");
+    assertThat(filtered).isEqualTo("monkey");
   }
 
 }

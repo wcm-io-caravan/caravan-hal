@@ -21,13 +21,14 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.net.URI;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import io.reactivex.Observable;
 import io.reactivex.Single;
@@ -51,7 +52,7 @@ public class ResourceLinkTest {
   private JsonResourceLoader jsonLoader;
   private TestResource entryPoint;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
 
@@ -322,10 +323,13 @@ public class ResourceLinkTest {
     URI getLink();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void unsupported_return_types_should_throw_unsupported_operation() {
 
-    createClientProxy(ResourceWithUnsupportedType.class)
-        .getLink();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithUnsupportedType.class).getLink());
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageEndingWith("annotated with @ResourceLink must return either a String or io.wcm.caravan.hal.resource.Link");
   }
 }

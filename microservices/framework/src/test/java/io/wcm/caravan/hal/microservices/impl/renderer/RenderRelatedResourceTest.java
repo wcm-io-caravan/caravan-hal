@@ -24,10 +24,11 @@ import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRen
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.render;
 import static io.wcm.caravan.hal.microservices.testing.TestRelations.LINKED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.fail;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -137,7 +138,7 @@ public class RenderRelatedResourceTest {
     Maybe<TestState> getLinked();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_exception_if_RelatedResource_return_type_does_not_emit_HalApiInterface() {
 
     TestResourceWithInvalidEmissionType resourceImpl = new TestResourceWithInvalidEmissionType() {
@@ -148,7 +149,11 @@ public class RenderRelatedResourceTest {
       }
     };
 
-    render(resourceImpl);
+    Throwable ex = catchThrowable(
+        () -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageEndingWith(" but it must return an interface annotated with the @HalApiInterface annotation (or a reactive type that emits such instances)");
   }
 
   @HalApiInterface
@@ -184,7 +189,7 @@ public class RenderRelatedResourceTest {
     Observable<TestState> getRelated();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_exception_if_RelatedResource_return_type_does_not_emit_interface() {
 
     ResourceWithInvalidRelatedMethod resourceImpl = new ResourceWithInvalidRelatedMethod() {
@@ -195,7 +200,11 @@ public class RenderRelatedResourceTest {
       }
     };
 
-    render(resourceImpl);
+    Throwable ex = catchThrowable(
+        () -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageEndingWith(" but it must return an interface annotated with the @HalApiInterface annotation (or a reactive type that emits such instances)");
   }
 
 }

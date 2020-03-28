@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.microservices.impl.links;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
@@ -27,11 +28,11 @@ import static org.mockito.Mockito.when;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -40,7 +41,7 @@ import io.wcm.caravan.hal.microservices.api.server.LinkBuilderSupport;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.Link;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class LinkBuilderImplTest {
 
   private static final String BASE_URL = "http://server/contextPath";
@@ -223,27 +224,37 @@ public class LinkBuilderImplTest {
     assertThat(link.getHref()).isEqualTo(BASE_URL + "?additional=value");
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void additional_query_parameters_must_not_have_the_same_name_as_other_query_parameters() throws Exception {
 
     mockQueryParameters("varA", "valueA");
 
-    new LinkBuilderImpl(BASE_URL, support)
-        .withAdditionalParameters(ImmutableMap.of("varA", "value"))
-        .buildLinkTo(resource);
+    LinkBuilder linkBuilder = new LinkBuilderImpl(BASE_URL, support)
+        .withAdditionalParameters(ImmutableMap.of("varA", "value"));
+
+    Throwable ex = catchThrowable(
+        () -> linkBuilder.buildLinkTo(resource));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageStartingWith("Duplicate names detected in query and additional params");
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void additional_query_parameters_must_not_have_the_same_name_as_other_path_parameters() throws Exception {
 
     mockPathParameters("/{varA}", "varA", null);
 
-    new LinkBuilderImpl(BASE_URL, support)
-        .withAdditionalParameters(ImmutableMap.of("varA", "value"))
-        .buildLinkTo(resource);
+    LinkBuilder linkBuilder = new LinkBuilderImpl(BASE_URL, support)
+        .withAdditionalParameters(ImmutableMap.of("varA", "value"));
+
+    Throwable ex = catchThrowable(
+        () -> linkBuilder.buildLinkTo(resource));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageStartingWith("Duplicate names detected in path and additional params");
   }
 
-  @After
+  @AfterEach
   public void tearDown() {
     // check that the link builder does not actually call any method on the target resource instance
     verifyZeroInteractions(resource);

@@ -21,9 +21,10 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -49,7 +50,7 @@ public class LinkNameTest {
   private JsonResourceLoader jsonLoader;
   private TestResource entryPoint;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
 
@@ -157,11 +158,13 @@ public class LinkNameTest {
   }
 
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void should_fail_if_null_is_given_as_link_name() {
 
-    createClientProxy(ResourceWithNamedLinked.class)
-        .getLinkedByName(null);
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithNamedLinked.class).getLinkedByName(null));
+
+    assertThat(ex).isInstanceOf(IllegalArgumentException.class).hasMessageStartingWith("You must provide a non-null value");
   }
 
 
@@ -172,10 +175,13 @@ public class LinkNameTest {
     Single<ResourceWithSingleState> getItem(@LinkName String parameter, @LinkName String other);
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_unsupported_operation_if_multiple_link_name_parameters_are_present() {
 
-    createClientProxy(ResourceWithMultipleAnnotations.class)
-        .getItem("foo", "bar");
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithMultipleAnnotations.class).getItem("foo", "bar"));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageStartingWith("More than one parameter").hasMessageEndingWith("is annotated with @LinkName");
   }
 }

@@ -21,13 +21,14 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.damnhandy.uri.template.UriTemplate;
@@ -53,7 +54,7 @@ public class TemplateVariableTest {
   private JsonResourceLoader jsonLoader;
   private HalResource entryPoint;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
     jsonLoader = Mockito.mock(JsonResourceLoader.class);
@@ -107,17 +108,22 @@ public class TemplateVariableTest {
     assertThat(state.number).isEqualTo(1);
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void link_template_should_not_be_expanded_if_only_parameter_is_missing() {
 
     entryPoint.addLinks(ITEM, new Link("/item/{number}"));
 
     mockHalResponseWithNumber("/item/", 0);
 
-    createClientProxy(ResourceWithSimpleLinkTemplate.class)
-        .getLinked(null)
-        .flatMap(ResourceWithSingleState::getProperties)
-        .blockingGet();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithSimpleLinkTemplate.class)
+            .getLinked(null)
+            .flatMap(ResourceWithSingleState::getProperties)
+            .blockingGet());
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageStartingWith("Cannot follow the link template to /item/{number} because it has not been expanded");
+
   }
 
   @HalApiInterface
@@ -257,10 +263,13 @@ public class TemplateVariableTest {
     Single<ResourceWithSingleState> getItem(String parameter);
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_unsupported_operation_if_annotation_for_parameter_is_missing() {
 
-    createClientProxy(ResourceWithMissingAnnotations.class)
-        .getItem("foo");
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithMissingAnnotations.class).getItem("foo"));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageStartingWith("all parameters ").hasMessageEndingWith("need to be either annotated with @LinkName, @TemplateVariable or @TemplateVariables");
   }
 }

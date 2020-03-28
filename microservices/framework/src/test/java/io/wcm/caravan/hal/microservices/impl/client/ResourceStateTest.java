@@ -20,13 +20,14 @@
 package io.wcm.caravan.hal.microservices.impl.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.util.concurrent.Future;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
@@ -50,7 +51,7 @@ public class ResourceStateTest {
   private RequestMetricsCollector metrics;
   private JsonResourceLoader jsonLoader;
 
-  @Before
+  @BeforeEach
   public void setUp() {
     metrics = RequestMetricsCollector.create();
     jsonLoader = Mockito.mock(JsonResourceLoader.class);
@@ -132,11 +133,14 @@ public class ResourceStateTest {
     Future<TestResourceState> notSupported();
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_unsupported_operation_if_return_type_is_not_supported() {
 
-    createClientProxy(ResourceWithIllegalAnnotations.class)
-        .notSupported();
+    Throwable ex = catchThrowable(
+        () -> createClientProxy(ResourceWithIllegalAnnotations.class).notSupported());
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageStartingWith("The given target type").hasMessageEndingWith(" is not a supported reactive type");
   }
 
 }

@@ -22,12 +22,13 @@ package io.wcm.caravan.hal.microservices.impl.renderer.blocking;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.render;
 import static io.wcm.caravan.hal.microservices.testing.TestRelations.LINKED;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import io.reactivex.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
@@ -203,7 +204,7 @@ public class RenderLinkedResourceTest {
     assertThat(hal.getLinks(LINKED)).containsExactly(externalLink);
   }
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void returning_null_in_createLink_should_throw_exception() {
 
     TestResourceWithRequiredLink resourceImpl = new TestResourceWithRequiredLink() {
@@ -222,7 +223,12 @@ public class RenderLinkedResourceTest {
 
     };
 
-    render(resourceImpl);
+    Throwable ex = catchThrowable(
+        () -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageEndingWith("returned a null value");
+
   }
 
 }

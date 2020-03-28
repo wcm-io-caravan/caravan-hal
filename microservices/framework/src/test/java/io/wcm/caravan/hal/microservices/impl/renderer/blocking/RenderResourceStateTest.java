@@ -22,11 +22,13 @@ package io.wcm.caravan.hal.microservices.impl.renderer.blocking;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.createTestState;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.render;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 import java.util.Optional;
 
 import org.apache.commons.lang3.NotImplementedException;
-import org.junit.Test;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
@@ -96,7 +98,7 @@ public class RenderResourceStateTest {
   }
 
 
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void should_throw_exception_if_ResourceState_method_returns_null() {
 
     TestResourceWithOptionalState resourceImpl = new TestResourceWithOptionalState() {
@@ -108,22 +110,31 @@ public class RenderResourceStateTest {
 
     };
 
-    render(resourceImpl);
+    Throwable ex = catchThrowable(
+        () -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+        .hasMessageStartingWith("#getState must not return null");
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void should_throw_runtime_exception_if_ResourceState_method_throws_exception() {
+
+    NotImplementedException cause = new NotImplementedException("not implemented");
 
     TestResourceWithOptionalState resourceImpl = new TestResourceWithOptionalState() {
 
       @Override
       public Optional<TestState> getState() {
-        throw new NotImplementedException("not implemented");
+        throw cause;
       }
 
     };
 
-    render(resourceImpl);
+    Throwable ex = Assertions.catchThrowable(() -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(RuntimeException.class).hasMessageStartingWith("An exception was thrown during assembly time in #getState");
+    assertThat(ex).hasCause(cause);
   }
 
 }
