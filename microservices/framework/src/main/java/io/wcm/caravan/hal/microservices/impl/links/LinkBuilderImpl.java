@@ -32,6 +32,7 @@ import com.damnhandy.uri.template.UriTemplateBuilder;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilderSupport;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
@@ -157,7 +158,7 @@ public class LinkBuilderImpl implements LinkBuilder {
     Set<String> commonKeys = Sets.intersection(params1.keySet(), params2.keySet());
     if (!commonKeys.isEmpty()) {
       String names = commonKeys.stream().collect(Collectors.joining(","));
-      throw new UnsupportedOperationException(message + ": " + names);
+      throw new HalApiDeveloperException(message + ": " + names);
     }
   }
 

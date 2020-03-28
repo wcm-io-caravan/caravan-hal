@@ -36,6 +36,7 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
@@ -95,7 +96,7 @@ public class TemplateVariableTest {
             .flatMap(ResourceWithSingleState::getProperties)
             .blockingGet());
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageStartingWith("Cannot follow the link template to /item/{number} because it has not been expanded");
 
   }
@@ -238,12 +239,12 @@ public class TemplateVariableTest {
   }
 
   @Test
-  public void should_throw_unsupported_operation_if_annotation_for_parameter_is_missing() {
+  public void should_throw_developer_exception_if_annotation_for_parameter_is_missing() {
 
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithMissingAnnotations.class).getItem("foo"));
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageStartingWith("all parameters ").hasMessageEndingWith("need to be either annotated with @LinkName, @TemplateVariable or @TemplateVariables");
   }
 }

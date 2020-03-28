@@ -37,6 +37,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
@@ -108,7 +109,7 @@ final class RelatedResourcesRendererImpl {
     if (!HalApiReflectionUtils.isHalApiInterface(relatedResourceInterface) && !LinkableResource.class.equals(relatedResourceInterface)) {
 
       String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
-      throw new UnsupportedOperationException("The method " + fullMethodName + " returns an Observable<" + relatedResourceInterface.getName() + ">, "
+      throw new HalApiDeveloperException("The method " + fullMethodName + " returns an Observable<" + relatedResourceInterface.getName() + ">, "
           + " but it must return an interface annotated with the @" + HalApiInterface.class.getSimpleName()
           + " annotation (or a reactive type that emits such instances)");
     }

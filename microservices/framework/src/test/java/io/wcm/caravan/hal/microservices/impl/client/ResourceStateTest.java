@@ -33,6 +33,7 @@ import io.reactivex.Maybe;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 
@@ -103,12 +104,12 @@ public class ResourceStateTest {
   }
 
   @Test
-  public void should_throw_unsupported_operation_if_return_type_is_not_supported() {
+  public void should_throw_developer_exception_if_return_type_is_not_supported() {
 
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithIllegalAnnotations.class).notSupported());
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageStartingWith("The given target type").hasMessageEndingWith(" is not a supported reactive type");
   }
 

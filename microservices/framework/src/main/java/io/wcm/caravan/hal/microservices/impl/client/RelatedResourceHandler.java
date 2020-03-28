@@ -34,6 +34,7 @@ import com.damnhandy.uri.template.UriTemplate;
 
 import io.reactivex.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -56,7 +57,7 @@ class RelatedResourceHandler {
     Class<?> relatedResourceType = invocation.getEmissionType();
 
     if (!isHalApiInterface(relatedResourceType)) {
-      throw new UnsupportedOperationException("The method " + invocation + " has an invalid emission type " + relatedResourceType.getName() +
+      throw new HalApiDeveloperException("The method " + invocation + " has an invalid emission type " + relatedResourceType.getName() +
           " which does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
     }
 

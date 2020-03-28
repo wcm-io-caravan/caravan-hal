@@ -36,6 +36,7 @@ import io.reactivex.BackpressureStrategy;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
@@ -68,7 +69,7 @@ public final class RxJavaReflectionUtils {
       Object returnValue = method.invoke(resourceImplInstance, args);
 
       if (returnValue == null) {
-        throw new UnsupportedOperationException(
+        throw new HalApiDeveloperException(
             fullMethodName + " must not return null. You should return an empty Maybe/Observable if the related resource does not exist");
       }
 
@@ -169,7 +170,7 @@ public final class RxJavaReflectionUtils {
       return observable.singleOrError().blockingGet();
     }
 
-    throw new UnsupportedOperationException("The given target type of " + targetType.getName() + " is not a supported reactive type");
+    throw new HalApiDeveloperException("The given target type of " + targetType.getName() + " is not a supported reactive type");
   }
 
   private static Observable<?> convertToObservable(Object reactiveInstance) {
@@ -200,7 +201,7 @@ public final class RxJavaReflectionUtils {
       return Observable.just(reactiveInstance);
     }
     else {
-      throw new UnsupportedOperationException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");
+      throw new HalApiDeveloperException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");
     }
 
     return observable;

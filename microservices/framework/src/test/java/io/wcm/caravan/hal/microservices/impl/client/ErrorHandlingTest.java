@@ -180,11 +180,11 @@ public class ErrorHandlingTest {
   }
 
   @Test
-  public void should_throw_unsupported_operation_if_HalApiAnnotation_is_missing() {
+  public void should_throw_developer_exception_if_HalApiAnnotation_is_missing() {
 
     Throwable ex = catchThrowable(
         () -> client.createProxy(EntryPointWithoutAnnotation.class).getState().blockingGet());
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class).hasMessageEndingWith("does not have a @HalApiInterface annotation.");
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class).hasMessageEndingWith("does not have a @HalApiInterface annotation.");
   }
 }

@@ -20,6 +20,7 @@ import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 
 
@@ -60,16 +61,16 @@ class HalApiMethodInvocation {
       }
       else if (name != null) {
         if (foundLinkName != null) {
-          throw new UnsupportedOperationException("More than one parameter of " + toString() + " is annotated with @" + LinkName.class.getSimpleName());
+          throw new HalApiDeveloperException("More than one parameter of " + toString() + " is annotated with @" + LinkName.class.getSimpleName());
         }
         if (parameterValue == null) {
-          throw new IllegalArgumentException(
+          throw new HalApiDeveloperException(
               "You must provide a non-null value for for the parameter annotated with @" + LinkName.class.getSimpleName() + " when calling " + toString());
         }
         foundLinkName = parameterValue.toString();
       }
       else {
-        throw new UnsupportedOperationException("all parameters of " + toString() + " need to be either annotated with @"
+        throw new HalApiDeveloperException("all parameters of " + toString() + " need to be either annotated with @"
             + LinkName.class.getSimpleName() + ", @" + TemplateVariable.class.getSimpleName()
             + " or @" + TemplateVariables.class.getSimpleName());
       }

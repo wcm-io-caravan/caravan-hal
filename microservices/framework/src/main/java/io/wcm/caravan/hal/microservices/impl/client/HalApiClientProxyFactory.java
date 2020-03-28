@@ -18,6 +18,7 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -74,7 +75,7 @@ final class HalApiClientProxyFactory {
         .flatMap(url -> {
           Link link = new Link(url);
           if (link.isTemplated()) {
-            throw new UnsupportedOperationException("Cannot follow the link template to " + link.getHref()
+            throw new HalApiDeveloperException("Cannot follow the link template to " + link.getHref()
                 + " because it has not been expanded."
                 + " If you are calling a proxy method with parameters then make sure to provide at least one parameter "
                 + "(unless you are only interested in obtaining the link template by calling the method annotated with @" + ResourceLink.class.getSimpleName()
@@ -116,7 +117,7 @@ final class HalApiClientProxyFactory {
     try {
       // check that the given class is indeed a HAL api interface
       if (!isHalApiInterface(relatedResourceType)) {
-        throw new UnsupportedOperationException(
+        throw new HalApiDeveloperException(
             "The given resource interface " + relatedResourceType.getName() + " does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
       }
 

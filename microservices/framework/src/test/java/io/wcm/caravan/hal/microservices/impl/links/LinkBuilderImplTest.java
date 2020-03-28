@@ -36,6 +36,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.ImmutableMap;
 
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilderSupport;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
@@ -235,7 +236,7 @@ public class LinkBuilderImplTest {
     Throwable ex = catchThrowable(
         () -> linkBuilder.buildLinkTo(resource));
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageStartingWith("Duplicate names detected in query and additional params");
   }
 
@@ -250,7 +251,7 @@ public class LinkBuilderImplTest {
     Throwable ex = catchThrowable(
         () -> linkBuilder.buildLinkTo(resource));
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageStartingWith("Duplicate names detected in path and additional params");
   }
 

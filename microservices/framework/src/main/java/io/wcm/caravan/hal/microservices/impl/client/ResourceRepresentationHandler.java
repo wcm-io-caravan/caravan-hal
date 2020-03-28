@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.resource.HalResource;
 
 class ResourceRepresentationHandler {
@@ -50,7 +51,7 @@ class ResourceRepresentationHandler {
       return Single.just(resource.getModel().toString());
     }
 
-    throw new UnsupportedOperationException(
+    throw new HalApiDeveloperException(
         "The method " + invocation + " annotated with @" + ResourceRepresentation.class.getSimpleName() + " must return "
             + "a reactive type emitting either " + HalResource.class.getSimpleName() + ", " + JsonNode.class.getSimpleName()
             + ", " + String.class.getSimpleName());

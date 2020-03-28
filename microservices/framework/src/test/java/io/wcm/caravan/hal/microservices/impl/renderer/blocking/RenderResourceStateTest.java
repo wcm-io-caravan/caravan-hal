@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -113,7 +114,7 @@ public class RenderResourceStateTest {
     Throwable ex = catchThrowable(
         () -> render(resourceImpl));
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageStartingWith("#getState must not return null");
   }
 

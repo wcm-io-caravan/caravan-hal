@@ -35,6 +35,7 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.renderer.RenderLinkedResourceTest.TestResourceWithObservableLinks;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
@@ -152,7 +153,7 @@ public class RenderRelatedResourceTest {
     Throwable ex = catchThrowable(
         () -> render(resourceImpl));
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageEndingWith(" but it must return an interface annotated with the @HalApiInterface annotation (or a reactive type that emits such instances)");
   }
 
@@ -203,7 +204,7 @@ public class RenderRelatedResourceTest {
     Throwable ex = catchThrowable(
         () -> render(resourceImpl));
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageEndingWith(" but it must return an interface annotated with the @HalApiInterface annotation (or a reactive type that emits such instances)");
   }
 

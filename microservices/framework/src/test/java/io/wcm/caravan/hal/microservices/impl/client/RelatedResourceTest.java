@@ -37,6 +37,7 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
 import io.wcm.caravan.hal.microservices.testing.TestState;
@@ -327,31 +328,31 @@ public class RelatedResourceTest {
   }
 
   @Test
-  public void should_throw_unsupported_operation_if_annotation_is_missing_on_proxy_method() {
+  public void should_throw_developer_exception_if_annotation_is_missing_on_proxy_method() {
 
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithIllegalAnnotations.class).noAnnotation());
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class).hasMessageContaining("is not annotated with one of the HAL API annotations");
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class).hasMessageContaining("is not annotated with one of the HAL API annotations");
   }
 
   @Test
-  public void should_throw_unsupported_operation_if_annotation_is_missing_on_related_resource_type() {
+  public void should_throw_developer_exception_if_annotation_is_missing_on_related_resource_type() {
 
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithIllegalAnnotations.class).getInvalidLinked().blockingGet());
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageContaining("has an invalid emission type").hasMessageEndingWith("which does not have a @HalApiInterface annotation.");
   }
 
   @Test
-  public void should_throw_unsupported_operation_if_return_type_does_not_emit_an_interface() {
+  public void should_throw_developer_exception_if_return_type_does_not_emit_an_interface() {
 
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithIllegalAnnotations.class).notAnInterface().blockingGet());
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageContaining("has an invalid emission type").hasMessageEndingWith("which does not have a @HalApiInterface annotation.");
   }
 }

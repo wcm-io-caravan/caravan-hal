@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.microservices.impl.client;
 
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.resource.Link;
 
 class ResourceLinkHandler {
@@ -47,7 +48,7 @@ class ResourceLinkHandler {
       return link.getHref();
     }
 
-    throw new UnsupportedOperationException(
+    throw new HalApiDeveloperException(
         "the method " + invocation + " annotated with @" + ResourceLink.class.getSimpleName() + " must return either a String or " + Link.class.getName());
   }
 }

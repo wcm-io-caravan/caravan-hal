@@ -33,6 +33,7 @@ import io.wcm.caravan.hal.api.annotations.LinkName;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
@@ -141,7 +142,8 @@ public class LinkNameTest {
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithNamedLinked.class).getLinkedByName(null));
 
-    assertThat(ex).isInstanceOf(IllegalArgumentException.class).hasMessageStartingWith("You must provide a non-null value");
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
+        .hasMessageStartingWith("You must provide a non-null value");
   }
 
 
@@ -153,12 +155,12 @@ public class LinkNameTest {
   }
 
   @Test
-  public void should_throw_unsupported_operation_if_multiple_link_name_parameters_are_present() {
+  public void should_throw_developer_exception_if_multiple_link_name_parameters_are_present() {
 
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithMultipleAnnotations.class).getItem("foo", "bar"));
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageStartingWith("More than one parameter").hasMessageEndingWith("is annotated with @LinkName");
   }
 }

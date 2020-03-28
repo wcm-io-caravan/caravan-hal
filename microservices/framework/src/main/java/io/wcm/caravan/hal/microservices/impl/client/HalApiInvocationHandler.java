@@ -22,6 +22,7 @@ import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -122,10 +123,10 @@ final class HalApiInvocationHandler implements InvocationHandler {
           .map(name -> "@" + name)
           .collect(Collectors.joining(", ", "(", ")"));
 
-      throw new UnsupportedOperationException("The method " + invocation + " is not annotated with one of the HAL API annotations " + annotationNames);
+      throw new HalApiDeveloperException("The method " + invocation + " is not annotated with one of the HAL API annotations " + annotationNames);
 
     }
-    catch (UnsupportedOperationException e) {
+    catch (HalApiDeveloperException e) {
       // these exceptions should just be re-thrown as they are expected errors by the developer (e.g. using invalid types in the signatures of the HAL API interface)
       throw e;
     }

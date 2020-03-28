@@ -30,6 +30,13 @@ public class HalApiDeveloperException extends RuntimeException {
 
   /**
    * @param message the detail message
+   */
+  public HalApiDeveloperException(String message) {
+    super(message);
+  }
+
+  /**
+   * @param message the detail message
    * @param cause the exception that was caught and re-thrown
    */
   public HalApiDeveloperException(String message, Throwable cause) {

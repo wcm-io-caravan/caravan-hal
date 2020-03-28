@@ -36,6 +36,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
@@ -302,12 +303,12 @@ public class ResourceLinkTest {
   }
 
   @Test
-  public void unsupported_return_types_should_throw_unsupported_operation() {
+  public void unsupported_return_types_should_throw_developer_exception() {
 
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithUnsupportedType.class).getLink());
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageEndingWith("annotated with @ResourceLink must return either a String or io.wcm.caravan.hal.resource.Link");
   }
 }

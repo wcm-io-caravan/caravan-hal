@@ -34,6 +34,7 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.relations.StandardRelations;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -115,12 +116,12 @@ public class ResourceRepresentationTest {
   }
 
   @Test
-  public void should_throw_unsupported_operation_if_emission_type_is_not_supported() {
+  public void should_throw_developer_exception_if_emission_type_is_not_supported() {
 
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithUnsupportedRepresentations.class).asXmlDocument().blockingGet());
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageEndingWith("annotated with @ResourceRepresentation must return a reactive type emitting either HalResource, JsonNode, String");
   }
 }

@@ -45,6 +45,7 @@ import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 
 /**
  * Utility methods to inspect method signatures
@@ -120,7 +121,7 @@ public final class HalApiReflectionUtils {
                     + HalApiInterface.class.getSimpleName() + " annotation"));
 
     if (!Modifier.isPublic(halApiInterface.getModifiers())) {
-      throw new UnsupportedOperationException(
+      throw new HalApiDeveloperException(
           "The interface " + halApiInterface.getName() + " is annotated with @HalApiInterface but it also has to be public");
     }
 
@@ -212,7 +213,7 @@ public final class HalApiReflectionUtils {
       return FieldUtils.readField(field, instance, true);
     }
     catch (IllegalArgumentException | IllegalAccessException ex) {
-      throw new IllegalArgumentException("Failed to read value of field " + field.getName() + " from class " + instance.getClass().getSimpleName()
+      throw new HalApiDeveloperException("Failed to read value of field " + field.getName() + " from class " + instance.getClass().getSimpleName()
           + ". Make sure that all fields in your classes used as parameters annotated with @" + TemplateVariables.class.getSimpleName() + " are public");
     }
   }
