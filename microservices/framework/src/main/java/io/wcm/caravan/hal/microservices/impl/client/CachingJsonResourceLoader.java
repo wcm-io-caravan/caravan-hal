@@ -28,8 +28,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import io.reactivex.Single;
+import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -62,11 +65,14 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
             .doOnSubscribe(d -> stopwatch.start())
             .doOnError(ex -> registerErrorMetrics(uri, ex, stopwatch))
             .doOnSuccess(jsonResponse -> registerResponseMetrics(uri, jsonResponse, stopwatch))
+            .onErrorResumeNext(ex -> rethrowUnexpectedExceptions(uri, ex))
             .cache();
       });
     }
-    catch (ExecutionException ex) {
-      throw new RuntimeException(ex.getCause());
+    catch (UncheckedExecutionException | ExecutionException ex) {
+      String msg = delegate.getClass() + "#loadJsonResource(String) returned null or threw an exception. "
+          + " Please make sure that your implementation will always return a Single instance during assembly time.";
+      throw new HalApiDeveloperException(msg, ex.getCause());
     }
   }
 
@@ -85,6 +91,18 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
     String title = getResourceTitle(jsonResponse.getBody(), uri);
 
     metrics.onResponseRetrieved(uri, title, jsonResponse.getMaxAge(), stopwatch.elapsed(TimeUnit.MICROSECONDS));
+  }
+
+  private Single<HalResponse> rethrowUnexpectedExceptions(String uri, Throwable ex) {
+
+    if (ex instanceof HalApiClientException) {
+      return Single.error(ex);
+    }
+
+    RuntimeException re = new HalApiDeveloperException("An unexpected exception was thrown by " + delegate.getClass().getName() + " when requesting " + uri
+        + ". Please make sure that your implementation rethrows all exceptions as HalApiClientException, to provide status code information whenever possible ",
+        ex);
+    return Single.error(re);
   }
 
   private static String getResourceTitle(HalResource halResource, String uri) {

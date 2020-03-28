@@ -20,16 +20,20 @@
 package io.wcm.caravan.hal.microservices.impl.client;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.util.function.Supplier;
+
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import io.reactivex.Single;
 import io.reactivex.subjects.SingleSubject;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.testing.ConversionFunctions;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
@@ -92,34 +96,52 @@ public class ClientTestSupport {
       super(Mockito.mock(JsonResourceLoader.class));
     }
 
-    void mockFailedResponse(String uri, Integer statusCode) {
+    void mockResponseWithSupplier(String uri, Supplier<Single<HalResponse>> supplier) {
 
       when(jsonLoader.loadJsonResource(uri))
-          .thenReturn(Single.error(new HalApiClientException("Simulated failed response", statusCode, uri, null)));
+          .thenAnswer(new Answer<Single<HalResponse>>() {
+
+            @Override
+            public Single<HalResponse> answer(InvocationOnMock invocation) throws Throwable {
+              return supplier.get();
+            }
+          });
+    }
+
+    void mockResponseWithSingle(String uri, Single<HalResponse> value) {
+
+      when(jsonLoader.loadJsonResource(uri))
+          .thenReturn(value);
+    }
+
+    void mockFailedResponse(String uri, Integer statusCode) {
+
+      HalApiClientException hace = new HalApiClientException("Simulated failed response", statusCode, uri, null);
+
+      mockResponseWithSingle(uri, Single.error(hace));
     }
 
     SingleSubject<HalResource> mockHalResponseWithSubject(String uri) {
 
       SingleSubject<HalResource> testSubject = SingleSubject.create();
 
-      when(jsonLoader.loadJsonResource(eq(uri)))
-          .thenReturn(testSubject.map(ConversionFunctions::toJsonResponse));
+      mockResponseWithSingle(uri, testSubject.map(ConversionFunctions::toJsonResponse));
 
       return testSubject;
+    }
+
+    void mockHalResponse(String uri, HalResource hal) {
+
+      HalResponse response = ConversionFunctions.toJsonResponse(hal);
+
+      mockResponseWithSingle(uri, Single.just(response));
     }
 
     void mockHalResponseWithState(String uri, Object state) {
 
       HalResource hal = new HalResource(state, uri);
 
-      when(jsonLoader.loadJsonResource(eq(uri)))
-          .thenReturn(Single.just(ConversionFunctions.toJsonResponse(hal)));
-    }
-
-    void mockHalResponse(String uri, HalResource resource) {
-
-      when(jsonLoader.loadJsonResource(eq(uri)))
-          .thenReturn(Single.just(ConversionFunctions.toJsonResponse(resource)));
+      mockHalResponse(uri, hal);
     }
   }
 }

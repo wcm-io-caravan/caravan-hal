@@ -35,6 +35,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestState;
@@ -116,6 +117,57 @@ public class ErrorHandlingTest {
         () -> client.createProxy(EntryPoint.class)
             .getState()
             .blockingGet());
+  }
+
+  @Test
+  public void fails_if_json_resource_loader_returns_null() {
+
+    client.mockResponseWithSingle(ENTRY_POINT_URI, null);
+
+    Throwable ex = catchThrowable(
+        () -> client.createProxy(EntryPoint.class)
+            .getState()
+            .blockingGet());
+
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
+        .hasCauseInstanceOf(NullPointerException.class)
+        .hasMessageContaining("returned null or threw an exception");
+  }
+
+  @Test
+  public void fails_if_json_resource_loader_throws_exception() {
+
+    IllegalStateException cause = new IllegalStateException();
+
+    client.mockResponseWithSupplier(ENTRY_POINT_URI, () -> {
+      throw cause;
+    });
+
+    Throwable ex = catchThrowable(
+        () -> client.createProxy(EntryPoint.class)
+            .getState()
+            .blockingGet());
+
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
+        .hasCause(cause)
+        .hasMessageContaining("returned null or threw an exception");
+  }
+
+  @Test
+  public void fails_if_json_resource_loader_emits_unexpected_exception() {
+
+    IllegalStateException cause = new IllegalStateException();
+
+    client.mockResponseWithSingle(ENTRY_POINT_URI, Single.error(cause));
+
+    Throwable ex = catchThrowable(
+        () -> client.createProxy(EntryPoint.class)
+            .getState()
+            .blockingGet());
+
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
+        .hasMessageStartingWith("An unexpected exception was thrown by")
+        .hasCause(cause);
   }
 
   interface EntryPointWithoutAnnotation {
