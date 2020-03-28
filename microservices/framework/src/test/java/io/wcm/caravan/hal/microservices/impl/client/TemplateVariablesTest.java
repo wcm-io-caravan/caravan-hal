@@ -20,16 +20,14 @@
 package io.wcm.caravan.hal.microservices.impl.client;
 
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
+import static io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ENTRY_POINT_URI;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import com.damnhandy.uri.template.UriTemplate;
 
@@ -39,10 +37,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
-import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.testing.ConversionFunctions;
+import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -50,33 +45,22 @@ import io.wcm.caravan.hal.resource.Link;
 
 public class TemplateVariablesTest {
 
-  private static final String ENTRYPOINT_URL = "/";
-  private RequestMetricsCollector metrics;
-  private JsonResourceLoader jsonLoader;
-  private HalResource entryPoint;
+  private final MockClientTestSupport client = ClientTestSupport.withMocking();
+  private final HalResource entryPoint = new HalResource();
 
   @BeforeEach
-  public void setUp() {
-    metrics = RequestMetricsCollector.create();
-    jsonLoader = Mockito.mock(JsonResourceLoader.class);
-    entryPoint = new HalResource();
-
-    mockHalResponse(ENTRYPOINT_URL, entryPoint);
-  }
-
-  private void mockHalResponse(String url, HalResource resource) {
-
-    when(jsonLoader.loadJsonResource(eq(url)))
-        .thenReturn(Single.just(ConversionFunctions.toJsonResponse(resource)));
+  void setUp() {
+    client.mockHalResponse(ENTRY_POINT_URI, entryPoint);
   }
 
   private void mockHalResponseWithNumberAndText(String url, Integer number, String text) {
+
     TestResourceState state = new TestResourceState();
     state.number = number;
     state.text = text;
 
     HalResource resource = new HalResource(state, url);
-    mockHalResponse(url, resource);
+    client.mockHalResponse(url, resource);
   }
 
   private void mockHalResponseForTemplateExpandedWithDto(String template, VariablesDto dto) {
@@ -96,15 +80,6 @@ public class TemplateVariablesTest {
 
     String uri = UriTemplate.expand(template, map);
     mockHalResponseWithNumberAndText(uri, variables.getId(), variables.getText());
-  }
-
-  private <T> T createClientProxy(Class<T> halApiInterface) {
-
-    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
-    T clientProxy = client.getEntryPoint(ENTRYPOINT_URL, halApiInterface);
-
-    assertThat(clientProxy).isNotNull();
-    return clientProxy;
   }
 
   @HalApiInterface
@@ -143,7 +118,7 @@ public class TemplateVariablesTest {
 
     mockHalResponseForTemplateExpandedWithDto(template, dto);
 
-    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariablesDto.class)
+    TestResourceState linkedState = client.createProxy(ResourceWithTemplateVariablesDto.class)
         .getItem(dto)
         .flatMap(LinkedResourceWithSingleState::getProperties)
         .blockingGet();
@@ -163,7 +138,7 @@ public class TemplateVariablesTest {
 
     mockHalResponseForTemplateExpandedWithDto(template, dto);
 
-    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariablesDto.class)
+    TestResourceState linkedState = client.createProxy(ResourceWithTemplateVariablesDto.class)
         .getItem(dto)
         .flatMap(LinkedResourceWithSingleState::getProperties)
         .blockingGet();
@@ -183,7 +158,7 @@ public class TemplateVariablesTest {
 
     mockHalResponseForTemplateExpandedWithDto(template, dto);
 
-    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariablesDto.class)
+    TestResourceState linkedState = client.createProxy(ResourceWithTemplateVariablesDto.class)
         .getItem(dto)
         .flatMap(LinkedResourceWithSingleState::getProperties)
         .blockingGet();
@@ -197,7 +172,7 @@ public class TemplateVariablesTest {
     String template = new String("/item/{id}{?text}");
     entryPoint.addLinks(ITEM, new Link(template));
 
-    Link link = createClientProxy(ResourceWithTemplateVariablesDto.class)
+    Link link = client.createProxy(ResourceWithTemplateVariablesDto.class)
         .getItem(null)
         .map(LinkedResourceWithSingleState::createLink)
         .blockingGet();
@@ -241,7 +216,7 @@ public class TemplateVariablesTest {
 
     mockHalResponseForTemplateExpandedWithInterface(template, variables);
 
-    TestResourceState linkedState = createClientProxy(ResourceWithTemplateVariablesInterface.class)
+    TestResourceState linkedState = client.createProxy(ResourceWithTemplateVariablesInterface.class)
         .getItem(variables)
         .flatMap(LinkedResourceWithSingleState::getProperties)
         .blockingGet();
@@ -255,7 +230,7 @@ public class TemplateVariablesTest {
     String template = new String("/item/{id}{?text}");
     entryPoint.addLinks(ITEM, new Link(template));
 
-    Link link = createClientProxy(ResourceWithTemplateVariablesInterface.class)
+    Link link = client.createProxy(ResourceWithTemplateVariablesInterface.class)
         .getItem(null)
         .map(LinkedResourceWithSingleState::createLink)
         .blockingGet();

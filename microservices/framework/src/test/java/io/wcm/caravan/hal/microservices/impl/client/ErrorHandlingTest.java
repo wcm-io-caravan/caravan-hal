@@ -20,14 +20,12 @@
 package io.wcm.caravan.hal.microservices.impl.client;
 
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
+import static io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ENTRY_POINT_URI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
@@ -36,39 +34,15 @@ import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.resource.HalResource;
 
 public class ErrorHandlingTest {
 
-  private static final String ENTRY_POINT_URI = "/";
-
-  private RequestMetricsCollector metrics;
-  private JsonResourceLoader jsonLoader;
-
-  @BeforeEach
-  public void setUp() {
-    metrics = RequestMetricsCollector.create();
-    jsonLoader = Mockito.mock(JsonResourceLoader.class);
-  }
-
-  private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
-    T clientProxy = client.getEntryPoint(ENTRY_POINT_URI, halApiInterface);
-    assertThat(clientProxy).isNotNull();
-    return clientProxy;
-  }
-
-  private void mockFailedResponse(Integer statusCode, String uri) {
-
-    when(jsonLoader.loadJsonResource(uri))
-        .thenReturn(Single.error(new HalApiClientException("Simulated failed response", statusCode, uri, null)));
-  }
+  private final MockClientTestSupport client = ClientTestSupport.withMocking();
 
   @HalApiInterface
   interface EntryPoint {
@@ -93,10 +67,10 @@ public class ErrorHandlingTest {
   @Test
   public void status_code_from_response_should_be_available_in_exception_when_calling_ResourceState_method() {
 
-    mockFailedResponse(403, ENTRY_POINT_URI);
+    client.mockFailedResponse(403, ENTRY_POINT_URI);
 
     try {
-      createClientProxy(EntryPoint.class)
+      client.createProxy(EntryPoint.class)
           .getState()
           .blockingGet();
 
@@ -110,10 +84,10 @@ public class ErrorHandlingTest {
   @Test
   public void status_code_from_response_should_be_available_in_exception_when_calling_RelatedResource_method() {
 
-    mockFailedResponse(501, ENTRY_POINT_URI);
+    client.mockFailedResponse(501, ENTRY_POINT_URI);
 
     try {
-      createClientProxy(EntryPoint.class)
+      client.createProxy(EntryPoint.class)
           .getLinked()
           .flatMapMaybe(LinkableTestResource::getState)
           .toList().blockingGet();
@@ -128,10 +102,10 @@ public class ErrorHandlingTest {
   @Test
   public void status_code_from_response_should_be_available_in_exception_when_calling_ResourceRepresentation_method() {
 
-    mockFailedResponse(502, ENTRY_POINT_URI);
+    client.mockFailedResponse(502, ENTRY_POINT_URI);
 
     try {
-      createClientProxy(EntryPoint.class)
+      client.createProxy(EntryPoint.class)
           .asHalResource()
           .blockingGet();
 
@@ -145,10 +119,10 @@ public class ErrorHandlingTest {
   @Test
   public void status_code_from_response_can_be_null_if_request_failed_with_network_issues() {
 
-    mockFailedResponse(null, ENTRY_POINT_URI);
+    client.mockFailedResponse(null, ENTRY_POINT_URI);
 
     try {
-      createClientProxy(EntryPoint.class)
+      client.createProxy(EntryPoint.class)
           .getState()
           .blockingGet();
 
@@ -172,7 +146,7 @@ public class ErrorHandlingTest {
   public void should_throw_unsupported_operation_if_HalApiAnnotation_is_missing() {
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(EntryPointWithoutAnnotation.class).getState().blockingGet());
+        () -> client.createProxy(EntryPointWithoutAnnotation.class).getState().blockingGet());
 
     assertThat(ex).isInstanceOf(UnsupportedOperationException.class).hasMessageEndingWith("does not have a @HalApiInterface annotation.");
   }

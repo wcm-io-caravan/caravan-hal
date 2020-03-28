@@ -23,7 +23,6 @@ import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.reactivex.Maybe;
@@ -34,38 +33,17 @@ import io.wcm.caravan.hal.api.annotations.LinkName;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
-import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 public class LinkNameTest {
 
-  private RequestMetricsCollector metrics;
-  private JsonResourceLoader jsonLoader;
-  private TestResource entryPoint;
-
-  @BeforeEach
-  public void setUp() {
-    metrics = RequestMetricsCollector.create();
-
-    TestResourceTree testResourceTree = new TestResourceTree();
-    jsonLoader = testResourceTree;
-    entryPoint = testResourceTree.getEntryPoint();
-  }
-
-  private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
-    T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
-    assertThat(clientProxy).isNotNull();
-    return clientProxy;
-  }
-
+  private final ResourceTreeClientTestSupport client = ClientTestSupport.withResourceTree();
+  private final TestResource entryPoint = client.getEntryPoint();
 
   @HalApiInterface
   interface LinkedResource {
@@ -76,7 +54,6 @@ public class LinkNameTest {
     @ResourceLink
     Link createLink();
   }
-
 
   @HalApiInterface
   interface ResourceWithNamedLinked {
@@ -95,7 +72,7 @@ public class LinkNameTest {
 
     String linkNameToFind = "5";
 
-    TestResourceState state = createClientProxy(ResourceWithNamedLinked.class)
+    TestResourceState state = client.createProxy(ResourceWithNamedLinked.class)
         .getLinkedByName(linkNameToFind)
         .flatMapSingle(LinkedResource::getState)
         .blockingGet();
@@ -113,7 +90,7 @@ public class LinkNameTest {
 
     String linkNameToFind = "missing";
 
-    Maybe<LinkedResource> maybeLinked = createClientProxy(ResourceWithNamedLinked.class)
+    Maybe<LinkedResource> maybeLinked = client.createProxy(ResourceWithNamedLinked.class)
         .getLinkedByName(linkNameToFind);
 
     assertThat(maybeLinked.isEmpty().blockingGet()).isEqualTo(true);
@@ -130,7 +107,7 @@ public class LinkNameTest {
 
     String linkNameToFind = "5";
 
-    TestResourceState state = createClientProxy(ResourceWithNamedLinked.class)
+    TestResourceState state = client.createProxy(ResourceWithNamedLinked.class)
         .getLinkedByName(linkNameToFind)
         .flatMapSingle(LinkedResource::getState)
         .blockingGet();
@@ -149,7 +126,7 @@ public class LinkNameTest {
 
     String linkNameToFind = "5";
 
-    TestResourceState state = createClientProxy(ResourceWithNamedLinked.class)
+    TestResourceState state = client.createProxy(ResourceWithNamedLinked.class)
         .getLinkedByName(linkNameToFind)
         .flatMapSingle(LinkedResource::getState)
         .blockingGet();
@@ -162,7 +139,7 @@ public class LinkNameTest {
   public void should_fail_if_null_is_given_as_link_name() {
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(ResourceWithNamedLinked.class).getLinkedByName(null));
+        () -> client.createProxy(ResourceWithNamedLinked.class).getLinkedByName(null));
 
     assertThat(ex).isInstanceOf(IllegalArgumentException.class).hasMessageStartingWith("You must provide a non-null value");
   }
@@ -179,7 +156,7 @@ public class LinkNameTest {
   public void should_throw_unsupported_operation_if_multiple_link_name_parameters_are_present() {
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(ResourceWithMultipleAnnotations.class).getItem("foo", "bar"));
+        () -> client.createProxy(ResourceWithMultipleAnnotations.class).getItem("foo", "bar"));
 
     assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
         .hasMessageStartingWith("More than one parameter").hasMessageEndingWith("is annotated with @LinkName");

@@ -27,7 +27,6 @@ import java.net.URI;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.reactivex.Observable;
@@ -37,37 +36,16 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
-import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
-import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 public class ResourceLinkTest {
 
-  private RequestMetricsCollector metrics;
-  private JsonResourceLoader jsonLoader;
-  private TestResource entryPoint;
-
-  @BeforeEach
-  public void setUp() {
-    metrics = RequestMetricsCollector.create();
-
-    TestResourceTree testResourceTree = new TestResourceTree();
-    jsonLoader = testResourceTree;
-    entryPoint = testResourceTree.getEntryPoint();
-  }
-
-  private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
-    T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
-    assertThat(clientProxy).isNotNull();
-    return clientProxy;
-  }
-
+  private final ResourceTreeClientTestSupport client = ClientTestSupport.withResourceTree();
+  private final TestResource entryPoint = client.getEntryPoint();
 
   @HalApiInterface
   interface LinkTargetResource {
@@ -82,7 +60,7 @@ public class ResourceLinkTest {
   @Test
   public void link_should_be_extracted_from_entry_point() {
 
-    Link link = createClientProxy(LinkTargetResource.class)
+    Link link = client.createProxy(LinkTargetResource.class)
         .createLink();
 
     assertThat(link.getHref()).isEqualTo(entryPoint.getUrl());
@@ -101,7 +79,7 @@ public class ResourceLinkTest {
 
     TestResource itemResource = entryPoint.createLinked(ITEM);
 
-    Link link = createClientProxy(ResourceWithSingleLinked.class)
+    Link link = client.createProxy(ResourceWithSingleLinked.class)
         .getLinked()
         .map(LinkTargetResource::createLink)
         .blockingGet();
@@ -116,7 +94,7 @@ public class ResourceLinkTest {
 
     entryPoint.createLinked(ITEM, linkName);
 
-    Link link = createClientProxy(ResourceWithSingleLinked.class)
+    Link link = client.createProxy(ResourceWithSingleLinked.class)
         .getLinked()
         .map(LinkTargetResource::createLink)
         .blockingGet();
@@ -137,7 +115,7 @@ public class ResourceLinkTest {
 
     Observable.range(0, 10).forEach(i -> entryPoint.createLinked(ITEM, Integer.toString(i)).setNumber(i));
 
-    TestState filteredState = createClientProxy(ResourceWithMultipleLinked.class)
+    TestState filteredState = client.createProxy(ResourceWithMultipleLinked.class)
         .getLinked()
         .filter(resource -> StringUtils.equals(resource.createLink().getName(), "5"))
         .singleElement()
@@ -161,7 +139,7 @@ public class ResourceLinkTest {
     entryPoint.asHalResource().addEmbedded(ITEM, embedded);
 
     // then check that filtering the resource with link name....
-    TestState filteredState = createClientProxy(ResourceWithMultipleLinked.class)
+    TestState filteredState = client.createProxy(ResourceWithMultipleLinked.class)
         .getLinked()
         .filter(resource -> link.getName().equals(resource.createLink().getName()))
         .singleElement()
@@ -185,7 +163,7 @@ public class ResourceLinkTest {
     TestResource itemResource = entryPoint.createEmbedded(ITEM);
     itemResource.asHalResource().setLink(new Link("/embedded/self-link"));
 
-    Link link = createClientProxy(ResourceWithSingleEmbedded.class)
+    Link link = client.createProxy(ResourceWithSingleEmbedded.class)
         .getEmbedded()
         .map(LinkTargetResource::createLink)
         .blockingGet();
@@ -200,7 +178,7 @@ public class ResourceLinkTest {
     TestResource itemResource = entryPoint.createLinked(ITEM, linkName);
     entryPoint.asHalResource().addEmbedded(ITEM, new HalResource(itemResource.getUrl()));
 
-    Link link = createClientProxy(ResourceWithSingleEmbedded.class)
+    Link link = client.createProxy(ResourceWithSingleEmbedded.class)
         .getEmbedded()
         .map(LinkTargetResource::createLink)
         .blockingGet();
@@ -219,7 +197,7 @@ public class ResourceLinkTest {
       entryPoint.asHalResource().addLinks(ITEM, new Link(embedded.getUrl()).setName(linkName));
     });
 
-    Link link = createClientProxy(ResourceWithSingleEmbedded.class)
+    Link link = client.createProxy(ResourceWithSingleEmbedded.class)
         .getEmbedded()
         .map(LinkTargetResource::createLink)
         .blockingGet();
@@ -232,7 +210,7 @@ public class ResourceLinkTest {
 
     entryPoint.createEmbedded(ITEM);
 
-    Link link = createClientProxy(ResourceWithSingleEmbedded.class)
+    Link link = client.createProxy(ResourceWithSingleEmbedded.class)
         .getEmbedded()
         .map(LinkTargetResource::createLink)
         .blockingGet();
@@ -257,7 +235,7 @@ public class ResourceLinkTest {
     String uriTemplate = "/test{?intParam,stringParam,listParam*}";
     entryPoint.asHalResource().addLinks(ITEM, new Link(uriTemplate));
 
-    Link link = createClientProxy(ResourceWithLinkTemplate.class)
+    Link link = client.createProxy(ResourceWithLinkTemplate.class)
         .getLinked(5, null, null)
         .map(LinkTargetResource::createLink)
         .blockingGet();
@@ -271,7 +249,7 @@ public class ResourceLinkTest {
     String uriTemplate = "/test{?intParam,stringParam,listParam*}";
     entryPoint.asHalResource().addLinks(ITEM, new Link(uriTemplate));
 
-    Link link = createClientProxy(ResourceWithLinkTemplate.class)
+    Link link = client.createProxy(ResourceWithLinkTemplate.class)
         .getLinked(null, null, null)
         .map(LinkTargetResource::createLink)
         .blockingGet();
@@ -290,7 +268,7 @@ public class ResourceLinkTest {
   @Test
   public void link_uri_should_be_accessible_as_string() {
 
-    String uri = createClientProxy(ResourceWithUri.class)
+    String uri = client.createProxy(ResourceWithUri.class)
         .getUri();
 
     assertThat(uri).isEqualTo(entryPoint.getUrl());
@@ -308,7 +286,7 @@ public class ResourceLinkTest {
 
     entryPoint.createEmbedded(ITEM);
 
-    String uri = createClientProxy(EntyPointWithEmbedded.class)
+    String uri = client.createProxy(EntyPointWithEmbedded.class)
         .getEmbedded()
         .map(ResourceWithUri::getUri)
         .blockingGet();
@@ -327,7 +305,7 @@ public class ResourceLinkTest {
   public void unsupported_return_types_should_throw_unsupported_operation() {
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(ResourceWithUnsupportedType.class).getLink());
+        () -> client.createProxy(ResourceWithUnsupportedType.class).getLink());
 
     assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
         .hasMessageEndingWith("annotated with @ResourceLink must return either a String or io.wcm.caravan.hal.resource.Link");

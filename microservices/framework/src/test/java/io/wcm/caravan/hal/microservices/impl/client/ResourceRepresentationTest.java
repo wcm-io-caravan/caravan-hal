@@ -34,39 +34,21 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.relations.StandardRelations;
-import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
-import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 import io.wcm.caravan.hal.resource.HalResource;
 
 public class ResourceRepresentationTest {
 
-  private RequestMetricsCollector metrics;
-  private JsonResourceLoader jsonLoader;
-  private TestResource entryPoint;
+  private final ResourceTreeClientTestSupport client = ClientTestSupport.withResourceTree();
+  private final TestResource entryPoint = client.getEntryPoint();
 
   @BeforeEach
   public void setUp() {
-    metrics = RequestMetricsCollector.create();
-
-    TestResourceTree testResourceTree = new TestResourceTree();
-    jsonLoader = testResourceTree;
-    entryPoint = testResourceTree.getEntryPoint();
-
     entryPoint.setText("test");
     entryPoint.setFlag(true);
     entryPoint.createLinked(ITEM);
     entryPoint.createEmbedded(StandardRelations.COLLECTION).createEmbedded(ITEM);
-
-  }
-
-  private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
-    T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
-    assertThat(clientProxy).isNotNull();
-    return clientProxy;
   }
 
   @HalApiInterface
@@ -88,8 +70,7 @@ public class ResourceRepresentationTest {
   @Test
   public void representation_should_be_available_as_hal_resource() {
 
-
-    HalResource hal = createClientProxy(ResourceWithRepresentations.class)
+    HalResource hal = client.createProxy(ResourceWithRepresentations.class)
         .asHalResource()
         .blockingGet();
 
@@ -99,7 +80,7 @@ public class ResourceRepresentationTest {
   @Test
   public void representation_should_be_available_as_object_node() {
 
-    ObjectNode json = createClientProxy(ResourceWithRepresentations.class)
+    ObjectNode json = client.createProxy(ResourceWithRepresentations.class)
         .asObjectNode()
         .blockingGet();
 
@@ -109,7 +90,7 @@ public class ResourceRepresentationTest {
   @Test
   public void representation_should_be_available_as_json_node() {
 
-    JsonNode json = createClientProxy(ResourceWithRepresentations.class)
+    JsonNode json = client.createProxy(ResourceWithRepresentations.class)
         .asJsonNode()
         .blockingGet();
 
@@ -119,7 +100,7 @@ public class ResourceRepresentationTest {
   @Test
   public void representation_should_be_available_as_string() {
 
-    String string = createClientProxy(ResourceWithRepresentations.class)
+    String string = client.createProxy(ResourceWithRepresentations.class)
         .asString()
         .blockingGet();
 
@@ -137,7 +118,7 @@ public class ResourceRepresentationTest {
   public void should_throw_unsupported_operation_if_emission_type_is_not_supported() {
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(ResourceWithUnsupportedRepresentations.class).asXmlDocument().blockingGet());
+        () -> client.createProxy(ResourceWithUnsupportedRepresentations.class).asXmlDocument().blockingGet());
 
     assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
         .hasMessageEndingWith("annotated with @ResourceRepresentation must return a reactive type emitting either HalResource, JsonNode, String");

@@ -22,7 +22,6 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import io.reactivex.Maybe;
@@ -30,35 +29,16 @@ import io.reactivex.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
-import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 
 public class MaxAgeTest {
 
-  private RequestMetricsCollector metrics;
-  private JsonResourceLoader jsonLoader;
-  private TestResource entryPoint;
-
-  @BeforeEach
-  public void setUp() {
-    metrics = RequestMetricsCollector.create();
-
-    TestResourceTree testResourceTree = new TestResourceTree();
-    jsonLoader = testResourceTree;
-    entryPoint = testResourceTree.getEntryPoint();
-  }
-
-  private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
-    T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
-    assertThat(clientProxy).isNotNull();
-    return clientProxy;
-  }
-
+  private final ResourceTreeClientTestSupport client = ClientTestSupport.withResourceTree();
+  private final TestResource entryPoint = client.getEntryPoint();
+  private final RequestMetricsCollector metrics = client.getMetrics();
 
   @HalApiInterface
   interface EntryPoint {
@@ -80,7 +60,7 @@ public class MaxAgeTest {
 
   private void loadEntryPoint() {
 
-    createClientProxy(EntryPoint.class)
+    client.createProxy(EntryPoint.class)
         .getState()
         .blockingGet();
   }
@@ -93,7 +73,6 @@ public class MaxAgeTest {
     assertThat(metrics.getOutputMaxAge()).isNull();
   }
 
-
   @Test
   public void explicit_max_age_should_be_used_if_no_headers_found_in_response() {
 
@@ -103,7 +82,6 @@ public class MaxAgeTest {
 
     assertThat(metrics.getOutputMaxAge()).isEqualTo(45);
   }
-
 
   @Test
   public void max_age_from_entrypoint_response_should_be_used_if_no_explicit_value_defined() {
@@ -144,7 +122,7 @@ public class MaxAgeTest {
     entryPoint.createLinked(ITEM).withMaxAge(15);
     entryPoint.createLinked(ITEM).withMaxAge(85);
 
-    createClientProxy(EntryPoint.class)
+    client.createProxy(EntryPoint.class)
         .getLinked().flatMapMaybe(LinkedResource::getState)
         .toList().blockingGet();
 
@@ -158,7 +136,7 @@ public class MaxAgeTest {
     entryPoint.createLinked(ITEM);
     entryPoint.createLinked(ITEM).withMaxAge(85);
 
-    createClientProxy(EntryPoint.class)
+    client.createProxy(EntryPoint.class)
         .getLinked().flatMapMaybe(LinkedResource::getState)
         .toList().blockingGet();
 

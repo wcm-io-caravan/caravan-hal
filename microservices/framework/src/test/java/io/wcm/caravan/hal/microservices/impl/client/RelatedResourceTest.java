@@ -28,7 +28,6 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 
@@ -38,38 +37,17 @@ import io.reactivex.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
-import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
-import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 
 
 public class RelatedResourceTest {
 
-  private RequestMetricsCollector metrics;
-  private JsonResourceLoader jsonLoader;
-  private TestResource entryPoint;
-
-  @BeforeEach
-  public void setUp() {
-    metrics = RequestMetricsCollector.create();
-
-    TestResourceTree testResourceTree = new TestResourceTree();
-    jsonLoader = testResourceTree;
-    entryPoint = testResourceTree.getEntryPoint();
-  }
-
-  private <T> T createClientProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
-    T clientProxy = client.getEntryPoint(entryPoint.getUrl(), halApiInterface);
-    assertThat(clientProxy).isNotNull();
-    return clientProxy;
-  }
-
+  private final ResourceTreeClientTestSupport client = ClientTestSupport.withResourceTree();
+  private final TestResource entryPoint = client.getEntryPoint();
 
   @HalApiInterface
   interface ResourceWithSingleRelated {
@@ -83,7 +61,7 @@ public class RelatedResourceTest {
 
     entryPoint.createLinked(ITEM).setText("item text");
 
-    TestResourceState linkedState = createClientProxy(ResourceWithSingleRelated.class)
+    TestResourceState linkedState = client.createProxy(ResourceWithSingleRelated.class)
         .getItem()
         .flatMap(ResourceWithSingleState::getProperties)
         .blockingGet();
@@ -98,7 +76,7 @@ public class RelatedResourceTest {
     entryPoint.createLinked(ALTERNATE).setText("item text");
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(ResourceWithSingleRelated.class).getItem().blockingGet());
+        () -> client.createProxy(ResourceWithSingleRelated.class).getItem().blockingGet());
 
     assertThat(ex).isInstanceOf(NoSuchElementException.class);
   }
@@ -108,7 +86,7 @@ public class RelatedResourceTest {
 
     entryPoint.createEmbedded(ITEM).setText("item text");
 
-    TestResourceState linkedState = createClientProxy(ResourceWithSingleRelated.class)
+    TestResourceState linkedState = client.createProxy(ResourceWithSingleRelated.class)
         .getItem()
         .flatMap(ResourceWithSingleState::getProperties)
         .blockingGet();
@@ -123,7 +101,7 @@ public class RelatedResourceTest {
     entryPoint.createEmbedded(ALTERNATE).setText("item text");
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(ResourceWithSingleRelated.class).getItem().blockingGet());
+        () -> client.createProxy(ResourceWithSingleRelated.class).getItem().blockingGet());
 
     assertThat(ex).isInstanceOf(NoSuchElementException.class);
   }
@@ -141,7 +119,7 @@ public class RelatedResourceTest {
 
     entryPoint.createLinked(ITEM).setText("item text");
 
-    TestResourceState linkedState = createClientProxy(ResourceWithOptionalRelated.class)
+    TestResourceState linkedState = client.createProxy(ResourceWithOptionalRelated.class)
         .getOptionalItem()
         .flatMapSingleElement(ResourceWithSingleState::getProperties)
         .blockingGet();
@@ -156,7 +134,7 @@ public class RelatedResourceTest {
     // create a link with a different relation then defined in the interface
     entryPoint.createLinked(ALTERNATE).setText("item text");
 
-    Maybe<ResourceWithSingleState> maybeLinked = createClientProxy(ResourceWithOptionalRelated.class)
+    Maybe<ResourceWithSingleState> maybeLinked = client.createProxy(ResourceWithOptionalRelated.class)
         .getOptionalItem();
 
     assertThat(maybeLinked.isEmpty().blockingGet()).isTrue();
@@ -167,7 +145,7 @@ public class RelatedResourceTest {
 
     entryPoint.createEmbedded(ITEM).setText("item text");
 
-    TestResourceState linkedState = createClientProxy(ResourceWithOptionalRelated.class)
+    TestResourceState linkedState = client.createProxy(ResourceWithOptionalRelated.class)
         .getOptionalItem()
         .flatMapSingleElement(ResourceWithSingleState::getProperties)
         .blockingGet();
@@ -182,7 +160,7 @@ public class RelatedResourceTest {
     // create a link with a different relation then defined in the interface
     entryPoint.createEmbedded(ALTERNATE).setText("item text");
 
-    Maybe<ResourceWithSingleState> maybeEmbedded = createClientProxy(ResourceWithOptionalRelated.class)
+    Maybe<ResourceWithSingleState> maybeEmbedded = client.createProxy(ResourceWithOptionalRelated.class)
         .getOptionalItem();
 
     assertThat(maybeEmbedded.isEmpty().blockingGet()).isTrue();
@@ -201,7 +179,7 @@ public class RelatedResourceTest {
 
     entryPoint.createLinked(ITEM).setText("item text");
 
-    TestResourceState linkedState = createClientProxy(ResourceWithMultipleRelated.class)
+    TestResourceState linkedState = client.createProxy(ResourceWithMultipleRelated.class)
         .getItems()
         .concatMapSingle(ResourceWithSingleState::getProperties)
         .firstOrError()
@@ -217,7 +195,7 @@ public class RelatedResourceTest {
     // create a link with a different relation then defined in the interface
     entryPoint.createLinked(ALTERNATE).setText("item text");
 
-    Observable<ResourceWithSingleState> rxLinkedResources = createClientProxy(ResourceWithMultipleRelated.class)
+    Observable<ResourceWithSingleState> rxLinkedResources = client.createProxy(ResourceWithMultipleRelated.class)
         .getItems();
 
     assertThat(rxLinkedResources.isEmpty().blockingGet()).isTrue();
@@ -229,7 +207,7 @@ public class RelatedResourceTest {
     int numItems = 10;
     Observable.range(0, numItems).forEach(i -> entryPoint.createLinked(ITEM).setNumber(i));
 
-    List<TestResourceState> linkedStates = createClientProxy(ResourceWithMultipleRelated.class)
+    List<TestResourceState> linkedStates = client.createProxy(ResourceWithMultipleRelated.class)
         .getItems()
         .concatMapSingle(ResourceWithSingleState::getProperties)
         .toList()
@@ -246,7 +224,7 @@ public class RelatedResourceTest {
 
     entryPoint.createEmbedded(ITEM).setText("item text");
 
-    TestResourceState embeddedState = createClientProxy(ResourceWithMultipleRelated.class)
+    TestResourceState embeddedState = client.createProxy(ResourceWithMultipleRelated.class)
         .getItems()
         .concatMapSingle(ResourceWithSingleState::getProperties)
         .firstOrError()
@@ -262,7 +240,7 @@ public class RelatedResourceTest {
     // create an embeded resource with a different relation then defined in the interface
     entryPoint.createEmbedded(ALTERNATE).setText("item text");
 
-    Observable<ResourceWithSingleState> rxEmbeddedResources = createClientProxy(ResourceWithMultipleRelated.class)
+    Observable<ResourceWithSingleState> rxEmbeddedResources = client.createProxy(ResourceWithMultipleRelated.class)
         .getItems();
 
     assertThat(rxEmbeddedResources.isEmpty().blockingGet()).isTrue();
@@ -274,7 +252,7 @@ public class RelatedResourceTest {
     int numItems = 10;
     Observable.range(0, numItems).forEach(i -> entryPoint.createEmbedded(ITEM).setNumber(i));
 
-    List<TestResourceState> embeddedStates = createClientProxy(ResourceWithMultipleRelated.class)
+    List<TestResourceState> embeddedStates = client.createProxy(ResourceWithMultipleRelated.class)
         .getItems()
         .concatMapSingle(ResourceWithSingleState::getProperties)
         .toList()
@@ -295,7 +273,7 @@ public class RelatedResourceTest {
       entryPoint.asHalResource().addEmbedded(ITEM, item.asHalResource());
     });
 
-    List<TestResourceState> embeddedStates = createClientProxy(ResourceWithMultipleRelated.class)
+    List<TestResourceState> embeddedStates = client.createProxy(ResourceWithMultipleRelated.class)
         .getItems()
         .concatMapSingle(ResourceWithSingleState::getProperties)
         .toList()
@@ -320,7 +298,7 @@ public class RelatedResourceTest {
 
     entryPoint.createLinked(ITEM).setText("item text");
 
-    Observable<ResourceWithSingleState> items = Observable.fromPublisher(createClientProxy(ResourceWithPublisherRelated.class).getItems());
+    Observable<ResourceWithSingleState> items = Observable.fromPublisher(client.createProxy(ResourceWithPublisherRelated.class).getItems());
     TestResourceState linkedState = items
         .concatMapSingle(ResourceWithSingleState::getProperties)
         .firstOrError()
@@ -352,7 +330,7 @@ public class RelatedResourceTest {
   public void should_throw_unsupported_operation_if_annotation_is_missing_on_proxy_method() {
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(ResourceWithIllegalAnnotations.class).noAnnotation());
+        () -> client.createProxy(ResourceWithIllegalAnnotations.class).noAnnotation());
 
     assertThat(ex).isInstanceOf(UnsupportedOperationException.class).hasMessageContaining("is not annotated with one of the HAL API annotations");
   }
@@ -361,7 +339,7 @@ public class RelatedResourceTest {
   public void should_throw_unsupported_operation_if_annotation_is_missing_on_related_resource_type() {
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(ResourceWithIllegalAnnotations.class).getInvalidLinked().blockingGet());
+        () -> client.createProxy(ResourceWithIllegalAnnotations.class).getInvalidLinked().blockingGet());
 
     assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
         .hasMessageContaining("has an invalid emission type").hasMessageEndingWith("which does not have a @HalApiInterface annotation.");
@@ -371,7 +349,7 @@ public class RelatedResourceTest {
   public void should_throw_unsupported_operation_if_return_type_does_not_emit_an_interface() {
 
     Throwable ex = catchThrowable(
-        () -> createClientProxy(ResourceWithIllegalAnnotations.class).notAnInterface().blockingGet());
+        () -> client.createProxy(ResourceWithIllegalAnnotations.class).notAnInterface().blockingGet());
 
     assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
         .hasMessageContaining("has an invalid emission type").hasMessageEndingWith("which does not have a @HalApiInterface annotation.");
