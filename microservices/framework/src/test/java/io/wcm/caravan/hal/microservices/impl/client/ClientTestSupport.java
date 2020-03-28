@@ -92,7 +92,7 @@ public class ClientTestSupport {
       super(Mockito.mock(JsonResourceLoader.class));
     }
 
-    void mockFailedResponse(Integer statusCode, String uri) {
+    void mockFailedResponse(String uri, Integer statusCode) {
 
       when(jsonLoader.loadJsonResource(uri))
           .thenReturn(Single.error(new HalApiClientException("Simulated failed response", statusCode, uri, null)));
