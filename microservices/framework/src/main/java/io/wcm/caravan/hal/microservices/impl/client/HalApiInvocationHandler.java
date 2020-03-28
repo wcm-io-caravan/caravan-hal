@@ -117,6 +117,11 @@ final class HalApiInvocationHandler implements InvocationHandler {
         return RxJavaReflectionUtils.convertAndCacheReactiveType(representation, invocation.getReturnType(), metrics, invocation.getDescription());
       }
 
+      if (invocation.toString().endsWith("#toString()")) {
+        String linkDesc = linkToResource != null ? "resource at " + linkToResource.getHref() : " embedded resource without self link";
+        return super.toString() + " for " + linkDesc;
+      }
+
       // unsupported operation
       String annotationNames = ImmutableList.of(RelatedResource.class, ResourceState.class, ResourceLink.class, ResourceRepresentation.class).stream()
           .map(Class::getSimpleName)

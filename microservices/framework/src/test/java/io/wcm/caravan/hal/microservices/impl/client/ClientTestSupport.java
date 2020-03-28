@@ -47,6 +47,7 @@ public class ClientTestSupport {
   private final RequestMetricsCollector metrics = RequestMetricsCollector.create();
 
   protected final JsonResourceLoader jsonLoader;
+
   protected final TestResourceTree testResourceTree;
 
   protected ClientTestSupport(JsonResourceLoader jsonLoader) {
@@ -60,10 +61,14 @@ public class ClientTestSupport {
   }
 
   <T> T createProxy(Class<T> halApiInterface) {
-    HalApiClient client = HalApiClient.create(jsonLoader, metrics);
+    HalApiClient client = getHalApiClient();
     T clientProxy = client.getEntryPoint(ENTRY_POINT_URI, halApiInterface);
     assertThat(clientProxy).isNotNull();
     return clientProxy;
+  }
+
+  HalApiClient getHalApiClient() {
+    return HalApiClient.create(jsonLoader, metrics);
   }
 
   RequestMetricsCollector getMetrics() {
@@ -94,6 +99,10 @@ public class ClientTestSupport {
 
     MockClientTestSupport() {
       super(Mockito.mock(JsonResourceLoader.class));
+    }
+
+    JsonResourceLoader getMockJsonLoader() {
+      return this.jsonLoader;
     }
 
     void mockResponseWithSupplier(String uri, Supplier<Single<HalResponse>> supplier) {

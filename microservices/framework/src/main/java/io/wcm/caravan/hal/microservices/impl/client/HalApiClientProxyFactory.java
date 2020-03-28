@@ -96,7 +96,7 @@ final class HalApiClientProxyFactory {
       return createProxy(relatedResourceType, rxHal, linkToResource);
     }
 
-    String cacheKey = linkToResource.getModel().toString();
+    String cacheKey = linkToResource.getModel().toString() + relatedResourceType.getName();
 
     try {
       return (T)proxyCache.get(cacheKey, () -> createProxy(relatedResourceType, rxHal, linkToResource));
