@@ -23,6 +23,9 @@ import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ENTRY_POINT_URI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.mockito.Mockito.verify;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
@@ -36,6 +39,7 @@ import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestState;
@@ -168,6 +172,35 @@ public class ErrorHandlingTest {
     assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageStartingWith("An unexpected exception was thrown by")
         .hasCause(cause);
+  }
+
+  @Test
+  public void retry_operator_works_() {
+
+    HalResponse response = new HalResponse()
+        .withStatus(200)
+        .withBody(new HalResource(new TestState()));
+
+    AtomicInteger attempts = new AtomicInteger();
+
+    Single<HalResponse> singleThatEmitsOnThirdCall = Single.fromCallable(() -> {
+      int attempt = attempts.incrementAndGet();
+      if (attempt == 4) {
+        return response;
+      }
+      throw new HalApiClientException("It's not yet there", 404, ENTRY_POINT_URI, null);
+    });
+
+    client.mockResponseWithSingle(ENTRY_POINT_URI, singleThatEmitsOnThirdCall);
+
+    TestState state = client.createProxy(EntryPoint.class)
+        .getState()
+        .retry(3)
+        .blockingGet();
+
+    assertThat(state).isNotNull();
+
+    verify(client.getMockJsonLoader()).loadJsonResource(ENTRY_POINT_URI);
   }
 
   interface EntryPointWithoutAnnotation {

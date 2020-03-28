@@ -23,6 +23,7 @@ import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ENTRY_POINT_URI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import java.util.List;
 
@@ -151,7 +152,9 @@ public class ProxyCachingTest {
     assertThat(list1).containsExactlyElementsOf(list2);
 
     // verify that json for each item was only loaded once
+    verify(client.getMockJsonLoader()).loadJsonResource(ENTRY_POINT_URI);
     verify(client.getMockJsonLoader()).loadJsonResource(ITEM_1_URL);
     verify(client.getMockJsonLoader()).loadJsonResource(ITEM_2_URL);
+    verifyNoMoreInteractions(client.getMockJsonLoader());
   }
 }

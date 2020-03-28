@@ -62,11 +62,10 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
         Stopwatch stopwatch = Stopwatch.createUnstarted();
 
         return delegate.loadJsonResource(uri)
-            .doOnSubscribe(d -> stopwatch.start())
+            .doOnSubscribe(d -> startStopwatch(stopwatch))
             .doOnError(ex -> registerErrorMetrics(uri, ex, stopwatch))
             .doOnSuccess(jsonResponse -> registerResponseMetrics(uri, jsonResponse, stopwatch))
-            .onErrorResumeNext(ex -> rethrowUnexpectedExceptions(uri, ex))
-            .cache();
+            .onErrorResumeNext(ex -> rethrowUnexpectedExceptions(uri, ex));
       });
     }
     catch (UncheckedExecutionException | ExecutionException ex) {
@@ -74,6 +73,14 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
           + " Please make sure that your implementation will always return a Single instance during assembly time.";
       throw new HalApiDeveloperException(msg, ex.getCause());
     }
+  }
+
+  private void startStopwatch(Stopwatch stopwatch) {
+    if (stopwatch.isRunning()) {
+      stopwatch.stop();
+      stopwatch.reset();
+    }
+    stopwatch.start();
   }
 
   private void registerErrorMetrics(String uri, Throwable ex, Stopwatch stopwatch) {
