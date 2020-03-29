@@ -19,11 +19,13 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
+import static io.wcm.caravan.hal.api.relations.StandardRelations.ALTERNATE;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ENTRY_POINT_URI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 import java.util.List;
 
@@ -33,12 +35,17 @@ import org.junit.jupiter.api.Test;
 import io.reactivex.Maybe;
 import io.reactivex.Observable;
 import io.reactivex.Single;
+import io.reactivex.observers.TestObserver;
+import io.reactivex.subjects.SingleSubject;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
+import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
+import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport.SubscriberCounter;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -48,23 +55,28 @@ public class ProxyCachingTest {
 
   private final static String ITEM_1_URL = "/item/1";
   private final static String ITEM_2_URL = "/item/2";
+  private final static String ALT_1_URL = "/alt/1";
 
   private final MockClientTestSupport client = ClientTestSupport.withMocking();
   private final HalResource entryPointHal = new HalResource(ENTRY_POINT_URI);
 
+  SubscriberCounter entryPointCounter;
+  SubscriberCounter item1Counter;
+  SubscriberCounter item2Counter;
+
   @BeforeEach
   void setUp() {
-    client.mockHalResponse(ENTRY_POINT_URI, entryPointHal);
+    entryPointCounter = client.mockHalResponse(ENTRY_POINT_URI, entryPointHal);
 
-    addLinkAndMockResource(ITEM_1_URL);
-    addLinkAndMockResource(ITEM_2_URL);
+    item1Counter = addLinkAndMockResource(ITEM_1_URL);
+    item2Counter = addLinkAndMockResource(ITEM_2_URL);
   }
 
-  private void addLinkAndMockResource(String itemUrl) {
+  private SubscriberCounter addLinkAndMockResource(String itemUrl) {
     TestState state = new TestState(itemUrl);
     HalResource linkedItem = new HalResource(state, itemUrl);
     entryPointHal.addLinks(ITEM, new Link(itemUrl));
-    client.mockHalResponse(itemUrl, linkedItem);
+    return client.mockHalResponse(itemUrl, linkedItem);
   }
 
   @HalApiInterface
@@ -76,15 +88,11 @@ public class ProxyCachingTest {
     @RelatedResource(relation = ITEM)
     Observable<LinkableTestResource> getLinked();
 
+    @RelatedResource(relation = ALTERNATE)
+    Observable<LinkableTestResource> getAlternate();
+
     @ResourceRepresentation
     Single<HalResource> asHalResource();
-  }
-
-  @HalApiInterface
-  interface LinkedResource {
-
-    @ResourceState
-    Maybe<TestState> getState();
   }
 
   @Test
@@ -96,6 +104,8 @@ public class ProxyCachingTest {
     EntryPoint proxy2 = halApiClient.getEntryPoint(ENTRY_POINT_URI, EntryPoint.class);
 
     assertThat(proxy1).isSameAs(proxy2);
+
+    verifyZeroInteractions(client.getMockJsonLoader());
   }
 
   @HalApiInterface
@@ -114,6 +124,8 @@ public class ProxyCachingTest {
     AltEntryPointInterface proxy2 = halApiClient.getEntryPoint(ENTRY_POINT_URI, AltEntryPointInterface.class);
 
     assertThat(proxy1).isNotSameAs(proxy2);
+
+    verifyZeroInteractions(client.getMockJsonLoader());
   }
 
   @Test
@@ -125,6 +137,8 @@ public class ProxyCachingTest {
     Maybe<TestState> state2 = entryPoint.getState();
 
     assertThat(state1).isSameAs(state2);
+
+    verifyZeroInteractions(client.getMockJsonLoader());
   }
 
   @Test
@@ -136,6 +150,18 @@ public class ProxyCachingTest {
     Observable<LinkableTestResource> linked2 = entryPoint.getLinked();
 
     assertThat(linked1).isSameAs(linked2);
+
+    verifyZeroInteractions(client.getMockJsonLoader());
+  }
+
+  @Test
+  public void subscriber_counter_should_count_subscriptions_correctly() {
+    Single<HalResponse> item1 = item1Counter.getCountingSingle();
+
+    item1.blockingGet();
+    item1.blockingGet();
+
+    assertThat(item1Counter.getCount()).isEqualTo(2);
   }
 
   @Test
@@ -156,5 +182,84 @@ public class ProxyCachingTest {
     verify(client.getMockJsonLoader()).loadJsonResource(ITEM_1_URL);
     verify(client.getMockJsonLoader()).loadJsonResource(ITEM_2_URL);
     verifyNoMoreInteractions(client.getMockJsonLoader());
+
+    assertThat(entryPointCounter.getCount()).isEqualTo(1);
+    assertThat(item1Counter.getCount()).isEqualTo(1);
+    assertThat(item2Counter.getCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void following_different_links_from_entry_point_will_load_entry_point_only_once() {
+
+    entryPointHal.addLinks(StandardRelations.ALTERNATE, new Link(ALT_1_URL));
+
+    EntryPoint entryPoint = client.createProxy(EntryPoint.class);
+
+    LinkableTestResource linked = entryPoint.getLinked().blockingFirst();
+    LinkableTestResource alternate = entryPoint.getAlternate().blockingFirst();
+
+    assertThat(linked).isNotSameAs(alternate);
+
+    // verify that entrypoint was only loaded once
+    verify(client.getMockJsonLoader()).loadJsonResource(ENTRY_POINT_URI);
+    assertThat(entryPointCounter.getCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void following_different_links_to_same_resource_will_load_that_resource_only_once() {
+
+    entryPointHal.addLinks(StandardRelations.ALTERNATE, new Link(ITEM_1_URL));
+
+    EntryPoint entryPoint = client.createProxy(EntryPoint.class);
+
+    TestState item1 = entryPoint.getLinked().concatMapMaybe(LinkableTestResource::getState).blockingFirst();
+    TestState alt1 = entryPoint.getAlternate().concatMapMaybe(LinkableTestResource::getState).blockingFirst();
+
+    // since the both resourcse have exactly the same link and interface, the same proxy instance will be returned
+    assertThat(item1).isSameAs(alt1);
+
+    assertThat(entryPointCounter.getCount()).isEqualTo(1);
+    assertThat(item1Counter.getCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void following_differently_named_links_will_create_different_proxies_but_not_load_resources_twice() {
+
+    entryPointHal.addLinks(StandardRelations.ALTERNATE, new Link(ITEM_1_URL).setName("foo"));
+
+    EntryPoint entryPoint = client.createProxy(EntryPoint.class);
+
+    TestState item1 = entryPoint.getLinked().concatMapMaybe(LinkableTestResource::getState).blockingFirst();
+    TestState alt1 = entryPoint.getAlternate().concatMapMaybe(LinkableTestResource::getState).blockingFirst();
+
+    // since the second link has a different name, a dfferent proxy instance will be returned
+    assertThat(item1).isNotSameAs(alt1);
+
+    // but JSON resources are still only loaded once
+    assertThat(entryPointCounter.getCount()).isEqualTo(1);
+    assertThat(item1Counter.getCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void caching_should_work_if_two_subscriptions_haben_before_emission() {
+
+    entryPointHal.addLinks(StandardRelations.ALTERNATE, new Link(ALT_1_URL));
+
+    SingleSubject<HalResource> subject = client.mockHalResponseWithSubject(ALT_1_URL);
+
+    EntryPoint entryPoint = client.createProxy(EntryPoint.class);
+
+    Observable<TestState> alt1 = entryPoint.getAlternate().concatMapMaybe(LinkableTestResource::getState);
+    Observable<TestState> alt2 = entryPoint.getAlternate().concatMapMaybe(LinkableTestResource::getState);
+
+
+    assertThat(subject.hasObservers()).isFalse();
+
+    TestObserver<TestState> subscriber1 = TestObserver.create();
+    alt1.subscribe(subscriber1);
+    TestObserver<TestState> subscriber2 = TestObserver.create();
+    alt2.subscribe(subscriber2);
+
+    assertThat(subject.hasObservers()).isTrue();
   }
 }

@@ -151,6 +151,28 @@ public class ResourceLinkTest {
     assertThat(filteredState.string).isEqualTo("foo");
   }
 
+  @Test
+  public void links_with_different_names_to_same_resource_should_create_different_proxies() {
+
+    TestResource foo = entryPoint.createLinked(ITEM, "foo");
+
+    entryPoint.addLinkTo(ITEM, foo).setName("bar");
+
+    List<LinkTargetResource> resources = client.createProxy(ResourceWithMultipleLinked.class)
+        .getLinked()
+        .toList()
+        .blockingGet();
+
+    assertThat(resources).hasSize(2);
+
+    LinkTargetResource fooResource = resources.get(0);
+    LinkTargetResource barResource = resources.get(1);
+    assertThat(fooResource).isNotSameAs(barResource);
+
+    assertThat(fooResource.createLink().getName()).isEqualTo("foo");
+    assertThat(barResource.createLink().getName()).isEqualTo("bar");
+  }
+
   @HalApiInterface
   interface ResourceWithSingleEmbedded {
 

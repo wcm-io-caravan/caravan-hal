@@ -64,10 +64,12 @@ public class TestResource {
     return embeddedResource;
   }
 
-  public void addLinkTo(String relation, TestResource other) {
+  public Link addLinkTo(String relation, TestResource other) {
     String otherUrl = other.getUrl();
     assertThat(otherUrl).isNotNull();
-    halResource.addLinks(relation, new Link(otherUrl));
+    Link link = new Link(otherUrl);
+    halResource.addLinks(relation, link);
+    return link;
   }
 
   public HalResource asHalResource() {

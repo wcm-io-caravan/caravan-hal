@@ -40,7 +40,7 @@ import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
-import io.wcm.caravan.hal.microservices.util.OnErrorRetryCache;
+import io.wcm.caravan.hal.microservices.util.RxJavaTransformers;
 
 /**
  * Internal utility methods to invoke methods returning reactive streams, and converting between various
@@ -137,7 +137,7 @@ public final class RxJavaReflectionUtils {
         .compose(EmissionStopwatch.collectMetrics(description, metrics));
 
     // do not use Observable#cache() here, because we want consumers to be able to use Observable#retry()
-    Observable<?> cached = OnErrorRetryCache.from(observable);
+    Observable<?> cached = observable.compose(RxJavaTransformers.cacheIfCompleted());
 
     return convertObservableTo(cached, targetType);
   }

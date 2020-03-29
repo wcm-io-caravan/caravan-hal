@@ -170,7 +170,7 @@ public class ErrorHandlingTest {
             .blockingGet());
 
     assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
-        .hasMessageStartingWith("An unexpected exception was thrown by")
+        .hasMessageStartingWith("An unexpected exception was emitted by")
         .hasCause(cause);
   }
 

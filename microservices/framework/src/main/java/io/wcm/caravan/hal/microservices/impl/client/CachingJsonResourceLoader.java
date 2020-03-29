@@ -36,6 +36,7 @@ import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.util.RxJavaTransformers;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -61,11 +62,15 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
 
         Stopwatch stopwatch = Stopwatch.createUnstarted();
 
-        return delegate.loadJsonResource(uri)
+        Single<HalResponse> loadedResource = delegate.loadJsonResource(uri)
             .doOnSubscribe(d -> startStopwatch(stopwatch))
             .doOnError(ex -> registerErrorMetrics(uri, ex, stopwatch))
             .doOnSuccess(jsonResponse -> registerResponseMetrics(uri, jsonResponse, stopwatch))
             .onErrorResumeNext(ex -> rethrowUnexpectedExceptions(uri, ex));
+
+        Single<HalResponse> cachedResource = loadedResource.compose(RxJavaTransformers.cacheSingleIfCompleted());
+
+        return cachedResource;
       });
     }
     catch (UncheckedExecutionException | ExecutionException ex) {
@@ -106,7 +111,7 @@ class CachingJsonResourceLoader implements JsonResourceLoader {
       return Single.error(ex);
     }
 
-    RuntimeException re = new HalApiDeveloperException("An unexpected exception was thrown by " + delegate.getClass().getName() + " when requesting " + uri
+    RuntimeException re = new HalApiDeveloperException("An unexpected exception was emitted by " + delegate.getClass().getName() + " when requesting " + uri
         + ". Please make sure that your implementation rethrows all exceptions as HalApiClientException, to provide status code information whenever possible ",
         ex);
     return Single.error(re);

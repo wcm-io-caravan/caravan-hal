@@ -22,6 +22,7 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
 import org.mockito.Mockito;
@@ -117,17 +118,21 @@ public class ClientTestSupport {
           });
     }
 
-    void mockResponseWithSingle(String uri, Single<HalResponse> value) {
+    SubscriberCounter mockResponseWithSingle(String uri, Single<HalResponse> value) {
+
+      SubscriberCounter counter = new SubscriberCounter(value);
 
       when(jsonLoader.loadJsonResource(uri))
-          .thenReturn(value);
+          .thenReturn(counter.getCountingSingle());
+
+      return counter;
     }
 
-    void mockFailedResponse(String uri, Integer statusCode) {
+    SubscriberCounter mockFailedResponse(String uri, Integer statusCode) {
 
       HalApiClientException hace = new HalApiClientException("Simulated failed response", statusCode, uri, null);
 
-      mockResponseWithSingle(uri, Single.error(hace));
+      return mockResponseWithSingle(uri, Single.error(hace));
     }
 
     SingleSubject<HalResource> mockHalResponseWithSubject(String uri) {
@@ -139,18 +144,48 @@ public class ClientTestSupport {
       return testSubject;
     }
 
-    void mockHalResponse(String uri, HalResource hal) {
+    SubscriberCounter mockHalResponse(String uri, HalResource hal) {
 
       HalResponse response = ConversionFunctions.toJsonResponse(hal);
 
-      mockResponseWithSingle(uri, Single.just(response));
+      return mockResponseWithSingle(uri, Single.just(response));
     }
 
-    void mockHalResponseWithState(String uri, Object state) {
+    SubscriberCounter mockHalResponseWithState(String uri, Object state) {
 
       HalResource hal = new HalResource(state, uri);
 
-      mockHalResponse(uri, hal);
+      return mockHalResponse(uri, hal);
+    }
+
+
+    static class SubscriberCounter {
+
+      private final AtomicInteger counter = new AtomicInteger();
+
+      private final Single<HalResponse> countingSingle;
+
+      private SubscriberCounter(Single<HalResponse> delegate) {
+        // for the test case that returns a null single on purpose, we must not use defer to create a different single
+        if (delegate == null) {
+          countingSingle = null;
+        }
+        else {
+          countingSingle = Single.defer(() -> {
+            counter.incrementAndGet();
+
+            return delegate;
+          });
+        }
+      }
+
+      Single<HalResponse> getCountingSingle() {
+        return countingSingle;
+      }
+
+      int getCount() {
+        return counter.get();
+      }
     }
   }
 }

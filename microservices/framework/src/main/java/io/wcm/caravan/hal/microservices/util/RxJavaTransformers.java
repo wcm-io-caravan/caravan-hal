@@ -9,6 +9,8 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.Single;
+import io.reactivex.SingleSource;
+import io.reactivex.SingleTransformer;
 
 
 /**
@@ -23,10 +25,30 @@ public final class RxJavaTransformers {
   /**
    * @param asyncFilterFunc a function that returns a boolean {@link Single} to decide whether a given item should
    *          be filtered
-   * @return a {@link ObservableTransformer} that can be passed to {@link Observable#compose(ObservableTransformer)}
+   * @return an {@link ObservableTransformer} that can be passed to {@link Observable#compose(ObservableTransformer)}
    */
   public static <T> ObservableTransformer<T, T> filterWith(Function<T, Single<Boolean>> asyncFilterFunc) {
     return new AsyncFilterTransformer<T>(asyncFilterFunc);
+  }
+
+  /**
+   * Cache the emissions if the observable completes succesfully, but clears the cache on any error (so that you can use
+   * {@link Observable#retry()}
+   * @param <T> the emission type
+   * @return an {@link ObservableTransformer} that can be passed to {@link Observable#compose(ObservableTransformer)}
+   */
+  public static <T> ObservableTransformer<T, T> cacheIfCompleted() {
+    return new CacheOnlyCompletedTransformer<T>();
+  }
+
+  /**
+   * Cache the emissions if the Single completes succesfully, but clears the cache on any error (so that you can use
+   * {@link Single#retry()}
+   * @param <T> the emission type
+   * @return a {@link SingleTransformer} that can be passed to {@link Single#compose(SingleTransformer)}
+   */
+  public static <T> SingleTransformer<T, T> cacheSingleIfCompleted() {
+    return new CacheOnlyCompletedTransformer<T>();
   }
 
   private static final class AsyncFilterTransformer<T> implements ObservableTransformer<T, T> {
@@ -57,4 +79,40 @@ public final class RxJavaTransformers {
     }
   }
 
+  private static final class CacheOnlyCompletedTransformer<T> implements ObservableTransformer<T, T>, SingleTransformer<T, T> {
+
+    private Observable<T> cachedOrInProgress = null;
+
+    @Override
+    public ObservableSource<T> apply(Observable<T> upstream) {
+      return Observable.defer(() -> handleSubscription(upstream));
+    }
+
+    @Override
+    public SingleSource<T> apply(Single<T> upstream) {
+      return Single.defer(() -> {
+        return handleSubscription(upstream.toObservable()).firstOrError();
+      });
+    }
+
+    private synchronized Observable<T> handleSubscription(Observable<T> upstream) {
+
+      Observable<T> source = cachedOrInProgress;
+
+      if (source == null) {
+        source = upstream
+            .doOnError(this::onError)
+            .replay()
+            .autoConnect();
+
+        cachedOrInProgress = source;
+      }
+
+      return source;
+    }
+
+    private void onError(Throwable t) {
+      cachedOrInProgress = null;
+    }
+  }
 }
