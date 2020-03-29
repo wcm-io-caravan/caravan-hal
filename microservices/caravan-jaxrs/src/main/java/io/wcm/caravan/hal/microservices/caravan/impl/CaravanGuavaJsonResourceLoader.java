@@ -44,7 +44,7 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
 
   private static final JsonFactory JSON_FACTORY = new JsonFactory(new ObjectMapper());
 
-  private static final Cache<String, HalResponse> SHARED_CACHE = CacheBuilder.newBuilder().build();
+  private static final Cache<String, CacheEntry> SHARED_CACHE = CacheBuilder.newBuilder().build();
 
   private final String serviceId;
 
@@ -58,17 +58,16 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
   @Override
   public Single<HalResponse> loadJsonResource(String uri) {
 
-    HalResponse cached = SHARED_CACHE.getIfPresent(uri);
+    CacheEntry cached = SHARED_CACHE.getIfPresent(uri);
 
-    // TODO: ignore stale cache entries (based on their original maxAge value)
-    if (cached != null) {
-      return Single.just(cached);
+    if (cached != null && !cached.isStale()) {
+      return Single.just(cached.getResponseWithAdjustedMaxAge());
     }
 
     CaravanHttpRequest request = createRequest(uri);
 
     return executeRequest(request)
-        .map(response -> parseResponse(uri, request, response))
+        .map(response -> parseAndCacheResponse(uri, request, response))
         .onErrorResumeNext(ex -> rethrowAsHalApiClientException(ex, uri));
   }
 
@@ -86,7 +85,7 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
     return RxJavaInterop.toV2Single(client.execute(request).toSingle());
   }
 
-  private HalResponse parseResponse(String uri, CaravanHttpRequest request, CaravanHttpResponse response) {
+  private HalResponse parseAndCacheResponse(String uri, CaravanHttpRequest request, CaravanHttpResponse response) {
     try {
 
       int statusCode = response.status();
@@ -103,7 +102,7 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
         maxAge = parseMaxAge(response);
       }
 
-      HalResponse jsonResponse = new HalResponse()
+      HalResponse halResponse = new HalResponse()
           .withStatus(statusCode)
           .withReason(response.reason())
           .withBody(jsonNode)
@@ -112,12 +111,12 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
       if (statusCode >= 400) {
         IllegalResponseRuntimeException cause = new IllegalResponseRuntimeException(request, uri, statusCode, responseBody,
             "Received " + statusCode + " response from " + uri);
-        throw new HalApiClientException(jsonResponse, uri, cause);
+        throw new HalApiClientException(halResponse, uri, cause);
       }
 
-      SHARED_CACHE.put(uri, jsonResponse);
+      SHARED_CACHE.put(uri, new CacheEntry(halResponse));
 
-      return jsonResponse;
+      return halResponse;
 
     }
     catch (HalApiClientException ex) {
@@ -187,5 +186,34 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
     return Single.error(new HalApiClientException(message, 0, uri, ex));
   }
 
+  static class CacheEntry {
+
+    private final long timeRetrieved = System.currentTimeMillis();
+    private final HalResponse response;
+
+    CacheEntry(HalResponse response) {
+      this.response = response;
+    }
+
+    private int getSecondsInCache() {
+      return (int)(System.currentTimeMillis() - timeRetrieved) / 1000;
+    }
+
+    boolean isStale() {
+      if (response.getMaxAge() != null) {
+        int secondsCached = getSecondsInCache();
+        return secondsCached > response.getMaxAge();
+      }
+      return false;
+    }
+
+    HalResponse getResponseWithAdjustedMaxAge() {
+      if (response.getMaxAge() == null) {
+        return response;
+      }
+      int newMaxAge = Math.max(0, response.getMaxAge() - getSecondsInCache());
+      return response.withMaxAge(newMaxAge);
+    }
+  }
 
 }
