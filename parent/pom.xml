@@ -85,6 +85,13 @@
         <version>0.13.7</version>
       </dependency>
 
+      <!-- Byte Buddy for creating dynamic proxies of classes -->
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy</artifactId>
+        <version>1.10.9</version>
+      </dependency>
+
       <!-- OSGI/JAX-RS integration -->
       <dependency>
         <groupId>org.apache.aries.spec</groupId>

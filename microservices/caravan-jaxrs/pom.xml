@@ -131,6 +131,12 @@
       <scope>compile</scope>
     </dependency>
 
+    <!-- Byte Buddy for creating dynamic proxies of classes -->
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <scope>provided</scope>
+    </dependency>
 
     <!-- AssertJ for fluent assertions -->
     <dependency>
