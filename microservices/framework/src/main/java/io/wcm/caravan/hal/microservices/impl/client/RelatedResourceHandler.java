@@ -21,6 +21,7 @@ package io.wcm.caravan.hal.microservices.impl.client;
 
 import static io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils.isHalApiInterface;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.damnhandy.uri.template.UriTemplate;
+import com.google.common.collect.ImmutableList;
 
 import io.reactivex.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
@@ -81,7 +83,7 @@ class RelatedResourceHandler {
   private Observable<Object> getLinked(HalApiMethodInvocation invocation, String relation, Class<?> relatedResourceType, List<HalResource> embeddedResources,
       List<Link> links) {
 
-    log.trace(links.size() + " links with relation " + relation + " were found in the context resource and will be fetched.");
+    log.trace(links.size() + " links with relation " + relation + " were found in the context resource");
 
     List<Link> relevantLinks = filterLinksToResourcesThatAreAlreadyEmbedded(links, embeddedResources);
 
@@ -94,10 +96,17 @@ class RelatedResourceHandler {
         return createProxiesFromLinkTemplates(relatedResourceType, relevantLinks);
       }
 
-      // otherwise we ignore any resolved links, and only consider link templates that are resolved with the callers values
-      // (unless there are no link templates present)
-      if (numTemplatedLinks != 0) {
-        relevantLinks = relevantLinks.stream().filter(Link::isTemplated).collect(Collectors.toList());
+      // otherwise we ignore any resolved links, and only consider link templates that contain all variables specified
+      // in the method invocation
+      relevantLinks = relevantLinks.stream()
+          .filter(Link::isTemplated)
+          .filter(link -> linkTemplateHasAllVariables(link, variables.keySet()))
+          .collect(Collectors.toList());
+
+      if (relevantLinks.isEmpty()) {
+        return Observable.error(new HalApiDeveloperException(
+            "No matching link template found with relation " + relation + " which contains the variables " + variables.keySet()
+                + " required for the invocation of " + invocation.toString()));
       }
     }
     else {
@@ -110,6 +119,12 @@ class RelatedResourceHandler {
 
     // if the resources are linked, then we have to fetch those resources first
     return createProxiesForLinkedHalResources(relatedResourceType, relevantLinks, variables);
+  }
+
+  private static boolean linkTemplateHasAllVariables(Link link, Collection<String> variablesInInvocation) {
+    UriTemplate template = UriTemplate.fromTemplate(link.getHref());
+    ImmutableList<String> variablesInTemplate = ImmutableList.copyOf(template.getVariables());
+    return variablesInTemplate.containsAll(variablesInInvocation);
   }
 
   private static List<Link> filterLinksToResourcesThatAreAlreadyEmbedded(List<Link> links, List<HalResource> embeddedResources) {

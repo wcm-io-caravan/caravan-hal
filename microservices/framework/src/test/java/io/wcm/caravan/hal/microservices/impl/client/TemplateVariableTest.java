@@ -215,19 +215,20 @@ public class TemplateVariableTest {
   }
 
   @Test
-  public void resolved_links_should_be_followed_if_method_with_template_variable_is_called_but_there_is_no_template() {
+  public void resolved_links_should_not_be_followed_if_method_with_template_variable_is_called_but_there_is_no_matching_template() {
 
     String url = "/item/3";
     entryPoint.addLinks(ITEM, new Link(url));
 
     mockHalResponseWithNumber(url, 3);
 
-    TestResourceState state = client.createProxy(ResourceWithTemplateAndResolvedLinks.class)
+    Throwable ex = catchThrowable(() -> client.createProxy(ResourceWithTemplateAndResolvedLinks.class)
         .getLinked(3)
         .flatMap(ResourceWithSingleState::getProperties)
-        .blockingGet();
+        .blockingGet());
 
-    assertThat(state.number).isEqualTo(3);
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
+        .hasMessageStartingWith("No matching link template found with relation item");
   }
 
 
