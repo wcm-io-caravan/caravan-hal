@@ -12,7 +12,8 @@ wcm.io Caravan - JSON Data Pipelining Infrastructure
 Documentation: https://caravan.wcm.io/hal/<br/>
 Issues: https://wcm-io.atlassian.net/<br/>
 Wiki: https://wcm-io.atlassian.net/wiki/<br/>
-Continuous Integration: https://travis-ci.org/wcm-io-caravan/caravan-hal/
+Continuous Integration: https://travis-ci.org/wcm-io-caravan/caravan-hal/<br/>
+Commercial support: https://wcm.io/commercial-support.html
 
 
 ## Build from sources
