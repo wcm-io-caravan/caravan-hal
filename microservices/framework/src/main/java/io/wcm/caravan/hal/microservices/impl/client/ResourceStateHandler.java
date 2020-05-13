@@ -24,7 +24,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.reactivex.Maybe;
+import io.reactivex.rxjava3.core.Maybe;
 import io.wcm.caravan.hal.resource.HalResource;
 
 class ResourceStateHandler {

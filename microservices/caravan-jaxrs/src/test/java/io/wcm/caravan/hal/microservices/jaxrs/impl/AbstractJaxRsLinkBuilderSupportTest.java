@@ -29,7 +29,6 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Test;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
-import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsLinkBuilderSupport;
 import io.wcm.caravan.hal.resource.Link;
 
 

@@ -29,7 +29,7 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsExtension;
 
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
@@ -59,7 +59,8 @@ public class CaravanJaxRsHalOrchestratorImpl implements CaravanJaxRsHalOrchestra
   private JaxRsAsyncHalResponseHandler responseHandler;
 
 
-  public CaravanJaxRsHalOrchestratorImpl() {}
+  public CaravanJaxRsHalOrchestratorImpl() {
+  }
 
   @Override
   public void limitOutputMaxAge(int maxAge) {

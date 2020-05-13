@@ -32,10 +32,10 @@ import org.reactivestreams.Publisher;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 
-import io.reactivex.BackpressureStrategy;
-import io.reactivex.Maybe;
-import io.reactivex.Observable;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.BackpressureStrategy;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;

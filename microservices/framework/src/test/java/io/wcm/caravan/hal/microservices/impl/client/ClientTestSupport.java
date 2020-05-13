@@ -29,8 +29,8 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import io.reactivex.Single;
-import io.reactivex.subjects.SingleSubject;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.subjects.SingleSubject;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;

@@ -26,13 +26,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import com.google.common.base.Stopwatch;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
-import io.reactivex.ObservableTransformer;
-import io.reactivex.Single;
-import io.reactivex.SingleSource;
-import io.reactivex.SingleTransformer;
-import io.reactivex.disposables.Disposable;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.core.ObservableSource;
+import io.reactivex.rxjava3.core.ObservableTransformer;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.SingleSource;
+import io.reactivex.rxjava3.core.SingleTransformer;
+import io.reactivex.rxjava3.disposables.Disposable;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
 /**

@@ -114,13 +114,13 @@
 
     <!-- RxJava -->
     <dependency>
-      <groupId>io.reactivex.rxjava2</groupId>
+      <groupId>io.reactivex.rxjava3</groupId>
       <artifactId>rxjava</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>com.github.akarnokd</groupId>
-      <artifactId>rxjava2-interop</artifactId>
+      <artifactId>rxjava3-interop</artifactId>
       <scope>provided</scope>
     </dependency>
     

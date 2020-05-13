@@ -25,7 +25,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.osgi.annotation.versioning.ConsumerType;
 
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 
 @ConsumerType
 public interface UpstreamServiceRegistry {

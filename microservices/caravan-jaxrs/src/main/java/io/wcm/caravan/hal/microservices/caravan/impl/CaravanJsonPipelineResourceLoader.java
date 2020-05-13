@@ -26,9 +26,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
-import hu.akarnokd.rxjava.interop.RxJavaInterop;
-import io.reactivex.Single;
-import io.reactivex.SingleSource;
+import hu.akarnokd.rxjava3.interop.RxJavaInterop;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.core.SingleSource;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
@@ -76,7 +76,7 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
     JsonPipeline pipeline = pipelineFactory.create(request)
         .addCachePoint(CacheStrategies.timeToIdle(60, TimeUnit.SECONDS));
 
-    return RxJavaInterop.toV2Single(pipeline.getOutput().toSingle());
+    return RxJavaInterop.toV3Single(pipeline.getOutput().toSingle());
   }
 
   private HalResponse createSuccessResponse(JsonPipelineOutput pipelineOutput) {
@@ -126,6 +126,4 @@ class CaravanJsonPipelineResourceLoader implements JsonResourceLoader {
 
     return responseNode;
   }
-
-
 }

@@ -25,7 +25,7 @@ import java.util.Map;
 import com.damnhandy.uri.template.UriTemplate;
 import com.google.common.collect.ImmutableMap;
 
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;

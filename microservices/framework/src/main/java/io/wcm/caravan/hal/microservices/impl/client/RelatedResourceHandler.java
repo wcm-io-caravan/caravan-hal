@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 import com.damnhandy.uri.template.UriTemplate;
 import com.google.common.collect.ImmutableList;
 
-import io.reactivex.Observable;
+import io.reactivex.rxjava3.core.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.resource.HalResource;

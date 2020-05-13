@@ -21,7 +21,7 @@ package io.wcm.caravan.hal.microservices.impl.renderer;
 
 import org.apache.commons.lang3.RandomUtils;
 
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataGenerator;

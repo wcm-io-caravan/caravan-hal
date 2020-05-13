@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 
 import com.damnhandy.uri.template.UriTemplate;
 
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;

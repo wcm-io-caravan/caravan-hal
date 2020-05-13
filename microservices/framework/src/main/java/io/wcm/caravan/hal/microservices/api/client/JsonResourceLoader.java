@@ -3,7 +3,7 @@ package io.wcm.caravan.hal.microservices.api.client;
 
 import org.osgi.annotation.versioning.ConsumerType;
 
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 
 /**

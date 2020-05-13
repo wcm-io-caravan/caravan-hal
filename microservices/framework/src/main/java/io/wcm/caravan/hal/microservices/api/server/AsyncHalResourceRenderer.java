@@ -21,7 +21,7 @@ package io.wcm.caravan.hal.microservices.api.server;
 
 import org.osgi.annotation.versioning.ProviderType;
 
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;

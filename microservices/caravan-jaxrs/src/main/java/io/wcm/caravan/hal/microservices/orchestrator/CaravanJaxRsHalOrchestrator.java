@@ -24,7 +24,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.osgi.annotation.versioning.ProviderType;
 
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 

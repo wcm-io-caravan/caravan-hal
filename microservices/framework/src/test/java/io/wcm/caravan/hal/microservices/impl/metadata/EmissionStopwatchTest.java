@@ -33,10 +33,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.base.Stopwatch;
 
-import io.reactivex.Single;
-import io.reactivex.subjects.PublishSubject;
-import io.reactivex.subjects.SingleSubject;
-import io.reactivex.subjects.Subject;
+import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.subjects.PublishSubject;
+import io.reactivex.rxjava3.subjects.SingleSubject;
+import io.reactivex.rxjava3.subjects.Subject;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 
 @ExtendWith(MockitoExtension.class)
