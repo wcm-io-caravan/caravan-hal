@@ -28,7 +28,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
-import hu.akarnokd.rxjava3.interop.RxJavaInterop;
 import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
@@ -82,7 +81,7 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
 
   private Single<CaravanHttpResponse> executeRequest(CaravanHttpRequest request) {
 
-    return RxJavaInterop.toV3Single(client.execute(request).toSingle());
+    return RxJavaConversions.toV3Single(client.execute(request).toSingle());
   }
 
   private HalResponse parseAndCacheResponse(String uri, CaravanHttpRequest request, CaravanHttpResponse response) {
