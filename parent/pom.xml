@@ -82,7 +82,7 @@
       <dependency>
         <groupId>com.github.akarnokd</groupId>
         <artifactId>rxjava3-interop</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.2</version>
       </dependency>
 
       <!-- Byte Buddy for creating dynamic proxies of classes -->
