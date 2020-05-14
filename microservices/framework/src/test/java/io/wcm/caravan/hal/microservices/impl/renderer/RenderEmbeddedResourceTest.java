@@ -104,7 +104,7 @@ public class RenderEmbeddedResourceTest {
 
     @Override
     public boolean isEmbedded() {
-      return false;
+      return true;
     }
 
     @Override
@@ -115,7 +115,7 @@ public class RenderEmbeddedResourceTest {
   }
 
   @Test
-  public void embeddable_resources_should_only_be_linked_if_isEmbedded_returns_false() {
+  public void embeddable_resources_should_also_be_linked_by_default() {
 
     List<TestState> states = Observable.range(0, 10)
         .map(i -> new TestState(i))
@@ -132,8 +132,66 @@ public class RenderEmbeddedResourceTest {
     };
 
     HalResource hal = render(resourceImpl);
+    assertThat(hal.getEmbedded(ITEM)).hasSameSizeAs(states);
+    assertThat(hal.getLinks(ITEM)).hasSameSizeAs(states);
+  }
+
+  @Test
+  public void embeddable_resources_should_only_be_linked__if_isEmbedded_returns_false() {
+
+    List<TestState> states = Observable.range(0, 10)
+        .map(i -> new TestState(i))
+        .toList().blockingGet();
+
+    TestResourceWithObservableEmbedded resourceImpl = new TestResourceWithObservableEmbedded() {
+
+      @Override
+      public Observable<TestResource> getItems() {
+
+        return Observable.fromIterable(states)
+            .map(state -> new LinkedEmbeddableTestResource(state) {
+
+              @Override
+              public boolean isEmbedded() {
+                return false;
+              }
+
+            });
+      }
+    };
+
+    HalResource hal = render(resourceImpl);
     assertThat(hal.getEmbedded(ITEM)).isEmpty();
     assertThat(hal.getLinks(ITEM)).hasSameSizeAs(states);
   }
 
+
+  @Test
+  public void embeddable_resources_should_only_be_embedded_if_isLinkedWhenEmbedded_returns_false() {
+
+    List<TestState> states = Observable.range(0, 10)
+        .map(i -> new TestState(i))
+        .toList().blockingGet();
+
+    TestResourceWithObservableEmbedded resourceImpl = new TestResourceWithObservableEmbedded() {
+
+      @Override
+      public Observable<TestResource> getItems() {
+
+        return Observable.fromIterable(states)
+            .map(state -> new LinkedEmbeddableTestResource(state) {
+
+              @Override
+              public boolean isLinkedWhenEmbedded() {
+                return false;
+              }
+
+            });
+      }
+    };
+
+    HalResource hal = render(resourceImpl);
+    assertThat(hal.getEmbedded(ITEM)).hasSameSizeAs(states);
+    assertThat(hal.getLinks(ITEM)).isEmpty();
+  }
 }

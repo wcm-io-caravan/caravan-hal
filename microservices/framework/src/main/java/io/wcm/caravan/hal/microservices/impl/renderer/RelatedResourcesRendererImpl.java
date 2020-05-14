@@ -120,6 +120,8 @@ final class RelatedResourcesRendererImpl {
     // filter only those resources that are Linkable
     Observable<LinkableResource> rxLinkedResourceImpls = rxRelatedResources
         .filter(r -> r instanceof LinkableResource)
+        // decide whether to write links to resource that are also embedded
+        .filter(this::filterLinksToEmbeddedResource)
         .map(r -> (LinkableResource)r);
 
     // and let each resource create a link to itself
@@ -139,6 +141,20 @@ final class RelatedResourcesRendererImpl {
         });
 
     return rxLinks.toList();
+  }
+
+  private boolean filterLinksToEmbeddedResource(Object relatedResource) {
+
+    if (!(relatedResource instanceof EmbeddableResource)) {
+      return true;
+    }
+
+    EmbeddableResource embedded = (EmbeddableResource)relatedResource;
+    if (!embedded.isEmbedded()) {
+      return true;
+    }
+
+    return embedded.isLinkedWhenEmbedded();
   }
 
   private Single<List<HalResource>> renderEmbeddedResources(Method method, Observable<?> rxRelatedResources) {

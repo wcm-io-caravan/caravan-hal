@@ -39,4 +39,12 @@ public interface EmbeddableResource {
    * @return true if this resource should be embedded
    */
   boolean isEmbedded();
+
+  /**
+   * Determines if this resource should also be linked if it's already embedded in its context resource
+   * @return true if links to the embedded resources should be included
+   */
+  default boolean isLinkedWhenEmbedded() {
+    return true;
+  }
 }
