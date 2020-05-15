@@ -201,8 +201,10 @@ public final class HalApiReflectionUtils {
     Map<String, Object> map = new LinkedHashMap<>();
 
     for (Field field : FieldUtils.getAllFields(dtoClass)) {
-      Object value = instance != null ? getFieldValue(field, instance) : null;
-      map.put(field.getName(), value);
+      if (!field.isSynthetic()) {
+        Object value = instance != null ? getFieldValue(field, instance) : null;
+        map.put(field.getName(), value);
+      }
     }
 
     return map;
