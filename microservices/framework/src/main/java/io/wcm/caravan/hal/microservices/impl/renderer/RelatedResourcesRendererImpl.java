@@ -38,6 +38,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
@@ -52,10 +53,12 @@ final class RelatedResourcesRendererImpl {
 
   private final Function<Object, Single<HalResource>> recursiveRenderFunc;
   private final RequestMetricsCollector metrics;
+  private final HalApiTypeSupport typeSupport;
 
-  RelatedResourcesRendererImpl(Function<Object, Single<HalResource>> recursiveRenderFunc, RequestMetricsCollector metrics) {
+  RelatedResourcesRendererImpl(Function<Object, Single<HalResource>> recursiveRenderFunc, RequestMetricsCollector metrics, HalApiTypeSupport typeSupport) {
     this.recursiveRenderFunc = recursiveRenderFunc;
     this.metrics = metrics;
+    this.typeSupport = typeSupport;
   }
 
   /**
@@ -68,7 +71,7 @@ final class RelatedResourcesRendererImpl {
   Single<List<RelationRenderResult>> renderRelated(Class<?> apiInterface, Object resourceImplInstance) {
 
     // find all methods annotated with @RelatedResource
-    List<Method> methods = getSortedRelatedResourceMethods(apiInterface);
+    List<Method> methods = getSortedRelatedResourceMethods(apiInterface, typeSupport);
 
     return Observable.fromIterable(methods)
         // create a RelatedContent instance with the links and embedded resources returned by each method
@@ -80,10 +83,10 @@ final class RelatedResourcesRendererImpl {
   private Single<RelationRenderResult> createRelatedContentForMethod(Object resourceImplInstance, Method method) {
 
     verifyReturnType(resourceImplInstance, method);
-    String relation = method.getAnnotation(RelatedResource.class).relation();
+    String relation = typeSupport.getRelation(method);
 
     // call the implementation of the method to get an observable of related resource implementation instances
-    Observable<?> rxRelatedResources = invokeMethodAndReturnObservable(resourceImplInstance, method, metrics)
+    Observable<?> rxRelatedResources = invokeMethodAndReturnObservable(resourceImplInstance, method, metrics, typeSupport)
         .cache();
 
     // create links for those resources that implement LinkableResource
@@ -106,7 +109,7 @@ final class RelatedResourcesRendererImpl {
 
     // get the emitted result resource type from the method signature
     Class<?> relatedResourceInterface = RxJavaReflectionUtils.getObservableEmissionType(method);
-    if (!HalApiReflectionUtils.isHalApiInterface(relatedResourceInterface) && !LinkableResource.class.equals(relatedResourceInterface)) {
+    if (!HalApiReflectionUtils.isHalApiInterface(relatedResourceInterface, typeSupport) && !LinkableResource.class.equals(relatedResourceInterface)) {
 
       String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
       throw new HalApiDeveloperException("The method " + fullMethodName + " returns an Observable<" + relatedResourceInterface.getName() + ">, "

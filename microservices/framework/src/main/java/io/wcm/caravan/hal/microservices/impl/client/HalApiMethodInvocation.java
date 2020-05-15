@@ -15,12 +15,10 @@ import com.google.common.base.Preconditions;
 
 import io.wcm.caravan.hal.api.annotations.LinkName;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceLink;
-import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 
 
@@ -29,15 +27,18 @@ class HalApiMethodInvocation {
   private final Class interfaze;
   private final Method method;
   private final Class<?> emissionType;
+  private final HalApiTypeSupport typeSupport;
 
   private final Map<String, Object> templateVariables;
   private final String linkName;
   private final boolean calledWithOnlyNullParameters;
 
-  HalApiMethodInvocation(Class interfaze, Method method, Object[] args) {
+
+  HalApiMethodInvocation(Class interfaze, Method method, Object[] args, HalApiTypeSupport typeSupport) {
     this.interfaze = interfaze;
     this.method = method;
     this.emissionType = hasTemplatedReturnType() ? RxJavaReflectionUtils.getObservableEmissionType(method) : method.getReturnType();
+    this.typeSupport = typeSupport;
 
     this.templateVariables = new HashMap<>();
 
@@ -82,32 +83,29 @@ class HalApiMethodInvocation {
 
 
   String getRelation() {
-    RelatedResource relatedResourceAnnotation = method.getAnnotation(RelatedResource.class);
-
-    Preconditions.checkNotNull(relatedResourceAnnotation, this + " does not have a @" + RelatedResource.class.getSimpleName() + " annotation");
-
-    return relatedResourceAnnotation.relation();
+    String relation = typeSupport.getRelation(method);
+    Preconditions.checkNotNull(relation, this + " does not have a @" + RelatedResource.class.getSimpleName() + " annotation");
+    return relation;
   }
 
   boolean isForMethodAnnotatedWithRelatedResource() {
-    return method.getAnnotation(RelatedResource.class) != null;
+    return typeSupport.isRelatedResourceMethod(method);
   }
 
   boolean isForMethodAnnotatedWithResourceLink() {
-    return method.getAnnotation(ResourceLink.class) != null;
+    return typeSupport.isResourceLinkMethod(method);
   }
 
   boolean isForMethodAnnotatedWithResourceState() {
-    return method.getAnnotation(ResourceState.class) != null;
+    return typeSupport.isResourceStateMethod(method);
   }
 
   boolean isForMethodAnnotatedWithResourceRepresentation() {
-    return method.getAnnotation(ResourceRepresentation.class) != null;
+    return typeSupport.isResourceRepresentationMethod(method);
   }
 
   boolean hasTemplatedReturnType() {
-    return RxJavaReflectionUtils.hasReactiveReturnType(method)
-        || method.getGenericReturnType() instanceof ParameterizedType;
+    return method.getGenericReturnType() instanceof ParameterizedType;
   }
 
   Class<?> getReturnType() {

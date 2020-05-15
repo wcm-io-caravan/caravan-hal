@@ -46,6 +46,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 
 /**
  * Utility methods to inspect method signatures
@@ -55,22 +56,6 @@ public final class HalApiReflectionUtils {
   private HalApiReflectionUtils() {
     // static methods only
   }
-
-  private static final Comparator<Method> METHOD_RELATION_COMPARATOR = (method1, method2) -> {
-    String curi1 = method1.getAnnotation(RelatedResource.class).relation();
-    String curi2 = method2.getAnnotation(RelatedResource.class).relation();
-
-    // make sure that all standard link relations always come before custom relations
-    if (curi2.contains(":") && !curi1.contains(":")) {
-      return -1;
-    }
-    if (curi1.contains(":") && !curi2.contains(":")) {
-      return 1;
-    }
-
-    // otherwise the links should be sorted alphabetically
-    return curi1.compareTo(curi2);
-  };
 
   static Set<Class<?>> collectInterfaces(Class clazz) {
 
@@ -108,12 +93,13 @@ public final class HalApiReflectionUtils {
    * Checks which of the interfaces implemented by the given implementation instance is the one which is annotated with
    * {@link HalApiInterface}
    * @param resourceImplInstance an instance of a class implementing a HAL API interface
+   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
    * @return the interface that is annotated with {@link HalApiInterface}
    */
-  public static Class<?> findHalApiInterface(Object resourceImplInstance) {
+  public static Class<?> findHalApiInterface(Object resourceImplInstance, HalApiTypeSupport typeSupport) {
 
     Class<?> halApiInterface = collectInterfaces(resourceImplInstance.getClass()).stream()
-        .filter(interfaze -> interfaze.getAnnotation(HalApiInterface.class) != null)
+        .filter(typeSupport::isHalApiInterface)
         .findFirst()
         .orElseThrow(
             () -> new UnsupportedOperationException(
@@ -130,41 +116,47 @@ public final class HalApiReflectionUtils {
 
   /**
    * @param relatedResourceType an interface used as emission type of a reactive stream
+   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
    * @return true if the given interface is (or extends another interface) annotated with {@link HalApiInterface}
    */
-  public static boolean isHalApiInterface(Class<?> relatedResourceType) {
+  public static boolean isHalApiInterface(Class<?> relatedResourceType, HalApiTypeSupport typeSupport) {
 
     if (!relatedResourceType.isInterface()) {
       return false;
     }
-    if (relatedResourceType.getAnnotation(HalApiInterface.class) != null) {
+
+    if (typeSupport.isHalApiInterface(relatedResourceType)) {
       return true;
     }
 
     return collectInterfaces(relatedResourceType).stream()
-        .anyMatch(i -> i.getAnnotation(HalApiInterface.class) != null);
+        .anyMatch(typeSupport::isHalApiInterface);
   }
 
   /**
    * @param apiInterface an interface annotated with {@link HalApiInterface} (either directly or by extending)
+   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
    * @return the method annotated with {@link ResourceState}
    */
-  public static Optional<Method> findResourceStateMethod(Class<?> apiInterface) {
+  public static Optional<Method> findResourceStateMethod(Class<?> apiInterface, HalApiTypeSupport typeSupport) {
 
     return Stream.of(apiInterface.getMethods())
-        .filter(method -> method.getAnnotation(ResourceState.class) != null)
+        .filter(typeSupport::isResourceStateMethod)
         .findFirst();
   }
 
   /**
    * @param apiInterface an interface annotated with {@link HalApiInterface} (either directly or by extending)
+   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
    * @return a list of all methods annotated with {@link RelatedResource}
    */
-  public static List<Method> getSortedRelatedResourceMethods(Class<?> apiInterface) {
+  public static List<Method> getSortedRelatedResourceMethods(Class<?> apiInterface, HalApiTypeSupport typeSupport) {
+
+    MethodRelationComparator comparator = new MethodRelationComparator(typeSupport);
 
     return Stream.of(apiInterface.getMethods())
-        .filter(method -> method.getAnnotation(RelatedResource.class) != null)
-        .sorted((m1, m2) -> HalApiReflectionUtils.METHOD_RELATION_COMPARATOR.compare(m1, m2))
+        .filter(typeSupport::isRelatedResourceMethod)
+        .sorted(comparator)
         .collect(Collectors.toList());
   }
 
@@ -229,4 +221,30 @@ public final class HalApiReflectionUtils {
     return instance.getClass().getSimpleName() + "#" + method.getName();
   }
 
+  private static class MethodRelationComparator implements Comparator<Method> {
+
+    private final HalApiTypeSupport typeSupport;
+
+    private MethodRelationComparator(HalApiTypeSupport typeSupport) {
+      this.typeSupport = typeSupport;
+    }
+
+    @Override
+    public int compare(Method method1, Method method2) {
+      String curi1 = typeSupport.getRelation(method1);
+      String curi2 = typeSupport.getRelation(method2);
+
+      // make sure that all standard link relations always come before custom relations
+      if (curi2.contains(":") && !curi1.contains(":")) {
+        return -1;
+      }
+      if (curi1.contains(":") && !curi2.contains(":")) {
+        return 1;
+      }
+
+      // otherwise the links should be sorted alphabetically
+      return curi1.compareTo(curi2);
+    }
+
+  }
 }

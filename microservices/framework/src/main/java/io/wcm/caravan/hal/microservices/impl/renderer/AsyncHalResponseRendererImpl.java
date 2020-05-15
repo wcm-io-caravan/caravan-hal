@@ -20,7 +20,7 @@
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
@@ -44,17 +44,21 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
   private final VndErrorResponseRenderer errorRenderer;
 
+  private final HalApiTypeSupport typeSupport;
+
   /**
    * @param renderer used to asynchronously render a {@link HalResource}
    * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
    *          the current incoming request
    * @param exceptionStrategy allows to control the status code and logging of exceptions being thrown during rendering
+   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
    */
   public AsyncHalResponseRendererImpl(AsyncHalResourceRenderer renderer, RequestMetricsCollector metrics,
-      ExceptionStatusAndLoggingStrategy exceptionStrategy) {
+      ExceptionStatusAndLoggingStrategy exceptionStrategy, HalApiTypeSupport typeSupport) {
     this.renderer = renderer;
     this.metrics = metrics;
     this.errorRenderer = VndErrorResponseRenderer.create(exceptionStrategy);
+    this.typeSupport = typeSupport;
   }
 
   @Override
@@ -69,9 +73,8 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
     addMetadata(metrics, halResource, resourceImpl);
 
-    String contentType = HalApiReflectionUtils.findHalApiInterface(resourceImpl)
-        .getAnnotation(HalApiInterface.class)
-        .contentType();
+    Class<?> halApiInterface = HalApiReflectionUtils.findHalApiInterface(resourceImpl, typeSupport);
+    String contentType = typeSupport.getContentType(halApiInterface);
 
     HalResponse response = new HalResponse()
         .withStatus(200)

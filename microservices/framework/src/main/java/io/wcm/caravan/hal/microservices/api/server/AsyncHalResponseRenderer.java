@@ -23,6 +23,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -51,6 +52,6 @@ public interface AsyncHalResponseRenderer {
   static AsyncHalResponseRenderer create(RequestMetricsCollector metrics, ExceptionStatusAndLoggingStrategy exceptionStrategy) {
 
     AsyncHalResourceRenderer resourceRenderer = AsyncHalResourceRenderer.create(metrics);
-    return new AsyncHalResponseRendererImpl(resourceRenderer, metrics, exceptionStrategy);
+    return new AsyncHalResponseRendererImpl(resourceRenderer, metrics, exceptionStrategy, new DefaultHalApiTypeSupport());
   }
 }

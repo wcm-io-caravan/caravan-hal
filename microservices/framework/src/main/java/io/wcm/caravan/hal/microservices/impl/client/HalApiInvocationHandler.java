@@ -5,24 +5,19 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceLink;
-import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -41,22 +36,24 @@ final class HalApiInvocationHandler implements InvocationHandler {
   private final Link linkToResource;
   private final HalApiClientProxyFactory proxyFactory;
   private final RequestMetricsCollector metrics;
+  private final HalApiTypeSupport typeSupport;
 
   HalApiInvocationHandler(Single<HalResource> rxResource, Class resourceInterface, Link linkToResource,
-      HalApiClientProxyFactory proxyFactory, RequestMetricsCollector metrics) {
+      HalApiClientProxyFactory proxyFactory, RequestMetricsCollector metrics, HalApiTypeSupport typeSupport) {
 
     this.rxResource = rxResource;
     this.resourceInterface = resourceInterface;
     this.linkToResource = linkToResource;
     this.proxyFactory = proxyFactory;
     this.metrics = metrics;
+    this.typeSupport = typeSupport;
   }
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
     // create an object to help with identification of methods and parameters
-    HalApiMethodInvocation invocation = new HalApiMethodInvocation(resourceInterface, method, args);
+    HalApiMethodInvocation invocation = new HalApiMethodInvocation(resourceInterface, method, args, typeSupport);
 
     try {
       return returnValueCache.get(invocation.getCacheKey(), () -> callAnnotationSpecificHandler(invocation));
@@ -88,17 +85,17 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceStateHandler(hal))
             .flatMapMaybe(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertAndCacheReactiveType(state, invocation.getReturnType(), metrics, invocation.getDescription());
+        return RxJavaReflectionUtils.convertAndCacheReactiveType(state, invocation.getReturnType(), metrics, invocation.getDescription(), typeSupport);
       }
 
       if (invocation.isForMethodAnnotatedWithRelatedResource()) {
 
         Observable<Object> relatedProxies = rxResource
             .onErrorResumeNext(ex -> addContextToHalApiClientException(ex, invocation))
-            .map(hal -> new RelatedResourceHandler(hal, proxyFactory))
+            .map(hal -> new RelatedResourceHandler(hal, proxyFactory, typeSupport))
             .flatMapObservable(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertAndCacheReactiveType(relatedProxies, invocation.getReturnType(), metrics, invocation.getDescription());
+        return RxJavaReflectionUtils.convertAndCacheReactiveType(relatedProxies, invocation.getReturnType(), metrics, invocation.getDescription(), typeSupport);
       }
 
       if (invocation.isForMethodAnnotatedWithResourceLink()) {
@@ -114,7 +111,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
             .map(hal -> new ResourceRepresentationHandler(hal))
             .flatMap(handler -> handler.handleMethodInvocation(invocation));
 
-        return RxJavaReflectionUtils.convertAndCacheReactiveType(representation, invocation.getReturnType(), metrics, invocation.getDescription());
+        return RxJavaReflectionUtils.convertAndCacheReactiveType(representation, invocation.getReturnType(), metrics, invocation.getDescription(), typeSupport);
       }
 
       if (invocation.toString().endsWith("#toString()")) {
@@ -123,12 +120,7 @@ final class HalApiInvocationHandler implements InvocationHandler {
       }
 
       // unsupported operation
-      String annotationNames = ImmutableList.of(RelatedResource.class, ResourceState.class, ResourceLink.class, ResourceRepresentation.class).stream()
-          .map(Class::getSimpleName)
-          .map(name -> "@" + name)
-          .collect(Collectors.joining(", ", "(", ")"));
-
-      throw new HalApiDeveloperException("The method " + invocation + " is not annotated with one of the HAL API annotations " + annotationNames);
+      throw new HalApiDeveloperException("The method " + invocation + " is not annotated with one of the supported HAL API annotations");
 
     }
     catch (HalApiDeveloperException e) {

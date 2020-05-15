@@ -25,6 +25,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataGenerator;
+import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -39,7 +40,7 @@ public final class AsyncHalResourceRendererTestUtil {
   public static HalResource render(Object resourceImplInstance) {
 
     RequestMetricsCollector metrics = new ResponseMetadataGenerator();
-    AsyncHalResourceRendererImpl renderer = new AsyncHalResourceRendererImpl(metrics);
+    AsyncHalResourceRendererImpl renderer = new AsyncHalResourceRendererImpl(metrics, new DefaultHalApiTypeSupport());
 
     Single<HalResource> rxResource;
     if (resourceImplInstance instanceof LinkableResource) {

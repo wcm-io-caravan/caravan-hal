@@ -333,7 +333,7 @@ public class RelatedResourceTest {
     Throwable ex = catchThrowable(
         () -> client.createProxy(ResourceWithIllegalAnnotations.class).noAnnotation());
 
-    assertThat(ex).isInstanceOf(HalApiDeveloperException.class).hasMessageContaining("is not annotated with one of the HAL API annotations");
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class).hasMessageContaining("is not annotated with one of the supported HAL API annotations");
   }
 
   @Test

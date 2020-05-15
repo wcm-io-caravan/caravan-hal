@@ -7,6 +7,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.client.HalApiClientImpl;
+import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
 
 /**
  * A generic HAL API client that will provide a dynamic proxy implementation of a given HAL API interface
@@ -32,6 +33,6 @@ public interface HalApiClient {
    *         current incoming request
    */
   static HalApiClient create(JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
-    return new HalApiClientImpl(jsonLoader, metrics);
+    return new HalApiClientImpl(jsonLoader, metrics, new DefaultHalApiTypeSupport());
   }
 }

@@ -24,6 +24,7 @@ import org.osgi.annotation.versioning.ProviderType;
 import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -47,6 +48,6 @@ public interface AsyncHalResourceRenderer {
    * @return a new {@link AsyncHalResourceRenderer} to use for the current incoming request
    */
   static AsyncHalResourceRenderer create(RequestMetricsCollector metrics) {
-    return new AsyncHalResourceRendererImpl(metrics);
+    return new AsyncHalResourceRendererImpl(metrics, new DefaultHalApiTypeSupport());
   }
 }

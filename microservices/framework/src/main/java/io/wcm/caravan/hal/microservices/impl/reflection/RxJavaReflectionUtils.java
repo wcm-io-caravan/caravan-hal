@@ -23,20 +23,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 
-import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
@@ -56,9 +55,11 @@ public final class RxJavaReflectionUtils {
    * @param resourceImplInstance the object on which to invoke the method
    * @param method a method that returns a {@link Single}, {@link Maybe}, {@link Observable} or {@link Publisher}
    * @param metrics to track the method invocation time
+   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
    * @return an {@link Observable} that emits the items from the reactive stream returned by the method
    */
-  public static Observable<?> invokeMethodAndReturnObservable(Object resourceImplInstance, Method method, RequestMetricsCollector metrics) {
+  public static Observable<?> invokeMethodAndReturnObservable(Object resourceImplInstance, Method method, RequestMetricsCollector metrics,
+      HalApiTypeSupport typeSupport) {
 
     Stopwatch stopwatch = Stopwatch.createStarted();
 
@@ -74,7 +75,7 @@ public final class RxJavaReflectionUtils {
             fullMethodName + " must not return null. You should return an empty Maybe/Observable if the related resource does not exist");
       }
 
-      return convertToObservable(returnValue);
+      return convertToObservable(returnValue, typeSupport);
     }
     catch (InvocationTargetException ex) {
       throw new RuntimeException("An exception was thrown during assembly time in " + fullMethodName, ex.getTargetException());
@@ -106,21 +107,9 @@ public final class RxJavaReflectionUtils {
     Type resourceType = observableType.getActualTypeArguments()[0];
 
     Preconditions.checkArgument(resourceType instanceof Class,
-        "return types must be Observable/Single/Maybe/Publisher of Class type, but found " + resourceType.getTypeName());
+        "return types must be generic class with Class type parameters (e.g. List<ObjectNode>), but found " + resourceType.getTypeName());
 
     return (Class)resourceType;
-  }
-
-  /**
-   * @param method the method to check
-   * @return true if this method returns a {@link Observable}
-   */
-  public static boolean hasReactiveReturnType(Method method) {
-
-    Class returnType = method.getReturnType();
-
-    return Publisher.class.isAssignableFrom(returnType) ||
-        Observable.class.isAssignableFrom(returnType) || Single.class.isAssignableFrom(returnType) || Maybe.class.isAssignableFrom(returnType);
   }
 
   /**
@@ -128,84 +117,44 @@ public final class RxJavaReflectionUtils {
    * @param targetType {@link Single}, {@link Maybe}, {@link Observable} or {@link Publisher} class
    * @param metrics to collect emission times
    * @param description for the metrics
+   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
    * @return an instance of the target type that will replay (and cache!) the items emitted by the given reactive
    *         instance
    */
-  public static Object convertAndCacheReactiveType(Object reactiveInstance, Class<?> targetType, RequestMetricsCollector metrics, String description) {
+  public static Object convertAndCacheReactiveType(Object reactiveInstance, Class<?> targetType, RequestMetricsCollector metrics, String description,
+      HalApiTypeSupport typeSupport) {
 
-    Observable<?> observable = convertToObservable(reactiveInstance)
+    Observable<?> observable = convertToObservable(reactiveInstance, typeSupport)
         .compose(EmissionStopwatch.collectMetrics(description, metrics));
 
     // do not use Observable#cache() here, because we want consumers to be able to use Observable#retry()
     Observable<?> cached = observable.compose(RxJavaTransformers.cacheIfCompleted());
 
-    return convertObservableTo(cached, targetType);
+    return convertObservableTo(cached, targetType, typeSupport);
   }
 
-  private static Object convertObservableTo(Observable<?> observable, Class<?> targetType) {
+  private static Object convertObservableTo(Observable<?> observable, Class<?> targetType, HalApiTypeSupport typeSupport) {
 
     Preconditions.checkNotNull(targetType, "A target type must be provided");
 
-    if (targetType.isAssignableFrom(Observable.class)) {
-      return observable;
-    }
-    if (targetType.isAssignableFrom(Single.class)) {
-      return observable.singleOrError();
-    }
-    if (targetType.isAssignableFrom(Maybe.class)) {
-      return observable.singleElement();
-    }
-    if (targetType.isAssignableFrom(Publisher.class)) {
-      return observable.toFlowable(BackpressureStrategy.BUFFER);
+    Function<Observable, ?> conversion = typeSupport.convertFromObservable(targetType);
+    if (conversion == null) {
+      throw new HalApiDeveloperException("The given target type of " + targetType.getName() + " is not a supported reactive type");
     }
 
-    if (targetType.isAssignableFrom(Optional.class)) {
-      return observable.singleElement()
-          .map(Optional::of)
-          .defaultIfEmpty(Optional.empty())
-          .blockingGet();
-    }
-    if (targetType.isAssignableFrom(List.class)) {
-      return observable.toList().blockingGet();
-    }
-
-    if (targetType.getTypeParameters().length == 0) {
-      return observable.singleOrError().blockingGet();
-    }
-
-    throw new HalApiDeveloperException("The given target type of " + targetType.getName() + " is not a supported reactive type");
+    return conversion.apply(observable);
   }
 
-  private static Observable<?> convertToObservable(Object reactiveInstance) {
+  private static Observable<?> convertToObservable(Object reactiveInstance, HalApiTypeSupport typeSupport) {
 
     Preconditions.checkNotNull(reactiveInstance, "Cannot convert null objects");
 
-    Observable<?> observable = null;
-    if (reactiveInstance instanceof Observable) {
-      observable = (Observable)reactiveInstance;
-    }
-    else if (reactiveInstance instanceof Single) {
-      observable = ((Single)reactiveInstance).toObservable();
-    }
-    else if (reactiveInstance instanceof Maybe) {
-      observable = ((Maybe)reactiveInstance).toObservable();
-    }
-    else if (reactiveInstance instanceof Publisher) {
-      observable = Observable.fromPublisher((Publisher<?>)reactiveInstance);
-    }
-    else if (reactiveInstance instanceof Optional) {
-      Optional<?> optional = (Optional)reactiveInstance;
-      observable = optional.isPresent() ? Observable.just(optional.get()) : Observable.empty();
-    }
-    else if (reactiveInstance instanceof List) {
-      return Observable.fromIterable((List<?>)reactiveInstance);
-    }
-    else if (reactiveInstance.getClass().getTypeParameters().length == 0) {
-      return Observable.just(reactiveInstance);
-    }
-    else {
+    Function<Object, Observable<?>> conversion = typeSupport.convertToObservable(reactiveInstance.getClass());
+    if (conversion == null) {
       throw new HalApiDeveloperException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");
     }
+
+    Observable<?> observable = conversion.apply(reactiveInstance);
 
     return observable;
 

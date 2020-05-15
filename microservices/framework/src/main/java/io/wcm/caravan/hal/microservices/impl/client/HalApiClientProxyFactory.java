@@ -20,6 +20,7 @@ import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
@@ -37,11 +38,12 @@ final class HalApiClientProxyFactory {
 
   private final JsonResourceLoader jsonLoader;
   private final RequestMetricsCollector metrics;
+  private final HalApiTypeSupport typeSupport;
 
-
-  HalApiClientProxyFactory(JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
+  HalApiClientProxyFactory(JsonResourceLoader jsonLoader, RequestMetricsCollector metrics, HalApiTypeSupport typeSupport) {
     this.metrics = metrics;
     this.jsonLoader = jsonLoader;
+    this.typeSupport = typeSupport;
   }
 
   <T> T createProxyFromUrl(Class<T> relatedResourceType, String url) {
@@ -116,7 +118,7 @@ final class HalApiClientProxyFactory {
 
     try {
       // check that the given class is indeed a HAL api interface
-      if (!isHalApiInterface(relatedResourceType)) {
+      if (!isHalApiInterface(relatedResourceType, typeSupport)) {
         throw new HalApiDeveloperException(
             "The given resource interface " + relatedResourceType.getName() + " does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
       }
@@ -124,7 +126,7 @@ final class HalApiClientProxyFactory {
       Class[] interfaces = getInterfacesToImplement(relatedResourceType);
 
       // the main logic of the proxy is implemented in this InvocationHandler
-      HalApiInvocationHandler invocationHandler = new HalApiInvocationHandler(rxHal, relatedResourceType, linkToResource, this, metrics);
+      HalApiInvocationHandler invocationHandler = new HalApiInvocationHandler(rxHal, relatedResourceType, linkToResource, this, metrics, typeSupport);
 
       @SuppressWarnings("unchecked")
       T proxy = (T)Proxy.newProxyInstance(relatedResourceType.getClassLoader(), interfaces, invocationHandler);

@@ -47,6 +47,7 @@ import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations;
+import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
@@ -69,7 +70,7 @@ public class AsyncHalResponseRendererImplTest {
 
   private HalResponse renderResponse() {
 
-    AsyncHalResponseRenderer responseRenderer = new AsyncHalResponseRendererImpl(renderer, metrics, exceptionStrategy);
+    AsyncHalResponseRenderer responseRenderer = new AsyncHalResponseRendererImpl(renderer, metrics, exceptionStrategy, new DefaultHalApiTypeSupport());
 
     return responseRenderer.renderResponse(REQUEST_URI, resource).blockingGet();
   }

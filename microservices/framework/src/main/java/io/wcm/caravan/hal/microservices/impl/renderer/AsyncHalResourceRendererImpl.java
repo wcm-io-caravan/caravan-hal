@@ -34,6 +34,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
 
 import io.reactivex.rxjava3.core.Single;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
@@ -54,15 +55,18 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
 
   private final RelatedResourcesRendererImpl relatedRenderer;
   private final RequestMetricsCollector metrics;
+  private final HalApiTypeSupport typeSupport;
 
   /**
    * Create a new renderer to use (only) for the current incoming request
    * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
    *          the current incoming request
+   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
    */
-  public AsyncHalResourceRendererImpl(RequestMetricsCollector metrics) {
-    this.relatedRenderer = new RelatedResourcesRendererImpl(this::renderLinkedOrEmbeddedResource, metrics);
+  public AsyncHalResourceRendererImpl(RequestMetricsCollector metrics, HalApiTypeSupport typeSupport) {
+    this.relatedRenderer = new RelatedResourcesRendererImpl(this::renderLinkedOrEmbeddedResource, metrics, typeSupport);
     this.metrics = metrics;
+    this.typeSupport = typeSupport;
   }
 
   @Override
@@ -78,7 +82,7 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     Preconditions.checkNotNull(resourceImplInstance, "Cannot create a HalResource from a null reference");
 
     // find the interface annotated with @HalApiInterface
-    Class<?> apiInterface = findHalApiInterface(resourceImplInstance);
+    Class<?> apiInterface = findHalApiInterface(resourceImplInstance, typeSupport);
 
     // get the JSON resource state from the method annotated with @ResourceState
     Single<ObjectNode> rxState = renderResourceState(apiInterface, resourceImplInstance);
@@ -105,13 +109,13 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
     Single<ObjectNode> emptyObject = Single.fromCallable(() -> JsonNodeFactory.instance.objectNode());
 
     // find the first method annotated with @ResourceState (and return an empty object if there is none)
-    Optional<Method> method = HalApiReflectionUtils.findResourceStateMethod(apiInterface);
+    Optional<Method> method = HalApiReflectionUtils.findResourceStateMethod(apiInterface, typeSupport);
     if (!method.isPresent()) {
       return emptyObject;
     }
 
     // invoke the method to get the state observable
-    return RxJavaReflectionUtils.invokeMethodAndReturnObservable(resourceImplInstance, method.get(), metrics)
+    return RxJavaReflectionUtils.invokeMethodAndReturnObservable(resourceImplInstance, method.get(), metrics, typeSupport)
         // convert the emitted state instance to a JSON object node
         .map(object -> OBJECT_MAPPER.convertValue(object, ObjectNode.class))
         // or use an empty object if the method returned an empty Maybe or Observable

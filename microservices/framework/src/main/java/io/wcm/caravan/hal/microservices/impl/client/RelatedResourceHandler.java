@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableList;
 import io.reactivex.rxjava3.core.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -46,10 +47,12 @@ class RelatedResourceHandler {
 
   private final HalResource contextResource;
   private final HalApiClientProxyFactory proxyFactory;
+  private final HalApiTypeSupport typeSupport;
 
-  RelatedResourceHandler(HalResource contextResource, HalApiClientProxyFactory proxyFactory) {
+  RelatedResourceHandler(HalResource contextResource, HalApiClientProxyFactory proxyFactory, HalApiTypeSupport typeSupport) {
     this.contextResource = contextResource;
     this.proxyFactory = proxyFactory;
+    this.typeSupport = typeSupport;
   }
 
   Observable<?> handleMethodInvocation(HalApiMethodInvocation invocation) {
@@ -58,7 +61,7 @@ class RelatedResourceHandler {
     String relation = invocation.getRelation();
     Class<?> relatedResourceType = invocation.getEmissionType();
 
-    if (!isHalApiInterface(relatedResourceType)) {
+    if (!isHalApiInterface(relatedResourceType, typeSupport)) {
       throw new HalApiDeveloperException("The method " + invocation + " has an invalid emission type " + relatedResourceType.getName() +
           " which does not have a @" + HalApiInterface.class.getSimpleName() + " annotation.");
     }
