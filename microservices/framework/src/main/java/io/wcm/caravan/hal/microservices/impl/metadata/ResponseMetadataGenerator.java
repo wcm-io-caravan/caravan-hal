@@ -98,8 +98,8 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
 
 
   @Override
-  public void limitOutputMaxAge(int value) {
-    maxAgeLimit = value;
+  public void limitOutputMaxAge(int seconds) {
+    maxAgeLimit = seconds;
   }
 
   /**

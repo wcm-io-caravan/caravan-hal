@@ -40,9 +40,9 @@ public interface RequestMetricsCollector {
 
   /**
    * Set the upper limit for the max-age header of the response to the current incoming request.
-   * @param value the maximum cache duration in seconds
+   * @param seconds the maximum cache duration in seconds
    */
-  void limitOutputMaxAge(int value);
+  void limitOutputMaxAge(int seconds);
 
   /**
    * Create a resource with performance analysis data that can be embedded in the response
