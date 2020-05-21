@@ -183,7 +183,7 @@ class CaravanGuavaJsonResourceLoader implements JsonResourceLoader {
     }
 
     String message = "HTTP request for " + uri + " failed because of timeout, configuration or networking issues";
-    return Single.error(new HalApiClientException(message, 0, uri, ex));
+    return Single.error(new HalApiClientException(message, null, uri, ex));
   }
 
   static class CacheEntry {
