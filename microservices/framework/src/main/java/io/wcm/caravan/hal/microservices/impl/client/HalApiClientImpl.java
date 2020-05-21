@@ -19,6 +19,8 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
+import com.google.common.base.Preconditions;
+
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
@@ -40,6 +42,8 @@ public class HalApiClientImpl implements HalApiClient {
    * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
    */
   public HalApiClientImpl(JsonResourceLoader jsonLoader, RequestMetricsCollector metrics, HalApiTypeSupport typeSupport) {
+
+    Preconditions.checkNotNull(jsonLoader, "A " + JsonResourceLoader.class.getName() + " instance must be provided");
     CachingJsonResourceLoader cachingLoader = new CachingJsonResourceLoader(jsonLoader, metrics);
 
     factory = new HalApiClientProxyFactory(cachingLoader, metrics, typeSupport);
