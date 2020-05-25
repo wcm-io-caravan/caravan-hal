@@ -28,6 +28,7 @@ import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRel
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -63,7 +64,7 @@ public class ResponseMetadataGeneratorTest {
   @Test
   public void default_output_max_age_should_be_null() throws Exception {
 
-    assertThat(metrics.getOutputMaxAge()).isNull();
+    assertThat(metrics.getResponseMaxAge()).isNull();
   }
 
   @Test
@@ -71,37 +72,37 @@ public class ResponseMetadataGeneratorTest {
 
     metrics.onResponseRetrieved(UPSTREAM_URI1, UPSTREAM_TITLE, null, ANY_RESPONSE_TIME);
 
-    assertThat(metrics.getOutputMaxAge()).isNull();
+    assertThat(metrics.getResponseMaxAge()).isNull();
   }
 
   @Test
   public void max_age_limit_should_be_used_if_no_resources_are_requested() throws Exception {
 
     int limit = 55;
-    metrics.limitOutputMaxAge(limit);
+    metrics.setResponseMaxAge(Duration.ofSeconds(limit));
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(limit);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(limit);
   }
 
   @Test
   public void max_age_limit_should_be_used_if_if_no_max_age_present_in_upstream_response() throws Exception {
 
     int limit = 55;
-    metrics.limitOutputMaxAge(limit);
+    metrics.setResponseMaxAge(Duration.ofSeconds(limit));
     metrics.onResponseRetrieved(UPSTREAM_URI1, UPSTREAM_TITLE, null, ANY_RESPONSE_TIME);
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(limit);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(limit);
   }
 
   @Test
   public void max_age_limit_should_be_used_if_its_smaller_than_max_age_from_upstream_response() throws Exception {
 
     int limit = 55;
-    metrics.limitOutputMaxAge(limit);
+    metrics.setResponseMaxAge(Duration.ofSeconds(limit));
     int upstreamMaxAge = 400;
     metrics.onResponseRetrieved(UPSTREAM_URI1, UPSTREAM_TITLE, upstreamMaxAge, ANY_RESPONSE_TIME);
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(limit);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(limit);
   }
 
   @Test
@@ -110,18 +111,18 @@ public class ResponseMetadataGeneratorTest {
     int upstreamMaxAge = 40;
     metrics.onResponseRetrieved(UPSTREAM_URI1, UPSTREAM_TITLE, upstreamMaxAge, ANY_RESPONSE_TIME);
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(upstreamMaxAge);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(upstreamMaxAge);
   }
 
   @Test
   public void max_age_from_upstream_resource_should_be_used_if_its_smaller_than_limit() throws Exception {
 
     int limit = 55;
-    metrics.limitOutputMaxAge(limit);
+    metrics.setResponseMaxAge(Duration.ofSeconds(limit));
     int upstreamMaxAge = 40;
     metrics.onResponseRetrieved(UPSTREAM_URI1, UPSTREAM_TITLE, upstreamMaxAge, ANY_RESPONSE_TIME);
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(upstreamMaxAge);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(upstreamMaxAge);
   }
 
   @Test
@@ -132,7 +133,7 @@ public class ResponseMetadataGeneratorTest {
     int upstreamMaxAge2 = 40;
     metrics.onResponseRetrieved(UPSTREAM_URI2, UPSTREAM_TITLE, upstreamMaxAge2, ANY_RESPONSE_TIME);
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(upstreamMaxAge2);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(upstreamMaxAge2);
   }
 
   @Test

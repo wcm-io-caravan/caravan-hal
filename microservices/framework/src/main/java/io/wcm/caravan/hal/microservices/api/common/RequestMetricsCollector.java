@@ -19,6 +19,8 @@
  */
 package io.wcm.caravan.hal.microservices.api.common;
 
+import java.time.Duration;
+
 import org.osgi.annotation.versioning.ProviderType;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
@@ -34,15 +36,16 @@ public interface RequestMetricsCollector {
 
   /**
    * Calculates the "max-age" Cache-Control header value to be used when rendering the response.
-   * @return the minimum "max-age" value of all upstream requests and the limit set via {@link #limitOutputMaxAge(int)}
+   * @return the minimum "max-age" value of all upstream requests and the limit set via
+   *         {@link #setResponseMaxAge(Duration)}
    */
-  Integer getOutputMaxAge();
+  Integer getResponseMaxAge();
 
   /**
    * Set the upper limit for the max-age header of the response to the current incoming request.
-   * @param seconds the maximum cache duration in seconds
+   * @param duration the maximum cache duration
    */
-  void limitOutputMaxAge(int seconds);
+  void setResponseMaxAge(Duration duration);
 
   /**
    * Create a resource with performance analysis data that can be embedded in the response

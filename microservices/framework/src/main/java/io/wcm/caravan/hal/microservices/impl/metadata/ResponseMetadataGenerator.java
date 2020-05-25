@@ -25,6 +25,7 @@ import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRel
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.RESPONSE_TIMES;
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.SOURCE_LINKS;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -96,10 +97,10 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
         new TimeMeasurement(methodDescription, invocationDurationMicros / 1000.f, TimeUnit.MILLISECONDS));
   }
 
-
   @Override
-  public void limitOutputMaxAge(int seconds) {
-    maxAgeLimit = seconds;
+  public void setResponseMaxAge(Duration duration) {
+    long seconds = duration.getSeconds();
+    maxAgeLimit = seconds > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)seconds;
   }
 
   /**
@@ -107,7 +108,7 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
    *         fetched, or none of them had a max-age header
    */
   @Override
-  public Integer getOutputMaxAge() {
+  public Integer getResponseMaxAge() {
 
     if (maxAgeLimit == null && inputMaxAgeSeconds.isEmpty()) {
       return null;
@@ -228,7 +229,7 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
             + "then check the resources at the very bottom of the list, because they will determine the overall max-age time.");
 
     // and also include the overall max-age of the response
-    metadataResource.getModel().put("maxAge", getOutputMaxAge() + " s");
+    metadataResource.getModel().put("maxAge", getResponseMaxAge() + " s");
 
     // and a summary of the important timing results
     metadataResource.getModel().put("sumOfProxyInvocationTime", getSumOfInvocationMillis(HalApiClient.class) + "ms");
@@ -292,4 +293,5 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
       return this.unit;
     }
   }
+
 }

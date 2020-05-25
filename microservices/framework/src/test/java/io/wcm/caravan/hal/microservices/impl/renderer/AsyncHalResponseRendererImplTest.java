@@ -154,7 +154,7 @@ public class AsyncHalResponseRendererImplTest {
   public void response_should_allow_null_values_for_max_age_from_metrics() throws Exception {
 
     mockRenderedResource();
-    when(metrics.getOutputMaxAge()).thenReturn(null);
+    when(metrics.getResponseMaxAge()).thenReturn(null);
     HalResponse response = renderResponse();
 
     assertThat(response.getMaxAge()).isNull();
@@ -164,7 +164,7 @@ public class AsyncHalResponseRendererImplTest {
   public void response_should_contain_max_age_from_metrics() throws Exception {
 
     mockRenderedResource();
-    when(metrics.getOutputMaxAge()).thenReturn(99);
+    when(metrics.getResponseMaxAge()).thenReturn(99);
 
     HalResponse response = renderResponse();
 

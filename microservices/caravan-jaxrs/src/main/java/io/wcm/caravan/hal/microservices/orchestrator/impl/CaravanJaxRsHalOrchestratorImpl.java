@@ -19,6 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.orchestrator.impl;
 
+import java.time.Duration;
 import java.util.Objects;
 
 import javax.ws.rs.container.AsyncResponse;
@@ -64,7 +65,7 @@ public class CaravanJaxRsHalOrchestratorImpl implements CaravanJaxRsHalOrchestra
 
   @Override
   public void limitOutputMaxAge(int maxAge) {
-    metrics.limitOutputMaxAge(maxAge);
+    metrics.setResponseMaxAge(Duration.ofSeconds(maxAge));
   }
 
   @Override

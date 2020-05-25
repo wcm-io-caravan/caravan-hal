@@ -81,7 +81,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
         .withContentType(contentType)
         .withReason("Ok")
         .withBody(halResource)
-        .withMaxAge(metrics.getOutputMaxAge());
+        .withMaxAge(metrics.getResponseMaxAge());
 
     return response;
   }

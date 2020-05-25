@@ -17,19 +17,19 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.api;
+package io.wcm.caravan.hal.microservices.impl;
 
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.CARAVAN_METADATA_RELATION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.mock;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import io.wcm.caravan.hal.microservices.api.Reha;
+import io.wcm.caravan.hal.microservices.api.RehaBuilder;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
-import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
@@ -39,16 +39,16 @@ import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 @ExtendWith(MockitoExtension.class)
-public class HalApiFacadeTest {
+public class RehaBuilderImplTest {
 
   private static final String REQUEST_URI = "/";
 
   @Test
   public void should_render_resource() throws Exception {
 
-    HalApiFacade facade = new HalApiFacade(mock(JsonResourceLoader.class));
+    Reha reha = RehaBuilder.withoutResourceLoader().buildForRequestTo(REQUEST_URI);
 
-    HalResponse response = facade.renderResponse(REQUEST_URI, new LinkableTestResource() {
+    HalResponse response = reha.respondWith(new LinkableTestResource() {
 
       @Override
       public Link createLink() {
@@ -67,9 +67,9 @@ public class HalApiFacadeTest {
   @Test
   public void should_render_error_resource_if_exception_is_thrown() throws Exception {
 
-    HalApiFacade facade = new HalApiFacade(mock(JsonResourceLoader.class));
+    Reha reha = RehaBuilder.withoutResourceLoader().buildForRequestTo(REQUEST_URI);
 
-    HalResponse response = facade.renderResponse(REQUEST_URI, new LinkableTestResource() {
+    HalResponse response = reha.respondWith(new LinkableTestResource() {
 
       @Override
       public Link createLink() {
@@ -89,9 +89,9 @@ public class HalApiFacadeTest {
     TestResourceTree jsonLoader = new TestResourceTree();
     jsonLoader.getEntryPoint().setNumber(123);
 
-    HalApiFacade facade = new HalApiFacade(jsonLoader);
+    Reha reha = RehaBuilder.withResourceLoader(jsonLoader).buildForRequestTo(REQUEST_URI);
 
-    LinkableTestResource testResource = facade.getEntryPoint(REQUEST_URI, LinkableTestResource.class);
+    LinkableTestResource testResource = reha.getEntryPoint(REQUEST_URI, LinkableTestResource.class);
 
     TestState testState = testResource.getState().blockingGet();
     assertThat(testState).isNotNull();
@@ -102,9 +102,9 @@ public class HalApiFacadeTest {
   public void should_throw_HalApiClientException_if_resource_does_not_exists() {
 
     TestResourceTree jsonLoader = new TestResourceTree();
-    HalApiFacade facade = new HalApiFacade(jsonLoader);
+    Reha reha = RehaBuilder.withResourceLoader(jsonLoader).buildForRequestTo(REQUEST_URI);
 
-    LinkableTestResource testResource = facade.getEntryPoint("/foo", LinkableTestResource.class);
+    LinkableTestResource testResource = reha.getEntryPoint("/foo", LinkableTestResource.class);
 
     assertThrows(HalApiClientException.class, () -> testResource.getState().blockingGet());
   }

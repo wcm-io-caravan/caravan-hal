@@ -22,6 +22,8 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
+
 import org.junit.jupiter.api.Test;
 
 import io.reactivex.rxjava3.core.Maybe;
@@ -70,17 +72,17 @@ public class MaxAgeTest {
 
     loadEntryPoint();
 
-    assertThat(metrics.getOutputMaxAge()).isNull();
+    assertThat(metrics.getResponseMaxAge()).isNull();
   }
 
   @Test
   public void explicit_max_age_should_be_used_if_no_headers_found_in_response() {
 
-    metrics.limitOutputMaxAge(45);
+    metrics.setResponseMaxAge(Duration.ofSeconds(45));
 
     loadEntryPoint();
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(45);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(45);
   }
 
   @Test
@@ -90,29 +92,29 @@ public class MaxAgeTest {
 
     loadEntryPoint();
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(55);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(55);
   }
 
   @Test
   public void max_age_from_entrypoint_response_should_be_used_if_smaller_than_explicit_value() {
 
-    metrics.limitOutputMaxAge(125);
+    metrics.setResponseMaxAge(Duration.ofSeconds(125));
     entryPoint.withMaxAge(55);
 
     loadEntryPoint();
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(55);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(55);
   }
 
   @Test
   public void explicit_max_age_should_be_used_if_smaller_than_header_from_entry_point() {
 
-    metrics.limitOutputMaxAge(45);
+    metrics.setResponseMaxAge(Duration.ofSeconds(45));
     entryPoint.withMaxAge(180);
 
     loadEntryPoint();
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(45);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(45);
   }
 
   @Test
@@ -126,7 +128,7 @@ public class MaxAgeTest {
         .getLinked().flatMapMaybe(LinkedResource::getState)
         .toList().blockingGet();
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(15);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(15);
   }
 
   @Test
@@ -140,6 +142,6 @@ public class MaxAgeTest {
         .getLinked().flatMapMaybe(LinkedResource::getState)
         .toList().blockingGet();
 
-    assertThat(metrics.getOutputMaxAge()).isEqualTo(55);
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(55);
   }
 }
