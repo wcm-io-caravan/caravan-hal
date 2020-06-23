@@ -100,7 +100,13 @@ public class ResponseMetadataGenerator implements RequestMetricsCollector {
   @Override
   public void setResponseMaxAge(Duration duration) {
     long seconds = duration.getSeconds();
-    maxAgeLimit = seconds > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)seconds;
+    int intSeconds = seconds > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)seconds;
+    if (maxAgeLimit != null) {
+      maxAgeLimit = Math.min(maxAgeLimit, intSeconds);
+    }
+    else {
+      maxAgeLimit = intSeconds;
+    }
   }
 
   /**
