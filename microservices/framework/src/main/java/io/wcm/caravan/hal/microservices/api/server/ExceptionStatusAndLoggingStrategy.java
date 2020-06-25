@@ -43,4 +43,12 @@ public interface ExceptionStatusAndLoggingStrategy {
   default boolean logAsCompactWarning(Throwable error) {
     return false;
   }
+
+  /**
+   * @param error an exception that was thrown when rendering a resource
+   * @return the message to be displayed in the VND+error resource (and in logging)
+   */
+  default String getErrorMessageWithoutRedundantInformation(Throwable error) {
+    return error.getMessage();
+  }
 }

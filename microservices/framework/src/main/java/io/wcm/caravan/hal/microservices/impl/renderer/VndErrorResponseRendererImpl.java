@@ -24,12 +24,15 @@ import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOU
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,12 +89,17 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
         .withBody(vndResource);
   }
 
+  private String getShortErrorMessage(Throwable t) {
+    return strategy.getErrorMessageWithoutRedundantInformation(t);
+  }
+
+
   private void logError(Throwable error, String uri, int status) {
 
     if (strategy.logAsCompactWarning(error)) {
       // if this error was caused by an upstream request, there is no need to include the full stack traces
       String messages = Stream.of(ExceptionUtils.getThrowables(error))
-          .map(t -> t.getClass().getSimpleName() + ": " + t.getMessage())
+          .map(t -> t.getClass().getSimpleName() + ": " + getShortErrorMessage(t))
           .collect(Collectors.joining("\n"));
 
       log.warn("Responding with " + status + " for " + uri + ":\n" + messages);
@@ -103,9 +111,9 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
 
   private void addProperties(HalResource vndResource, Throwable error) {
 
-    vndResource.getModel().put("message", error.getMessage());
+    vndResource.getModel().put("message", getShortErrorMessage(error));
     vndResource.getModel().put("class", error.getClass().getName());
-    vndResource.getModel().put("title", error.getClass().getSimpleName() + ": " + error.getMessage());
+    vndResource.getModel().put("title", error.getClass().getSimpleName() + ": " + getShortErrorMessage(error));
   }
 
   private void addAboutLinkAndReturnResourceUri(HalResource vndResource, LinkableResource resourceImpl, String requestUri) {
@@ -238,6 +246,19 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
       return strategies.stream()
           .map(s -> s.logAsCompactWarning(error))
           .reduce(false, (logAsWarning1, logAsWarning2) -> logAsWarning1 || logAsWarning2);
+    }
+
+    @Override
+    public String getErrorMessageWithoutRedundantInformation(Throwable error) {
+
+      List<String> messageCandidates = strategies.stream()
+          .map(s -> s.getErrorMessageWithoutRedundantInformation(error))
+          .map(StringUtils::trimToEmpty)
+          .collect(Collectors.toList());
+
+      Collections.sort(messageCandidates, Comparator.comparing(String::length));
+
+      return messageCandidates.get(0);
     }
   }
 }
