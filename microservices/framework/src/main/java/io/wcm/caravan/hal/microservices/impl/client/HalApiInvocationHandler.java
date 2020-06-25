@@ -127,6 +127,10 @@ final class HalApiInvocationHandler implements InvocationHandler {
       // these exceptions should just be re-thrown as they are expected errors by the developer (e.g. using invalid types in the signatures of the HAL API interface)
       throw e;
     }
+    catch (HalApiClientException e) {
+      // these exceptions should just be re-thrown as they contain important context information
+      throw e;
+    }
     catch (NoSuchElementException e) {
       // these exceptions should be re-thrown with a better error message
       throw new NoSuchElementException("The invocation of " + invocation + " has failed, "

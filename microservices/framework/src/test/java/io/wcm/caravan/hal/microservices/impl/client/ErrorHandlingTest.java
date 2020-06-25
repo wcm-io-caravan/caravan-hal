@@ -69,7 +69,7 @@ public class ErrorHandlingTest {
     Maybe<TestState> getState();
   }
 
-  private void assertHalApiClientExceptionIsThrownWithStatus(Integer statusCode, ThrowingCallable lambda) {
+  public static void assertHalApiClientExceptionIsThrownWithStatus(Integer statusCode, ThrowingCallable lambda) {
 
     Throwable ex = catchThrowable(lambda);
 

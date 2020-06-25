@@ -237,8 +237,7 @@ public class RenderResourceStateTest {
 
     Throwable ex = Assertions.catchThrowable(() -> render(resourceImpl));
 
-    assertThat(ex).isInstanceOf(RuntimeException.class).hasMessageStartingWith("An exception was thrown during assembly time in #getState");
-    assertThat(ex).hasCause(cause);
+    assertThat(ex).isInstanceOf(NotImplementedException.class);
   }
 
 }

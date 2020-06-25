@@ -38,6 +38,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
+import io.wcm.caravan.hal.microservices.impl.client.ErrorHandlingTest;
 import io.wcm.caravan.hal.microservices.impl.client.blocking.ResourceStateTest.ResourceWithRequiredState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
@@ -100,6 +101,15 @@ public class RelatedResourceTest {
 
     assertThat(ex).isInstanceOf(NoSuchElementException.class).hasMessageStartingWith("The invocation of ResourceWithSingleRelated#getItem() has failed");
 
+  }
+
+  @Test
+  public void required_linked_resource_should_cause_HalApiClientException_if_missing() throws Exception {
+
+    entryPoint.createLinked(ITEM).withStatus(404);
+
+    ErrorHandlingTest.assertHalApiClientExceptionIsThrownWithStatus(404,
+        () -> createClientProxy(ResourceWithSingleRelated.class).getItem().getProperties());
   }
 
   @Test
