@@ -34,4 +34,6 @@ public interface Reha {
 
   Single<HalResponse> respondWith(LinkableResource resourceImpl);
 
+  Single<HalResponse> renderVndErrorResource(String requestUri, Throwable error);
+
 }

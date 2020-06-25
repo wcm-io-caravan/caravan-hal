@@ -36,11 +36,13 @@ import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.microservices.impl.client.HalApiClientImpl;
 import io.wcm.caravan.hal.microservices.impl.reflection.CompositeHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl;
+import io.wcm.caravan.hal.resource.Link;
 
 public class RehaBuilderImpl implements RehaBuilder {
 
@@ -135,6 +137,20 @@ public class RehaBuilderImpl implements RehaBuilder {
     @Override
     public Single<HalResponse> respondWith(LinkableResource resourceImpl) {
       return renderer.renderResponse(requestUri, resourceImpl);
+    }
+
+    @Override
+    public Single<HalResponse> renderVndErrorResource(String requestUri, Throwable error) {
+
+      VndErrorResponseRenderer errorRenderer = VndErrorResponseRenderer.create(exceptionStrategy);
+      LinkableResource resourceImpl = new LinkableResource() {
+
+        @Override
+        public Link createLink() {
+          return null;
+        }
+      };
+      return Single.just(errorRenderer.renderError(requestUri, resourceImpl, error, metrics));
     }
   }
 }
