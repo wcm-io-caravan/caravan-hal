@@ -41,6 +41,7 @@ import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
+import io.wcm.caravan.hal.microservices.api.server.HalApiServerException;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations;
@@ -185,6 +186,9 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
 
       if (error instanceof HalApiClientException) {
         return ((HalApiClientException)error).getStatusCode();
+      }
+      if (error instanceof HalApiServerException) {
+        return ((HalApiServerException)error).getStatusCode();
       }
 
       return null;
