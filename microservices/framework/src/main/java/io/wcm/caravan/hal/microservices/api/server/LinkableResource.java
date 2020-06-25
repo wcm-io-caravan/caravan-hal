@@ -21,6 +21,7 @@ package io.wcm.caravan.hal.microservices.api.server;
 
 import org.osgi.annotation.versioning.ConsumerType;
 
+import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.resource.Link;
 
 /**
@@ -40,5 +41,6 @@ public interface LinkableResource {
    * @return a {@link Link} instance where href, title and names properties are already set as required
    * @see LinkBuilder
    */
+  @ResourceLink
   Link createLink();
 }
