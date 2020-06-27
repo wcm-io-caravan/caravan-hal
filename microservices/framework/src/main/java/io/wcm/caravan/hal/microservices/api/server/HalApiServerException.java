@@ -26,6 +26,10 @@ public class HalApiServerException extends RuntimeException {
 
   private final int statusCode;
 
+  public HalApiServerException(int statusCode, String msg) {
+    this(statusCode, msg, null);
+  }
+
   public HalApiServerException(int statusCode, String msg, Throwable cause) {
     super(msg, cause);
     this.statusCode = statusCode;

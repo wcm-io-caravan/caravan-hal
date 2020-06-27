@@ -85,11 +85,13 @@ final class RehaImpl implements Reha {
 
   @Override
   public <T> T getEntryPoint(String uri, Class<T> halApiInterface) {
+
     return client.getEntryPoint(uri, halApiInterface);
   }
 
   @Override
   public void setResponseMaxAge(Duration duration) {
+
     metrics.setResponseMaxAge(duration);
   }
 
