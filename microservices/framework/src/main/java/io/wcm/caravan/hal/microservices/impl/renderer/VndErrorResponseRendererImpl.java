@@ -24,27 +24,20 @@ import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOU
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ImmutableList;
 
 import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
-import io.wcm.caravan.hal.microservices.api.server.HalApiServerException;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations;
@@ -184,81 +177,5 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
     }
 
     return null;
-  }
-
-
-  private static final class DefaultExceptionStatusAndLoggingStrategy implements ExceptionStatusAndLoggingStrategy {
-
-    @Override
-    public Integer extractStatusCode(Throwable error) {
-
-      if (error instanceof HalApiClientException) {
-        return ((HalApiClientException)error).getStatusCode();
-      }
-      if (error instanceof HalApiServerException) {
-        return ((HalApiServerException)error).getStatusCode();
-      }
-
-      return null;
-    }
-
-    @Override
-    public boolean logAsCompactWarning(Throwable error) {
-
-      if (error instanceof HalApiClientException) {
-        return true;
-      }
-
-      return false;
-    }
-
-    public ExceptionStatusAndLoggingStrategy decorateWith(ExceptionStatusAndLoggingStrategy customStrategy) {
-
-      if (customStrategy == null) {
-        return this;
-      }
-
-      return new MultiExceptionStatusAndLoggingStrategy(ImmutableList.of(customStrategy, this));
-    }
-  }
-
-  private static final class MultiExceptionStatusAndLoggingStrategy implements ExceptionStatusAndLoggingStrategy {
-
-    private final List<ExceptionStatusAndLoggingStrategy> strategies;
-
-    MultiExceptionStatusAndLoggingStrategy(List<ExceptionStatusAndLoggingStrategy> strategies) {
-      this.strategies = strategies;
-    }
-
-    @Override
-    public Integer extractStatusCode(Throwable error) {
-
-      return strategies.stream()
-          .map(s -> s.extractStatusCode(error))
-          .filter(Objects::nonNull)
-          .findFirst()
-          .orElse(null);
-    }
-
-    @Override
-    public boolean logAsCompactWarning(Throwable error) {
-
-      return strategies.stream()
-          .map(s -> s.logAsCompactWarning(error))
-          .reduce(false, (logAsWarning1, logAsWarning2) -> logAsWarning1 || logAsWarning2);
-    }
-
-    @Override
-    public String getErrorMessageWithoutRedundantInformation(Throwable error) {
-
-      List<String> messageCandidates = strategies.stream()
-          .map(s -> s.getErrorMessageWithoutRedundantInformation(error))
-          .map(StringUtils::trimToEmpty)
-          .collect(Collectors.toList());
-
-      Collections.sort(messageCandidates, Comparator.comparing(String::length));
-
-      return messageCandidates.get(0);
-    }
   }
 }

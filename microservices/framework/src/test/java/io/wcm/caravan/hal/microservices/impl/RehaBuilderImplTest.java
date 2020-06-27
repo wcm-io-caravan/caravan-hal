@@ -101,6 +101,36 @@ public class RehaBuilderImplTest {
     }
   }
 
+  @Test
+  public void withExceptionStrategy_should_allow_multiple_custom_strategies() {
+
+    Reha reha = RehaBuilder.withoutResourceLoader()
+        .withExceptionStrategy(new CustomExceptionStrategy())
+        .withExceptionStrategy(new AdditionalExceptionStrategy())
+        .buildForRequestTo(INCOMING_REQUEST_URI);
+
+    HalResponse response404 = reha.renderResponse(new FailingResourceImpl(new HalApiServerException(404, "Not Found")));
+    assertThat(response404.getStatus()).isEqualTo(404);
+
+    HalResponse response400 = reha.renderResponse(new FailingResourceImpl(new IllegalArgumentException()));
+    assertThat(response400.getStatus()).isEqualTo(400);
+
+    HalResponse response501 = reha.renderResponse(new FailingResourceImpl(new NotImplementedException("Foo")));
+    assertThat(response501.getStatus()).isEqualTo(501);
+
+  }
+
+  private static final class AdditionalExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
+
+    @Override
+    public Integer extractStatusCode(Throwable error) {
+      if (error instanceof IllegalArgumentException) {
+        return 400;
+      }
+      return null;
+    }
+  }
+
   private static final class FailingResourceImpl implements LinkableTestResource {
 
     private final RuntimeException ex;
