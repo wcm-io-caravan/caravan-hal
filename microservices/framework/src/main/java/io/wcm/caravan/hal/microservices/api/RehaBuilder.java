@@ -38,6 +38,6 @@ public interface RehaBuilder {
 
   RehaBuilder withExceptionStrategy(ExceptionStatusAndLoggingStrategy customStrategy);
 
-  Reha buildForRequestTo(String requestUri);
+  Reha buildForRequestTo(String incomingRequestUri);
 
 }

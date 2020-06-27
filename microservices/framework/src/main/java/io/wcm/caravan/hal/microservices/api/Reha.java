@@ -20,6 +20,7 @@
 package io.wcm.caravan.hal.microservices.api;
 
 import java.time.Duration;
+import java.util.concurrent.CompletionStage;
 
 import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
@@ -32,8 +33,15 @@ public interface Reha {
 
   void setResponseMaxAge(Duration duration);
 
+  CompletionStage<HalResponse> renderResponseAsync(LinkableResource resourceImpl);
+
+  HalResponse renderResponse(LinkableResource resourceImpl);
+
+  HalResponse renderVndErrorResponse(Throwable error);
+
+  @Deprecated
   Single<HalResponse> respondWith(LinkableResource resourceImpl);
 
+  @Deprecated
   Single<HalResponse> renderVndErrorResource(String requestUri, Throwable error);
-
 }
