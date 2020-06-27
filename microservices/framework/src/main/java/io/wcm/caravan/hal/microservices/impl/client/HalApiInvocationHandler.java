@@ -115,8 +115,8 @@ final class HalApiInvocationHandler implements InvocationHandler {
       }
 
       if (invocation.toString().endsWith("#toString()")) {
-        String linkDesc = linkToResource != null ? "resource at " + linkToResource.getHref() : " embedded resource without self link";
-        return super.toString() + " for " + linkDesc;
+        String linkDesc = linkToResource != null ? " at " + linkToResource.getHref() : " (embedded without self link)";
+        return "dynamic client proxy for " + invocation.getResourceInterfaceName() + linkDesc;
       }
 
       // unsupported operation

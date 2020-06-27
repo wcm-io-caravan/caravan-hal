@@ -76,12 +76,43 @@ public class ResponseMetadataGeneratorTest {
   }
 
   @Test
+  public void max_age_limit_should_handle_durations_longer_than_max_int() throws Exception {
+
+    metrics.setResponseMaxAge(Duration.ofDays(Integer.MAX_VALUE));
+
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(Integer.MAX_VALUE);
+  }
+
+  @Test
   public void max_age_limit_should_be_used_if_no_resources_are_requested() throws Exception {
 
     int limit = 55;
     metrics.setResponseMaxAge(Duration.ofSeconds(limit));
 
     assertThat(metrics.getResponseMaxAge()).isEqualTo(limit);
+  }
+
+  @Test
+  public void max_age_limit_should_use_lowest_value_of_multiple_calls() throws Exception {
+
+    int lowerLimit = 55;
+    metrics.setResponseMaxAge(Duration.ofSeconds(lowerLimit));
+
+    metrics.setResponseMaxAge(Duration.ofSeconds(123));
+
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(lowerLimit);
+  }
+
+  @Test
+  public void max_age_limit_should_use_lowest_value_of_multiple_calls_2() throws Exception {
+
+    int lowerLimit = 55;
+
+    metrics.setResponseMaxAge(Duration.ofSeconds(123));
+
+    metrics.setResponseMaxAge(Duration.ofSeconds(lowerLimit));
+
+    assertThat(metrics.getResponseMaxAge()).isEqualTo(lowerLimit);
   }
 
   @Test

@@ -141,6 +141,10 @@ class HalApiMethodInvocation {
     return desc;
   }
 
+  public String getResourceInterfaceName() {
+    return interfaze.getSimpleName();
+  }
+
   @Override
   public String toString() {
 
@@ -162,5 +166,6 @@ class HalApiMethodInvocation {
         .map(entry -> entry.getKey() + "=" + entry.getValue())
         .collect(Collectors.joining(","));
   }
+
 
 }

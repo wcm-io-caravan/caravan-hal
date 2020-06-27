@@ -63,10 +63,6 @@ public class CompositeExceptionStatusAndLoggingStrategy implements ExceptionStat
         .map(StringUtils::trimToEmpty)
         .collect(Collectors.toList());
 
-    if (messageCandidates.isEmpty()) {
-      return "";
-    }
-
     Collections.sort(messageCandidates, Comparator.comparing(String::length));
 
     return messageCandidates.get(0);
