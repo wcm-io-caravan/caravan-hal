@@ -22,7 +22,6 @@ package io.wcm.caravan.hal.microservices.api;
 import java.time.Duration;
 import java.util.concurrent.CompletionStage;
 
-import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 
@@ -38,10 +37,4 @@ public interface Reha {
   HalResponse renderResponse(LinkableResource resourceImpl);
 
   HalResponse renderVndErrorResponse(Throwable error);
-
-  @Deprecated
-  Single<HalResponse> respondWith(LinkableResource resourceImpl);
-
-  @Deprecated
-  Single<HalResponse> renderVndErrorResource(String requestUri, Throwable error);
 }

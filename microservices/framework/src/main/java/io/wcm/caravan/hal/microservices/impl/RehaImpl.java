@@ -123,15 +123,8 @@ final class RehaImpl implements Reha {
     return errorRenderer.renderError(requestUri, resourceImpl, error, metrics);
   }
 
-  @Override
-  public Single<HalResponse> respondWith(LinkableResource resourceImpl) {
+  private Single<HalResponse> respondWith(LinkableResource resourceImpl) {
     return renderer.renderResponse(requestUri, resourceImpl);
-  }
-
-  @Override
-  public Single<HalResponse> renderVndErrorResource(String requestUri, Throwable error) {
-
-    return Single.just(renderVndErrorResponse(error));
   }
 
 }

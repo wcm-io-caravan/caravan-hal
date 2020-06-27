@@ -99,13 +99,4 @@ public class RehaBuilderImpl implements RehaBuilder {
     return new RehaImpl(incomingRequestUri, jsonLoader, exceptionStrategy, typeSupport);
   }
 
-  // deprecated
-
-  @Override
-  public RehaBuilder withTypeSupport(HalApiTypeSupport additionalTypeSupport) {
-
-    registeredTypeSupports.add(additionalTypeSupport);
-    return this;
-  }
-
 }
