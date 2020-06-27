@@ -121,7 +121,7 @@ public final class RxJavaReflectionUtils {
    * @param targetType {@link Single}, {@link Maybe}, {@link Observable} or {@link Publisher} class
    * @param metrics to collect emission times
    * @param description for the metrics
-   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
+   * @param typeSupport the strategy to perform type conversions of return values
    * @return an instance of the target type that will replay (and cache!) the items emitted by the given reactive
    *         instance
    */

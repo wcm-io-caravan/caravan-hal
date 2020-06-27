@@ -20,7 +20,7 @@
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
+import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
@@ -44,21 +44,21 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
   private final VndErrorResponseRenderer errorRenderer;
 
-  private final HalApiTypeSupport typeSupport;
+  private final HalApiAnnotationSupport annotationSupport;
 
   /**
    * @param renderer used to asynchronously render a {@link HalResource}
    * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
    *          the current incoming request
    * @param exceptionStrategy allows to control the status code and logging of exceptions being thrown during rendering
-   * @param typeSupport the strategy to detect HAL API annotations and perform type conversions
+   * @param annotationSupport the strategy to detect HAL API annotations
    */
   public AsyncHalResponseRendererImpl(AsyncHalResourceRenderer renderer, RequestMetricsCollector metrics,
-      ExceptionStatusAndLoggingStrategy exceptionStrategy, HalApiTypeSupport typeSupport) {
+      ExceptionStatusAndLoggingStrategy exceptionStrategy, HalApiAnnotationSupport annotationSupport) {
     this.renderer = renderer;
     this.metrics = metrics;
     this.errorRenderer = VndErrorResponseRenderer.create(exceptionStrategy);
-    this.typeSupport = typeSupport;
+    this.annotationSupport = annotationSupport;
   }
 
   @Override
@@ -80,8 +80,8 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
     addMetadata(metrics, halResource, resourceImpl);
 
-    Class<?> halApiInterface = HalApiReflectionUtils.findHalApiInterface(resourceImpl, typeSupport);
-    String contentType = typeSupport.getContentType(halApiInterface);
+    Class<?> halApiInterface = HalApiReflectionUtils.findHalApiInterface(resourceImpl, annotationSupport);
+    String contentType = annotationSupport.getContentType(halApiInterface);
 
     HalResponse response = new HalResponse()
         .withStatus(200)
