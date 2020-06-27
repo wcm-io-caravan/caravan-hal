@@ -21,6 +21,9 @@ package io.wcm.caravan.hal.microservices.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,12 +40,14 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.Reha;
 import io.wcm.caravan.hal.microservices.api.RehaBuilder;
+import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.HalApiServerException;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
+import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 import io.wcm.caravan.hal.resource.Link;
 
@@ -50,7 +55,6 @@ import io.wcm.caravan.hal.resource.Link;
 public class RehaBuilderImplTest {
 
   private static final String UPSTREAM_ENTRY_POINT_URI = "/";
-  private static final String NON_EXISTING_PATH = "/does/not/exist";
   private static final String INCOMING_REQUEST_URI = "/incoming";
 
   private final TestResourceTree upstreamResourceTree = new TestResourceTree();
@@ -61,7 +65,6 @@ public class RehaBuilderImplTest {
         .withExceptionStrategy(new CustomExceptionStrategy())
         .buildForRequestTo(INCOMING_REQUEST_URI);
   }
-
 
   @Test
   public void withExceptionStrategy_should_apply_custom_exception_strategy() {
@@ -75,7 +78,6 @@ public class RehaBuilderImplTest {
     assertThat(response.getStatus()).isEqualTo(501);
   }
 
-
   @Test
   public void withExceptionStrategy_should_not_disable_default_exception_strategy() {
 
@@ -86,6 +88,31 @@ public class RehaBuilderImplTest {
     HalResponse response = reha.renderResponse(new FailingResourceImpl(ex));
 
     assertThat(response.getStatus()).isEqualTo(404);
+  }
+
+  private static final class CustomExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
+
+    @Override
+    public Integer extractStatusCode(Throwable error) {
+      if (error instanceof NotImplementedException) {
+        return 501;
+      }
+      return null;
+    }
+  }
+
+  private static final class FailingResourceImpl implements LinkableTestResource {
+
+    private final RuntimeException ex;
+
+    private FailingResourceImpl(RuntimeException ex) {
+      this.ex = ex;
+    }
+
+    @Override
+    public Link createLink() {
+      throw this.ex;
+    }
   }
 
   private Reha createRehaWithStreamReturnTypeSupport() {
@@ -149,31 +176,6 @@ public class RehaBuilderImplTest {
     assertThat(linked).hasSize(2);
   }
 
-  private static final class CustomExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
-
-    @Override
-    public Integer extractStatusCode(Throwable error) {
-      if (error instanceof NotImplementedException) {
-        return 501;
-      }
-      return null;
-    }
-  }
-
-  private static final class FailingResourceImpl implements LinkableTestResource {
-
-    private final RuntimeException ex;
-
-    private FailingResourceImpl(RuntimeException ex) {
-      this.ex = ex;
-    }
-
-    @Override
-    public Link createLink() {
-      throw this.ex;
-    }
-  }
-
   private static final class StreamSupport implements HalApiReturnTypeSupport {
 
     @SuppressWarnings("unchecked")
@@ -194,6 +196,95 @@ public class RehaBuilderImplTest {
       if (Stream.class.isAssignableFrom(sourceType)) {
         return o -> Observable.fromStream((Stream)o);
       }
+      return null;
+    }
+
+  }
+
+  @MyApiInterface
+  public interface ResourceWithCustomAnnotation extends LinkableTestResource {
+
+  }
+
+  private Reha createRehaWithCustomAnnotationTypeSupport() {
+
+    return RehaBuilder.withResourceLoader(upstreamResourceTree)
+        .withAnnotationTypeSupport(new CustomAnnotationSupport())
+        .buildForRequestTo(INCOMING_REQUEST_URI);
+  }
+
+  @Test
+  public void withAnnotationTypeSupport_should_enable_rendering_of_resources_with_custom_annotation() {
+
+    Reha reha = createRehaWithCustomAnnotationTypeSupport();
+
+    ResourceWithCustomAnnotation resourceImpl = new ResourceWithCustomAnnotation() {
+
+      @Override
+      public Link createLink() {
+        return new Link(INCOMING_REQUEST_URI);
+      }
+    };
+
+    HalResponse response = reha.renderResponse(resourceImpl);
+
+    assertThat(response.getStatus()).isEqualTo(200);
+  }
+
+  @Test
+  public void withAnnotationTypeSupport_should_enable_fetching_of_resources_with_custom_annotation() {
+
+    upstreamResourceTree.getEntryPoint().setNumber(123);
+
+    Reha reha = createRehaWithCustomAnnotationTypeSupport();
+
+    ResourceWithCustomAnnotation resource = reha.getEntryPoint(UPSTREAM_ENTRY_POINT_URI, ResourceWithCustomAnnotation.class);
+
+    TestState state = resource.getState().blockingGet();
+    assertThat(state).isNotNull();
+    assertThat(state.number).isEqualTo(123);
+  }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  public static @interface MyApiInterface {
+
+  }
+
+  private static final class CustomAnnotationSupport implements HalApiAnnotationSupport {
+
+    @Override
+    public boolean isHalApiInterface(Class<?> interfaze) {
+
+      return interfaze.isAnnotationPresent(MyApiInterface.class);
+    }
+
+    @Override
+    public String getContentType(Class<?> halApiInterface) {
+      return null;
+    }
+
+    @Override
+    public boolean isResourceLinkMethod(Method method) {
+      return false;
+    }
+
+    @Override
+    public boolean isResourceRepresentationMethod(Method method) {
+      return false;
+    }
+
+    @Override
+    public boolean isRelatedResourceMethod(Method method) {
+      return false;
+    }
+
+    @Override
+    public boolean isResourceStateMethod(Method method) {
+      return false;
+    }
+
+    @Override
+    public String getRelation(Method method) {
       return null;
     }
 

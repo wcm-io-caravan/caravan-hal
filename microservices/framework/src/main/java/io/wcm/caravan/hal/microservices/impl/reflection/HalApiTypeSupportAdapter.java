@@ -36,8 +36,8 @@ public class HalApiTypeSupportAdapter implements HalApiTypeSupport {
   private final HalApiReturnTypeSupport returnTypeSupport;
 
   public HalApiTypeSupportAdapter(HalApiAnnotationSupport annotationSupport, HalApiReturnTypeSupport returnTypeSupport) {
-    this.annotationSupport = annotationSupport;
-    this.returnTypeSupport = returnTypeSupport;
+    this.annotationSupport = annotationSupport != null ? annotationSupport : NO_ADDITIONAL_ANNOTATION_SUPPORT;
+    this.returnTypeSupport = returnTypeSupport != null ? returnTypeSupport : NO_RETURN_TYPE_SUPPORT;
   }
 
   public HalApiTypeSupportAdapter(HalApiAnnotationSupport annotationSupport) {
