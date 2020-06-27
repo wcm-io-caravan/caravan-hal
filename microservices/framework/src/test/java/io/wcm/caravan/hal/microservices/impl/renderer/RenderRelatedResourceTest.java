@@ -148,7 +148,9 @@ public class RenderRelatedResourceTest {
         () -> render(resourceImpl));
 
     assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
-        .hasMessageEndingWith(" but it must return an interface annotated with the @HalApiInterface annotation (or a reactive type that emits such instances)");
+        .hasMessageEndingWith(
+            "returns Maybe<TestState>, but it must return an interface annotated with the @HalApiInterface annotation "
+                + "(or a supported generic type that provides such instances, e.g. Observable)");
   }
 
   @HalApiInterface
@@ -199,7 +201,9 @@ public class RenderRelatedResourceTest {
         () -> render(resourceImpl));
 
     assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
-        .hasMessageEndingWith(" but it must return an interface annotated with the @HalApiInterface annotation (or a reactive type that emits such instances)");
+        .hasMessageEndingWith(
+            "returns Observable<TestState>, but it must return an interface annotated with the @HalApiInterface annotation "
+                + "(or a supported generic type that provides such instances, e.g. Observable)");
   }
 
 }

@@ -109,12 +109,19 @@ final class RelatedResourcesRendererImpl {
 
     // get the emitted result resource type from the method signature
     Class<?> relatedResourceInterface = RxJavaReflectionUtils.getObservableEmissionType(method);
+
     if (!HalApiReflectionUtils.isHalApiInterface(relatedResourceInterface, typeSupport) && !LinkableResource.class.equals(relatedResourceInterface)) {
 
+      Class<?> returnType = method.getReturnType();
+      String returnTypeDesc = relatedResourceInterface.getSimpleName();
+      if (!returnType.equals(relatedResourceInterface)) {
+        returnTypeDesc = returnType.getSimpleName() + "<" + returnTypeDesc + ">";
+      }
+
       String fullMethodName = HalApiReflectionUtils.getClassAndMethodName(resourceImplInstance, method);
-      throw new HalApiDeveloperException("The method " + fullMethodName + " returns an Observable<" + relatedResourceInterface.getName() + ">, "
-          + " but it must return an interface annotated with the @" + HalApiInterface.class.getSimpleName()
-          + " annotation (or a reactive type that emits such instances)");
+      throw new HalApiDeveloperException("The method " + fullMethodName + " returns " + returnTypeDesc + ", "
+          + "but it must return an interface annotated with the @" + HalApiInterface.class.getSimpleName()
+          + " annotation (or a supported generic type that provides such instances, e.g. Observable)");
     }
   }
 

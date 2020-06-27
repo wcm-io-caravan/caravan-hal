@@ -21,17 +21,29 @@ package io.wcm.caravan.hal.microservices.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import io.reactivex.rxjava3.core.Observable;
+import io.wcm.caravan.hal.api.annotations.HalApiInterface;
+import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.Reha;
 import io.wcm.caravan.hal.microservices.api.RehaBuilder;
+import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.HalApiServerException;
+import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
+import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 import io.wcm.caravan.hal.resource.Link;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,11 +53,15 @@ public class RehaBuilderImplTest {
   private static final String NON_EXISTING_PATH = "/does/not/exist";
   private static final String INCOMING_REQUEST_URI = "/incoming";
 
+  private final TestResourceTree upstreamResourceTree = new TestResourceTree();
+
   private Reha createRehaWithCustomExceptionStrategy() {
+
     return RehaBuilder.withoutResourceLoader()
         .withExceptionStrategy(new CustomExceptionStrategy())
         .buildForRequestTo(INCOMING_REQUEST_URI);
   }
+
 
   @Test
   public void withExceptionStrategy_should_apply_custom_exception_strategy() {
@@ -72,6 +88,67 @@ public class RehaBuilderImplTest {
     assertThat(response.getStatus()).isEqualTo(404);
   }
 
+  private Reha createRehaWithStreamReturnTypeSupport() {
+
+    return RehaBuilder.withResourceLoader(upstreamResourceTree)
+        .withReturnTypeSupport(new StreamSupport())
+        .buildForRequestTo(INCOMING_REQUEST_URI);
+  }
+
+  @HalApiInterface
+  public interface ResourceWithStreamOfLinks extends LinkableResource {
+
+    @RelatedResource(relation = StandardRelations.ITEM)
+    Stream<LinkableTestResource> getLinks();
+  }
+
+  @Test
+  public void withReturnTypeSupport_should_enable_rendering_of_resources_with_custom_return_types() {
+
+    Reha reha = createRehaWithStreamReturnTypeSupport();
+
+    ResourceWithStreamOfLinks resourceImpl = new ResourceWithStreamOfLinks() {
+
+      @Override
+      public Stream<LinkableTestResource> getLinks() {
+        return Stream.of(new LinkableTestResource() {
+
+          @Override
+          public Link createLink() {
+            return new Link("/linked");
+          }
+        });
+      }
+
+      @Override
+      public Link createLink() {
+        return new Link(INCOMING_REQUEST_URI);
+      }
+
+    };
+
+    HalResponse response = reha.renderResponse(resourceImpl);
+    assertThat(response.getStatus()).isEqualTo(200);
+
+    List<Link> links = response.getBody().getLinks(StandardRelations.ITEM);
+    assertThat(links).hasSize(1);
+  }
+
+  @Test
+  public void withReturnTypeSupport_should_enable_fetching_of_resources_with_custom_return_types() {
+
+    upstreamResourceTree.createLinked(StandardRelations.ITEM);
+    upstreamResourceTree.createLinked(StandardRelations.ITEM);
+
+    Reha reha = createRehaWithStreamReturnTypeSupport();
+
+    ResourceWithStreamOfLinks entryPoint = reha.getEntryPoint(UPSTREAM_ENTRY_POINT_URI, ResourceWithStreamOfLinks.class);
+
+    List<LinkableTestResource> linked = entryPoint.getLinks().collect(Collectors.toList());
+
+    assertThat(linked).hasSize(2);
+  }
+
   private static final class CustomExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
 
     @Override
@@ -95,6 +172,31 @@ public class RehaBuilderImplTest {
     public Link createLink() {
       throw this.ex;
     }
+  }
+
+  private static final class StreamSupport implements HalApiReturnTypeSupport {
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> Function<Observable, T> convertFromObservable(Class<T> targetType) {
+      if (targetType.isAssignableFrom(Stream.class)) {
+        return obs -> {
+          List<?> list = (List<?>)obs.toList().blockingGet();
+          return (T)list.stream();
+        };
+      }
+      return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Function<? super Object, Observable<?>> convertToObservable(Class<?> sourceType) {
+      if (Stream.class.isAssignableFrom(sourceType)) {
+        return o -> Observable.fromStream((Stream)o);
+      }
+      return null;
+    }
+
   }
 
 }

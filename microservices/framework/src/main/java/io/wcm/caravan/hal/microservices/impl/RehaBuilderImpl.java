@@ -26,10 +26,13 @@ import io.wcm.caravan.hal.microservices.api.Reha;
 import io.wcm.caravan.hal.microservices.api.RehaBuilder;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
+import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
+import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.impl.reflection.CompositeHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
+import io.wcm.caravan.hal.microservices.impl.reflection.HalApiTypeSupportAdapter;
 
 public class RehaBuilderImpl implements RehaBuilder {
 
@@ -46,9 +49,16 @@ public class RehaBuilderImpl implements RehaBuilder {
   }
 
   @Override
-  public RehaBuilder withTypeSupport(HalApiTypeSupport additionalTypeSupport) {
+  public RehaBuilder withReturnTypeSupport(HalApiReturnTypeSupport additionalTypeSupport) {
 
-    registeredTypeSupports.add(additionalTypeSupport);
+    registeredTypeSupports.add(new HalApiTypeSupportAdapter(additionalTypeSupport));
+    return this;
+  }
+
+  @Override
+  public RehaBuilder withAnnotationTypeSupport(HalApiAnnotationSupport additionalTypeSupport) {
+
+    registeredTypeSupports.add(new HalApiTypeSupportAdapter(additionalTypeSupport));
     return this;
   }
 
@@ -72,13 +82,21 @@ public class RehaBuilderImpl implements RehaBuilder {
     return this;
   }
 
-
   @Override
   public Reha buildForRequestTo(String incomingRequestUri) {
 
     HalApiTypeSupport typeSupport = getEffectiveTypeSupport();
 
     return new RehaImpl(incomingRequestUri, jsonLoader, exceptionStrategy, typeSupport);
+  }
+
+  // deprecated
+
+  @Override
+  public RehaBuilder withTypeSupport(HalApiTypeSupport additionalTypeSupport) {
+
+    registeredTypeSupports.add(additionalTypeSupport);
+    return this;
   }
 
 }

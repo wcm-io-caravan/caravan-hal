@@ -20,6 +20,8 @@
 package io.wcm.caravan.hal.microservices.api;
 
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
+import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
+import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.impl.RehaBuilderImpl;
@@ -34,7 +36,12 @@ public interface RehaBuilder {
     return new RehaBuilderImpl(jsonLoader);
   }
 
+  @Deprecated
   RehaBuilder withTypeSupport(HalApiTypeSupport additionalTypeSupport);
+
+  RehaBuilder withReturnTypeSupport(HalApiReturnTypeSupport additionalTypeSupport);
+
+  RehaBuilder withAnnotationTypeSupport(HalApiAnnotationSupport additionalTypeSupport);
 
   RehaBuilder withExceptionStrategy(ExceptionStatusAndLoggingStrategy customStrategy);
 
