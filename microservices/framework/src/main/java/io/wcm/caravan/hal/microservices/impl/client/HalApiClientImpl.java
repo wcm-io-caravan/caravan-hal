@@ -33,7 +33,6 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 public class HalApiClientImpl implements HalApiClient {
 
   private final HalApiClientProxyFactory factory;
-  private final HalApiTypeSupport typeSupport;
 
   /**
    * jsonLoader implements the actual loading (and caching) of JSON/HAL resources via any HTTP client library
@@ -47,7 +46,6 @@ public class HalApiClientImpl implements HalApiClient {
     CachingJsonResourceLoader cachingLoader = new CachingJsonResourceLoader(jsonLoader, metrics);
 
     factory = new HalApiClientProxyFactory(cachingLoader, metrics, typeSupport);
-    this.typeSupport = typeSupport;
   }
 
   @Override

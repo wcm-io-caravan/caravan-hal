@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * 
  *      http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,22 +19,15 @@
  */
 package io.wcm.caravan.hal.microservices.api.common;
 
-import java.lang.reflect.Method;
+import java.util.function.Function;
 
-public interface HalApiTypeSupport extends HalApiReturnTypeSupport {
+import io.reactivex.rxjava3.core.Observable;
 
-  boolean isHalApiInterface(Class<?> interfaze);
 
-  String getContentType(Class<?> halApiInterface);
+public interface HalApiReturnTypeSupport {
 
-  boolean isResourceLinkMethod(Method method);
+  <T> Function<Observable, T> convertFromObservable(Class<T> targetType);
 
-  boolean isResourceRepresentationMethod(Method method);
-
-  boolean isRelatedResourceMethod(Method method);
-
-  boolean isResourceStateMethod(Method method);
-
-  String getRelation(Method method);
+  Function<? super Object, Observable<?>> convertToObservable(Class<?> sourceType);
 
 }

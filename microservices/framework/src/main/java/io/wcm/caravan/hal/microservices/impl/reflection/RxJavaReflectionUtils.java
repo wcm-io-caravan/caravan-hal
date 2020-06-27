@@ -35,7 +35,7 @@ import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
-import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
+import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
@@ -59,7 +59,7 @@ public final class RxJavaReflectionUtils {
    * @return an {@link Observable} that emits the items from the reactive stream returned by the method
    */
   public static Observable<?> invokeMethodAndReturnObservable(Object resourceImplInstance, Method method, RequestMetricsCollector metrics,
-      HalApiTypeSupport typeSupport) {
+      HalApiReturnTypeSupport typeSupport) {
 
     Stopwatch stopwatch = Stopwatch.createStarted();
 
@@ -126,7 +126,7 @@ public final class RxJavaReflectionUtils {
    *         instance
    */
   public static Object convertAndCacheReactiveType(Object reactiveInstance, Class<?> targetType, RequestMetricsCollector metrics, String description,
-      HalApiTypeSupport typeSupport) {
+      HalApiReturnTypeSupport typeSupport) {
 
     Observable<?> observable = convertToObservable(reactiveInstance, typeSupport)
         .compose(EmissionStopwatch.collectMetrics(description, metrics));
@@ -137,7 +137,7 @@ public final class RxJavaReflectionUtils {
     return convertObservableTo(cached, targetType, typeSupport);
   }
 
-  private static Object convertObservableTo(Observable<?> observable, Class<?> targetType, HalApiTypeSupport typeSupport) {
+  private static Object convertObservableTo(Observable<?> observable, Class<?> targetType, HalApiReturnTypeSupport typeSupport) {
 
     Preconditions.checkNotNull(targetType, "A target type must be provided");
 
@@ -149,7 +149,7 @@ public final class RxJavaReflectionUtils {
     return conversion.apply(observable);
   }
 
-  private static Observable<?> convertToObservable(Object reactiveInstance, HalApiTypeSupport typeSupport) {
+  private static Observable<?> convertToObservable(Object reactiveInstance, HalApiReturnTypeSupport typeSupport) {
 
     Preconditions.checkNotNull(reactiveInstance, "Cannot convert null objects");
 
