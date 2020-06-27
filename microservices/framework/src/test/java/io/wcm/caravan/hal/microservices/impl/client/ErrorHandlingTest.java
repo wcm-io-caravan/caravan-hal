@@ -26,7 +26,10 @@ import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.mockito.Mockito.verify;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 
@@ -37,8 +40,11 @@ import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.microservices.api.Reha;
+import io.wcm.caravan.hal.microservices.api.RehaBuilder;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
+import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
@@ -171,6 +177,46 @@ public class ErrorHandlingTest {
 
     assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageStartingWith("An unexpected exception was emitted by")
+        .hasCause(cause);
+  }
+
+  @HalApiInterface
+  public interface ResourceWithCustomReturnType extends LinkableTestResource {
+
+    @RelatedResource(relation = "foo:bar")
+    Stream<LinkableTestResource> getStream();
+  }
+
+  @Test
+  public void fails_if_type_support_throws_unexpected_exception() {
+
+    NotImplementedException cause = new NotImplementedException("not implemented");
+
+    HalApiReturnTypeSupport typeSupport = new HalApiReturnTypeSupport() {
+
+      @Override
+      public Function<? super Object, Observable<?>> convertToObservable(Class<?> sourceType) {
+        throw cause;
+      }
+
+      @Override
+      public <T> Function<Observable, T> convertFromObservable(Class<T> targetType) {
+        throw cause;
+      }
+    };
+
+    client.mockHalResponseWithState(ENTRY_POINT_URI, new TestState());
+
+    Reha reha = RehaBuilder.withResourceLoader(client.getMockJsonLoader())
+        .withReturnTypeSupport(typeSupport)
+        .buildForRequestTo(ENTRY_POINT_URI);
+
+    ResourceWithCustomReturnType entryPoint = reha.getEntryPoint(ENTRY_POINT_URI, ResourceWithCustomReturnType.class);
+
+    Throwable ex = catchThrowable(() -> entryPoint.getStream());
+
+    assertThat(ex).isInstanceOf(RuntimeException.class)
+        .hasMessageStartingWith("The invocation of ResourceWithCustomReturnType#getStream() has failed with an unexpected exception")
         .hasCause(cause);
   }
 

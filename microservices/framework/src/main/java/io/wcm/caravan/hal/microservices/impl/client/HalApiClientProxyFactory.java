@@ -104,12 +104,9 @@ final class HalApiClientProxyFactory {
       return (T)proxyCache.get(cacheKey, () -> createProxy(relatedResourceType, rxHal, linkToResource));
     }
     catch (UncheckedExecutionException | ExecutionException ex) {
-      if (ex.getCause() instanceof RuntimeException) {
-        throw (RuntimeException)ex.getCause();
-      }
-      throw new RuntimeException(ex);
+      // we not that createProxy never throws any checked exception, so its safe to case to re-throw the original exception
+      throw (RuntimeException)ex.getCause();
     }
-
   }
 
   private <T> T createProxy(Class<T> relatedResourceType, Single<HalResource> rxHal, Link linkToResource) {
