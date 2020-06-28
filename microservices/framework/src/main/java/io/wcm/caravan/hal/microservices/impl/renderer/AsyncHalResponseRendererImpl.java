@@ -100,4 +100,8 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
       hal.addEmbedded(ResponseMetadataRelations.CARAVAN_METADATA_RELATION, metadata);
     }
   }
+
+  public HalApiAnnotationSupport getAnnotationSupport() {
+    return annotationSupport;
+  }
 }

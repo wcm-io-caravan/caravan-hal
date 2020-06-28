@@ -30,19 +30,24 @@ import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 public class HalApiTypeSupportAdapter implements HalApiTypeSupport {
 
   private final static HalApiAnnotationSupport NO_ADDITIONAL_ANNOTATION_SUPPORT = new NoAdditionalAnnotationSupport();
-  private final static HalApiReturnTypeSupport NO_RETURN_TYPE_SUPPORT = new NoAdditionalReturnTypeSupport();
+  private final static HalApiReturnTypeSupport NO_ADDITIONAL_RETURN_TYPE_SUPPORT = new NoAdditionalReturnTypeSupport();
 
   private final HalApiAnnotationSupport annotationSupport;
   private final HalApiReturnTypeSupport returnTypeSupport;
 
   public HalApiTypeSupportAdapter(HalApiAnnotationSupport annotationSupport) {
     this.annotationSupport = annotationSupport;
-    this.returnTypeSupport = NO_RETURN_TYPE_SUPPORT;
+    this.returnTypeSupport = NO_ADDITIONAL_RETURN_TYPE_SUPPORT;
   }
 
   public HalApiTypeSupportAdapter(HalApiReturnTypeSupport returnTypeSupport) {
     this.annotationSupport = NO_ADDITIONAL_ANNOTATION_SUPPORT;
     this.returnTypeSupport = returnTypeSupport;
+  }
+
+  public HalApiTypeSupportAdapter(HalApiAnnotationSupport annotationSupport, HalApiReturnTypeSupport returnTypeSupport) {
+    this.annotationSupport = annotationSupport != null ? annotationSupport : NO_ADDITIONAL_ANNOTATION_SUPPORT;
+    this.returnTypeSupport = returnTypeSupport != null ? returnTypeSupport : NO_ADDITIONAL_RETURN_TYPE_SUPPORT;
   }
 
   @Override
@@ -88,6 +93,14 @@ public class HalApiTypeSupportAdapter implements HalApiTypeSupport {
   @Override
   public Function<? super Object, Observable<?>> convertToObservable(Class<?> sourceType) {
     return this.returnTypeSupport.convertToObservable(sourceType);
+  }
+
+  HalApiAnnotationSupport getAnnotationSupport() {
+    return annotationSupport;
+  }
+
+  HalApiReturnTypeSupport getReturnTypeSupport() {
+    return returnTypeSupport;
   }
 
   static class NoAdditionalReturnTypeSupport implements HalApiReturnTypeSupport {

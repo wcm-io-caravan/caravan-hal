@@ -5,6 +5,8 @@ import org.osgi.annotation.versioning.ProviderType;
 
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
+import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.client.HalApiClientImpl;
 import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
@@ -33,6 +35,24 @@ public interface HalApiClient {
    *         current incoming request
    */
   static HalApiClient create(JsonResourceLoader jsonLoader, RequestMetricsCollector metrics) {
+
     return new HalApiClientImpl(jsonLoader, metrics, new DefaultHalApiTypeSupport());
+  }
+
+  /**
+   * @param jsonLoader implements the actual loading (and caching) of JSON/HAL resources via any HTTP client library
+   * @param metrics an instance of {@link RequestMetricsCollector} to collect performance relevant data for the current
+   *          incoming request
+   * @param annotationSupport an (optional) strategy to identify HAL API interfaces and methods that use different
+   *          annotations
+   * @param returnTypeSupport an (optional) strategy to support additional return types in your HAL API interface
+   *          methods
+   * @return an instance of {@link HalApiClient} that should be re-used for all upstream requests required by the
+   *         current incoming request
+   */
+  static HalApiClient create(JsonResourceLoader jsonLoader, RequestMetricsCollector metrics,
+      HalApiAnnotationSupport annotationSupport, HalApiReturnTypeSupport returnTypeSupport) {
+
+    return new HalApiClientImpl(jsonLoader, metrics, DefaultHalApiTypeSupport.extendWith(annotationSupport, returnTypeSupport));
   }
 }

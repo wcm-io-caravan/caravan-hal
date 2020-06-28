@@ -23,6 +23,8 @@ import org.osgi.annotation.versioning.ProviderType;
 
 import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
+import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
+import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
@@ -49,5 +51,21 @@ public interface AsyncHalResourceRenderer {
    */
   static AsyncHalResourceRenderer create(RequestMetricsCollector metrics) {
     return new AsyncHalResourceRendererImpl(metrics, new DefaultHalApiTypeSupport());
+  }
+
+  /**
+   * Alternative factory method that allows to support different HAL API annotations or method return types
+   * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
+   *          the current incoming request
+   * @param annotationSupport an (optional) strategy to identify HAL API interfaces and methods that use different
+   *          annotations
+   * @param returnTypeSupport an (optional) strategy to support additional return types in your HAL API interface
+   *          methods
+   * @return a new {@link AsyncHalResourceRenderer} to use for the current incoming request
+   */
+  static AsyncHalResourceRenderer create(RequestMetricsCollector metrics,
+      HalApiAnnotationSupport annotationSupport, HalApiReturnTypeSupport returnTypeSupport) {
+
+    return new AsyncHalResourceRendererImpl(metrics, DefaultHalApiTypeSupport.extendWith(annotationSupport, returnTypeSupport));
   }
 }

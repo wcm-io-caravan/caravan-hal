@@ -26,6 +26,8 @@ import java.util.function.Function;
 
 import org.reactivestreams.Publisher;
 
+import com.google.common.collect.ImmutableList;
+
 import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
@@ -35,6 +37,8 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
+import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
+import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 
 
@@ -146,5 +150,13 @@ public class DefaultHalApiTypeSupport implements HalApiTypeSupport {
     }
 
     return null;
+  }
+
+  public static HalApiTypeSupport extendWith(HalApiAnnotationSupport annotationSupport, HalApiReturnTypeSupport returnTypeSupport) {
+
+    DefaultHalApiTypeSupport defaultSupport = new DefaultHalApiTypeSupport();
+    HalApiTypeSupportAdapter adapter = new HalApiTypeSupportAdapter(annotationSupport, returnTypeSupport);
+
+    return new CompositeHalApiTypeSupport(ImmutableList.of(defaultSupport, adapter));
   }
 }

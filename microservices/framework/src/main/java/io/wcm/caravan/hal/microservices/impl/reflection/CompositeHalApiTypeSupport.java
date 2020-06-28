@@ -104,4 +104,7 @@ public class CompositeHalApiTypeSupport implements HalApiTypeSupport {
     return firstNonNull(delegate -> delegate.convertToObservable(sourceType));
   }
 
+  List<HalApiTypeSupport> getDelegates() {
+    return delegates;
+  }
 }

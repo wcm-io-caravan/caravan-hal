@@ -21,9 +21,13 @@ package io.wcm.caravan.hal.microservices.api.server;
 
 import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
+import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
+import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
+import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
+import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl;
 import io.wcm.caravan.hal.resource.HalResource;
 
@@ -52,6 +56,29 @@ public interface AsyncHalResponseRenderer {
   static AsyncHalResponseRenderer create(RequestMetricsCollector metrics, ExceptionStatusAndLoggingStrategy exceptionStrategy) {
 
     AsyncHalResourceRenderer resourceRenderer = AsyncHalResourceRenderer.create(metrics);
+
     return new AsyncHalResponseRendererImpl(resourceRenderer, metrics, exceptionStrategy, new DefaultHalApiTypeSupport());
   }
+
+  /**
+   * Alternative factory method that allows to support different HAL API annotations or method return types
+   * @param metrics an instance of {@link RequestMetricsCollector} to collect performance and caching information for
+   *          the current incoming request
+   * @param exceptionStrategy allows to control the status code and logging of exceptions being thrown during rendering
+   * @param annotationSupport an (optional) strategy to identify HAL API interfaces and methods that use different
+   *          annotations
+   * @param returnTypeSupport an (optional) strategy to support additional return types in your HAL API interface
+   *          methods
+   * @return a new {@link AsyncHalResponseRenderer} to use for the current incoming request
+   */
+  static AsyncHalResponseRenderer create(RequestMetricsCollector metrics, ExceptionStatusAndLoggingStrategy exceptionStrategy,
+      HalApiAnnotationSupport annotationSupport, HalApiReturnTypeSupport returnTypeSupport) {
+
+    HalApiTypeSupport typeSupport = DefaultHalApiTypeSupport.extendWith(annotationSupport, returnTypeSupport);
+
+    AsyncHalResourceRenderer resourceRenderer = new AsyncHalResourceRendererImpl(metrics, typeSupport);
+
+    return new AsyncHalResponseRendererImpl(resourceRenderer, metrics, exceptionStrategy, typeSupport);
+  }
+
 }

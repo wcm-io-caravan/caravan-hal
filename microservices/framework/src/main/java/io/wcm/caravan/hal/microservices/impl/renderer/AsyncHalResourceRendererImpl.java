@@ -147,4 +147,8 @@ public final class AsyncHalResourceRendererImpl implements AsyncHalResourceRende
 
     return hal;
   }
+
+  public HalApiTypeSupport getTypeSupport() {
+    return typeSupport;
+  }
 }

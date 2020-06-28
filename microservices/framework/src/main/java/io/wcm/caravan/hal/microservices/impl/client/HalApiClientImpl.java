@@ -34,6 +34,8 @@ public class HalApiClientImpl implements HalApiClient {
 
   private final HalApiClientProxyFactory factory;
 
+  private final HalApiTypeSupport typeSupport;
+
   /**
    * jsonLoader implements the actual loading (and caching) of JSON/HAL resources via any HTTP client library
    * @param metrics an instance of {@link RequestMetricsCollector} to collect performance relevant data for the current
@@ -46,6 +48,8 @@ public class HalApiClientImpl implements HalApiClient {
     CachingJsonResourceLoader cachingLoader = new CachingJsonResourceLoader(jsonLoader, metrics);
 
     factory = new HalApiClientProxyFactory(cachingLoader, metrics, typeSupport);
+
+    this.typeSupport = typeSupport;
   }
 
   @Override
@@ -55,4 +59,7 @@ public class HalApiClientImpl implements HalApiClient {
     return factory.createProxyFromUrl(halApiInterface, uri);
   }
 
+  public HalApiTypeSupport getTypeSupport() {
+    return typeSupport;
+  }
 }
