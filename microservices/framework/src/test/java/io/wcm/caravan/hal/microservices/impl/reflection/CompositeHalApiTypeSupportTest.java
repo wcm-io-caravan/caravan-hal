@@ -20,11 +20,18 @@
 package io.wcm.caravan.hal.microservices.impl.reflection;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Method;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.google.common.collect.ImmutableList;
 
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
@@ -38,6 +45,7 @@ import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStra
 import io.wcm.caravan.hal.microservices.impl.client.HalApiClientImpl;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl;
+import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 
 @ExtendWith(MockitoExtension.class)
 public class CompositeHalApiTypeSupportTest {
@@ -53,6 +61,8 @@ public class CompositeHalApiTypeSupportTest {
 
   @Mock
   private HalApiAnnotationSupport mockAnnotationSupport;
+
+  private Method firstMethod = CompositeHalApiTypeSupportTest.class.getMethods()[0];
 
   private HalApiTypeSupportAdapter assertThatCompositeHasDefaultAndAdapter(CompositeHalApiTypeSupport composite) {
 
@@ -119,5 +129,48 @@ public class CompositeHalApiTypeSupportTest {
     AsyncHalResponseRenderer renderer = AsyncHalResponseRenderer.create(metrics, exceptionStrategy, mockAnnotationSupport, null);
 
     assertThatMockAnnotationSupportIsEffective(((AsyncHalResponseRendererImpl)renderer).getAnnotationSupport());
+  }
+
+  private void assertThatCompositeReturnsFirstTrueValueOfMock(Function<HalApiAnnotationSupport, Boolean> fut) {
+
+    HalApiTypeSupport composite = new CompositeHalApiTypeSupport(ImmutableList.of(
+        new DefaultHalApiTypeSupport(),
+        new HalApiTypeSupportAdapter(null, null),
+        new HalApiTypeSupportAdapter(mockAnnotationSupport),
+        new HalApiTypeSupportAdapter(mockReturnTypeSupport)));
+
+    when(fut.apply(mockAnnotationSupport)).thenReturn(true);
+    assertThat(fut.apply(composite)).isTrue();
+    fut.apply(verify(mockAnnotationSupport));
+  }
+
+  @Test
+  public void isHalApiInterface_should_return_first_true_value() throws Exception {
+
+    assertThatCompositeReturnsFirstTrueValueOfMock(a -> a.isHalApiInterface(TestResource.class));
+  }
+
+  @Test
+  public void isRelatedResourceMethod_should_return_first_true_value() throws Exception {
+
+    assertThatCompositeReturnsFirstTrueValueOfMock(a -> a.isRelatedResourceMethod(firstMethod));
+  }
+
+  @Test
+  public void isResourceLinkMethod_should_return_first_true_value() throws Exception {
+
+    assertThatCompositeReturnsFirstTrueValueOfMock(a -> a.isResourceLinkMethod(firstMethod));
+  }
+
+  @Test
+  public void isResourceReoresentationMethod_should_return_first_true_value() throws Exception {
+
+    assertThatCompositeReturnsFirstTrueValueOfMock(a -> a.isResourceRepresentationMethod(firstMethod));
+  }
+
+  @Test
+  public void isResourceStateMethod_should_return_first_true_value() throws Exception {
+
+    assertThatCompositeReturnsFirstTrueValueOfMock(a -> a.isResourceStateMethod(firstMethod));
   }
 }
