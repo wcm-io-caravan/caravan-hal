@@ -144,7 +144,7 @@ public final class RxJavaReflectionUtils {
 
     Function<Observable, ?> conversion = typeSupport.convertFromObservable(targetType);
     if (conversion == null) {
-      throw new HalApiDeveloperException("The given target type of " + targetType.getName() + " is not a supported reactive type");
+      throw new HalApiDeveloperException("The given target type of " + targetType.getName() + " is not a supported return type");
     }
 
     return conversion.apply(observable);
@@ -156,7 +156,7 @@ public final class RxJavaReflectionUtils {
 
     Function<Object, Observable<?>> conversion = typeSupport.convertToObservable(reactiveInstance.getClass());
     if (conversion == null) {
-      throw new HalApiDeveloperException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported reactive type");
+      throw new HalApiDeveloperException("The given instance of " + reactiveInstance.getClass().getName() + " is not a supported return type");
     }
 
     Observable<?> observable = conversion.apply(reactiveInstance);

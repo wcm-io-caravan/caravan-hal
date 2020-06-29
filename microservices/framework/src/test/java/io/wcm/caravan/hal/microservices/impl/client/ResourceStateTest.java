@@ -97,7 +97,7 @@ public class ResourceStateTest {
 
 
   @HalApiInterface
-  interface ResourceWithIllegalAnnotations {
+  interface ResourceWithIllegalReturnType {
 
     @ResourceState
     Future<TestResourceState> notSupported();
@@ -107,10 +107,11 @@ public class ResourceStateTest {
   public void should_throw_developer_exception_if_return_type_is_not_supported() {
 
     Throwable ex = catchThrowable(
-        () -> client.createProxy(ResourceWithIllegalAnnotations.class).notSupported());
+        () -> client.createProxy(ResourceWithIllegalReturnType.class).notSupported());
 
     assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
-        .hasMessageStartingWith("The given target type").hasMessageEndingWith(" is not a supported reactive type");
+        .hasMessageStartingWith("The given target type")
+        .hasMessageEndingWith(" is not a supported return type");
   }
 
 }

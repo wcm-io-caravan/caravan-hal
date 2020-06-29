@@ -24,6 +24,8 @@ import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRen
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
+import java.util.concurrent.Future;
+
 import org.apache.commons.lang3.NotImplementedException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,7 @@ import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.testing.TestState;
+import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.resource.HalResource;
 
 public class RenderResourceStateTest {
@@ -240,4 +243,28 @@ public class RenderResourceStateTest {
     assertThat(ex).isInstanceOf(NotImplementedException.class);
   }
 
+  @HalApiInterface
+  public interface ResourceWithIllegalReturnType {
+
+    @ResourceState
+    Future<TestResourceState> notSupported();
+  }
+
+  @Test
+  public void should_throw_developer_exception_if_return_type_is_not_supported() {
+
+    ResourceWithIllegalReturnType resourceImpl = new ResourceWithIllegalReturnType() {
+
+      @Override
+      public Future<TestResourceState> notSupported() {
+        return Single.just(new TestResourceState()).toFuture();
+      }
+    };
+
+    Throwable ex = Assertions.catchThrowable(() -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
+        .hasMessageStartingWith("The given instance of")
+        .hasMessageEndingWith(" is not a supported return type");
+  }
 }
