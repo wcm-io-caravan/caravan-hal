@@ -38,6 +38,7 @@ import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
+import io.wcm.caravan.hal.microservices.api.server.HalApiServerException;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.microservices.util.RxJavaTransformers;
 
@@ -82,10 +83,10 @@ public final class RxJavaReflectionUtils {
       if (cause instanceof RuntimeException) {
         throw ((RuntimeException)cause);
       }
-      throw new RuntimeException("An exception was thrown during assembly time in " + fullMethodName, cause);
+      throw new HalApiServerException(500, "A checked exception was thrown when calling " + fullMethodName, cause);
     }
     catch (IllegalAccessException | IllegalArgumentException ex) {
-      throw new RuntimeException("Failed to invoke method " + fullMethodName, ex);
+      throw new HalApiDeveloperException("Failed to invoke method " + fullMethodName, ex);
     }
     finally {
 
