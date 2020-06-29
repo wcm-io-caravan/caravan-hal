@@ -19,12 +19,15 @@
  */
 package io.wcm.caravan.hal.microservices.impl;
 
+import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -37,18 +40,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import io.reactivex.rxjava3.core.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.Reha;
 import io.wcm.caravan.hal.microservices.api.RehaBuilder;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
+import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.HalApiServerException;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestState;
+import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
+import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,6 +96,7 @@ public class RehaBuilderImplTest {
 
     assertThat(response.getStatus()).isEqualTo(404);
   }
+
 
   private static final class CustomExceptionStrategy implements ExceptionStatusAndLoggingStrategy {
 
@@ -159,30 +167,31 @@ public class RehaBuilderImplTest {
     Stream<LinkableTestResource> getLinks();
   }
 
+  private final class ResourcewithStreamOfLinksImpl implements ResourceWithStreamOfLinks {
+
+    @Override
+    public Stream<LinkableTestResource> getLinks() {
+      return Stream.of(new LinkableTestResource() {
+
+        @Override
+        public Link createLink() {
+          return new Link("/linked");
+        }
+      });
+    }
+
+    @Override
+    public Link createLink() {
+      return new Link(INCOMING_REQUEST_URI);
+    }
+  }
+
   @Test
   public void withReturnTypeSupport_should_enable_rendering_of_resources_with_custom_return_types() {
 
     Reha reha = createRehaWithStreamReturnTypeSupport();
 
-    ResourceWithStreamOfLinks resourceImpl = new ResourceWithStreamOfLinks() {
-
-      @Override
-      public Stream<LinkableTestResource> getLinks() {
-        return Stream.of(new LinkableTestResource() {
-
-          @Override
-          public Link createLink() {
-            return new Link("/linked");
-          }
-        });
-      }
-
-      @Override
-      public Link createLink() {
-        return new Link(INCOMING_REQUEST_URI);
-      }
-
-    };
+    ResourceWithStreamOfLinks resourceImpl = new ResourcewithStreamOfLinksImpl();
 
     HalResponse response = reha.renderResponse(resourceImpl);
     assertThat(response.getStatus()).isEqualTo(200);
@@ -232,7 +241,55 @@ public class RehaBuilderImplTest {
   }
 
   @MyApiInterface
-  public interface ResourceWithCustomAnnotation extends LinkableTestResource {
+  public interface ResourceWithCustomAnnotation extends LinkableResource {
+
+    @ResourceState
+    Optional<TestState> getState();
+
+    @MyRelated(ITEM)
+    List<ResourceWithCustomAnnotation> getEmbedded();
+  }
+
+
+  private final class ResourceWithCustomAnnotationImpl implements ResourceWithCustomAnnotation, EmbeddableResource {
+
+    private final Optional<TestState> state;
+    private final List<ResourceWithCustomAnnotation> embedded = new ArrayList<>();
+
+    ResourceWithCustomAnnotationImpl() {
+      this.state = Optional.empty();
+    }
+
+    ResourceWithCustomAnnotationImpl(TestState state) {
+      this.state = Optional.ofNullable(state);
+    }
+
+    private ResourceWithCustomAnnotationImpl withEmbedded(TestState... embeddedStates) {
+      Stream.of(embeddedStates)
+          .map(ResourceWithCustomAnnotationImpl::new)
+          .forEach(embedded::add);
+      return this;
+    }
+
+    @Override
+    public Optional<TestState> getState() {
+      return state;
+    }
+
+    @Override
+    public List<ResourceWithCustomAnnotation> getEmbedded() {
+      return embedded;
+    }
+
+    @Override
+    public Link createLink() {
+      return new Link(INCOMING_REQUEST_URI);
+    }
+
+    @Override
+    public boolean isEmbedded() {
+      return state.isPresent();
+    }
 
   }
 
@@ -248,36 +305,46 @@ public class RehaBuilderImplTest {
 
     Reha reha = createRehaWithCustomAnnotationTypeSupport();
 
-    ResourceWithCustomAnnotation resourceImpl = new ResourceWithCustomAnnotation() {
-
-      @Override
-      public Link createLink() {
-        return new Link(INCOMING_REQUEST_URI);
-      }
-    };
+    ResourceWithCustomAnnotation resourceImpl = new ResourceWithCustomAnnotationImpl()
+        .withEmbedded(new TestState(123), new TestState(456));
 
     HalResponse response = reha.renderResponse(resourceImpl);
 
     assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.getContentType()).isEqualTo(HalResource.CONTENT_TYPE);
+
+    assertThat(response.getBody().getEmbedded(ITEM)).hasSize(2);
   }
 
   @Test
   public void withAnnotationTypeSupport_should_enable_fetching_of_resources_with_custom_annotation() {
 
-    upstreamResourceTree.getEntryPoint().setNumber(123);
+    TestResource entryPoint = upstreamResourceTree.getEntryPoint();
+    entryPoint.setNumber(123);
+    entryPoint.createEmbedded(ITEM).setNumber(456);
 
     Reha reha = createRehaWithCustomAnnotationTypeSupport();
 
     ResourceWithCustomAnnotation resource = reha.getEntryPoint(UPSTREAM_ENTRY_POINT_URI, ResourceWithCustomAnnotation.class);
 
-    TestState state = resource.getState().blockingGet();
+    TestState state = resource.getState().get();
     assertThat(state).isNotNull();
     assertThat(state.number).isEqualTo(123);
+
+    List<ResourceWithCustomAnnotation> embedded = resource.getEmbedded();
+    assertThat(embedded).hasSize(1);
+    assertThat(embedded.get(0).getState().get().number).isEqualTo(456);
   }
 
   @Retention(RetentionPolicy.RUNTIME)
   public static @interface MyApiInterface {
 
+  }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  public static @interface MyRelated {
+
+    String value();
   }
 
   private static final class CustomAnnotationSupport implements HalApiAnnotationSupport {
@@ -305,7 +372,8 @@ public class RehaBuilderImplTest {
 
     @Override
     public boolean isRelatedResourceMethod(Method method) {
-      return false;
+
+      return method.isAnnotationPresent(MyRelated.class);
     }
 
     @Override
@@ -315,6 +383,11 @@ public class RehaBuilderImplTest {
 
     @Override
     public String getRelation(Method method) {
+
+      if (isRelatedResourceMethod(method)) {
+        return method.getAnnotation(MyRelated.class).value();
+      }
+
       return null;
     }
 

@@ -19,6 +19,8 @@
  */
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
@@ -80,8 +82,7 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
 
     addMetadata(metrics, halResource, resourceImpl);
 
-    Class<?> halApiInterface = HalApiReflectionUtils.findHalApiInterface(resourceImpl, annotationSupport);
-    String contentType = annotationSupport.getContentType(halApiInterface);
+    String contentType = getContentTypeFromAnnotation(resourceImpl);
 
     HalResponse response = new HalResponse()
         .withStatus(200)
@@ -91,6 +92,17 @@ public class AsyncHalResponseRendererImpl implements AsyncHalResponseRenderer {
         .withMaxAge(metrics.getResponseMaxAge());
 
     return response;
+  }
+
+  private String getContentTypeFromAnnotation(LinkableResource resourceImpl) {
+
+    Class<?> halApiInterface = HalApiReflectionUtils.findHalApiInterface(resourceImpl, annotationSupport);
+    String contentType = annotationSupport.getContentType(halApiInterface);
+
+    if (StringUtils.isNotBlank(contentType)) {
+      return contentType;
+    }
+    return HalResource.CONTENT_TYPE;
   }
 
   static void addMetadata(RequestMetricsCollector metrics, HalResource hal, LinkableResource resourceImpl) {
