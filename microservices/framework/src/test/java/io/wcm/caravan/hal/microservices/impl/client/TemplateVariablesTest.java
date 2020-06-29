@@ -22,12 +22,15 @@ package io.wcm.caravan.hal.microservices.impl.client;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ENTRY_POINT_URI;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.damnhandy.uri.template.UriTemplate;
 
@@ -37,6 +40,7 @@ import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.api.annotations.TemplateVariables;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.resource.HalResource;
@@ -180,6 +184,32 @@ public class TemplateVariablesTest {
     assertThat(link.getHref()).isEqualTo(template);
   }
 
+  public static class VariablesDtoWithPrivateFields {
+
+    private Integer id;
+    private String text;
+  }
+
+  @HalApiInterface
+  interface ResourceWithTemplateVariablesDtoWithPrivateFields {
+
+    @RelatedResource(relation = ITEM)
+    Single<LinkedResourceWithSingleState> getItem(@TemplateVariables VariablesDtoWithPrivateFields dto);
+  }
+
+  @Test
+  public void should_fail_if_dto_fields_are_private() throws Exception {
+
+    VariablesDtoWithPrivateFields dto = new VariablesDtoWithPrivateFields();
+
+    Throwable ex = catchThrowable(
+        () -> client.createProxy(ResourceWithTemplateVariablesDtoWithPrivateFields.class).getItem(dto));
+
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
+        .hasMessageContaining("Make sure that all fields in your classes used as parameters annotated with @TemplateVariables are public")
+        .hasCauseInstanceOf(IllegalAccessException.class);
+  }
+
   public interface VariablesInterface {
 
     Integer getId();
@@ -236,5 +266,19 @@ public class TemplateVariablesTest {
         .blockingGet();
 
     assertThat(link.getHref()).isEqualTo(template);
+  }
+
+  @Test
+  public void should_fail_if_calling_interface_method_throws_exception() throws Exception {
+
+    VariablesInterface variables = Mockito.mock(VariablesInterface.class);
+    Mockito.when(variables.getId()).thenThrow(new IllegalArgumentException());
+
+    Throwable ex = catchThrowable(
+        () -> client.createProxy(ResourceWithTemplateVariablesInterface.class).getItem(variables));
+
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
+        .hasMessageStartingWith("Failed to extract template variables")
+        .hasCauseInstanceOf(InvocationTargetException.class);
   }
 }

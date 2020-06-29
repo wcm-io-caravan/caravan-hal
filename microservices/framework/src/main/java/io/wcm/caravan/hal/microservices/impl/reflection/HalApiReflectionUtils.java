@@ -184,7 +184,7 @@ public final class HalApiReflectionUtils {
       return map;
     }
     catch (IntrospectionException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-      throw new RuntimeException("Failed to extract template variables from class " + dtoClass.getName() + " through reflection", ex);
+      throw new HalApiDeveloperException("Failed to extract template variables from class " + dtoClass.getName() + " through reflection", ex);
     }
   }
 
@@ -204,11 +204,11 @@ public final class HalApiReflectionUtils {
 
   private static Object getFieldValue(Field field, Object instance) {
     try {
-      return FieldUtils.readField(field, instance, true);
+      return FieldUtils.readField(field, instance, false);
     }
     catch (IllegalArgumentException | IllegalAccessException ex) {
       throw new HalApiDeveloperException("Failed to read value of field " + field.getName() + " from class " + instance.getClass().getSimpleName()
-          + ". Make sure that all fields in your classes used as parameters annotated with @" + TemplateVariables.class.getSimpleName() + " are public");
+          + ". Make sure that all fields in your classes used as parameters annotated with @" + TemplateVariables.class.getSimpleName() + " are public", ex);
     }
   }
 
