@@ -24,7 +24,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +35,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.google.common.collect.ImmutableList;
 
+import io.reactivex.rxjava3.core.Observable;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
@@ -133,15 +136,39 @@ public class CompositeHalApiTypeSupportTest {
 
   private void assertThatCompositeReturnsFirstTrueValueOfMock(Function<HalApiAnnotationSupport, Boolean> fut) {
 
+    HalApiTypeSupport composite = createCompositeTypeSupport();
+
+    when(fut.apply(mockAnnotationSupport)).thenReturn(true);
+    assertThat(fut.apply(composite)).isTrue();
+    fut.apply(verify(mockAnnotationSupport));
+  }
+
+  private void assertThatCompositeReturnsFirstNonNullValueOfMock(Function<HalApiAnnotationSupport, Object> fut, Object returnValue) {
+
+    HalApiTypeSupport composite = createCompositeTypeSupport();
+
+    when(fut.apply(mockAnnotationSupport)).thenReturn(returnValue);
+    assertThat(fut.apply(composite)).isNotNull();
+    fut.apply(verify(mockAnnotationSupport));
+  }
+
+  private <T, U> void assertThatCompositeReturnsFirstNonNullValueOfReturnTypeMock(Function<HalApiReturnTypeSupport, Function<T, U>> fut,
+      Function<T, U> returnValue) {
+
+    HalApiTypeSupport composite = createCompositeTypeSupport();
+
+    when(fut.apply(mockReturnTypeSupport)).thenReturn(returnValue);
+    assertThat(fut.apply(composite)).isNotNull();
+    fut.apply(verify(mockReturnTypeSupport));
+  }
+
+  private HalApiTypeSupport createCompositeTypeSupport() {
     HalApiTypeSupport composite = new CompositeHalApiTypeSupport(ImmutableList.of(
         new DefaultHalApiTypeSupport(),
         new HalApiTypeSupportAdapter(null, null),
         new HalApiTypeSupportAdapter(mockAnnotationSupport),
         new HalApiTypeSupportAdapter(mockReturnTypeSupport)));
-
-    when(fut.apply(mockAnnotationSupport)).thenReturn(true);
-    assertThat(fut.apply(composite)).isTrue();
-    fut.apply(verify(mockAnnotationSupport));
+    return composite;
   }
 
   @Test
@@ -151,9 +178,21 @@ public class CompositeHalApiTypeSupportTest {
   }
 
   @Test
+  public void getContentType_should_return_first_non_null_value() throws Exception {
+
+    assertThatCompositeReturnsFirstNonNullValueOfMock(a -> a.getContentType(TestResource.class), "text/json");
+  }
+
+  @Test
   public void isRelatedResourceMethod_should_return_first_true_value() throws Exception {
 
     assertThatCompositeReturnsFirstTrueValueOfMock(a -> a.isRelatedResourceMethod(firstMethod));
+  }
+
+  @Test
+  public void getRelation_should_return_first_non_null_value() throws Exception {
+
+    assertThatCompositeReturnsFirstNonNullValueOfMock(a -> a.getRelation(firstMethod), "rel");
   }
 
   @Test
@@ -172,5 +211,20 @@ public class CompositeHalApiTypeSupportTest {
   public void isResourceStateMethod_should_return_first_true_value() throws Exception {
 
     assertThatCompositeReturnsFirstTrueValueOfMock(a -> a.isResourceStateMethod(firstMethod));
+  }
+
+  @Test
+  public void convertFromObservable_should_return_first_non_null_value() throws Exception {
+
+    Function<Observable, Stream> fun = o -> ((List)o.toList().blockingGet()).stream();
+    assertThatCompositeReturnsFirstNonNullValueOfReturnTypeMock(a -> a.convertFromObservable(Stream.class), fun);
+  }
+
+  @Test
+  public void convertToObservable_should_return_first_non_null_value() throws Exception {
+
+    @SuppressWarnings("unchecked")
+    Function<Object, Observable<?>> fun = s -> Observable.fromStream((Stream)s);
+    assertThatCompositeReturnsFirstNonNullValueOfReturnTypeMock(a -> a.convertToObservable(Stream.class), fun);
   }
 }
