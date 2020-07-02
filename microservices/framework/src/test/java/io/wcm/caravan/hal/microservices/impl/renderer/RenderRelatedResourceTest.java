@@ -51,8 +51,14 @@ public class RenderRelatedResourceTest {
   @HalApiInterface
   public interface ResourceWithManyRelations extends LinkableResource {
 
+    @RelatedResource(relation = "custom:ghi")
+    Single<LinkableResource> getCustomGhi();
+
     @RelatedResource(relation = "item")
     Single<LinkableResource> getItem();
+
+    @RelatedResource(relation = "section")
+    Single<LinkableResource> getSection();
 
     @RelatedResource(relation = "custom:abc")
     Single<LinkableResource> getCustomAbc();
@@ -72,6 +78,16 @@ public class RenderRelatedResourceTest {
   public void links_should_be_ordered_alphabetical_with_standard_before_custom_relations() {
 
     ResourceWithManyRelations resourceImpl = new ResourceWithManyRelations() {
+
+      @Override
+      public Single<LinkableResource> getSection() {
+        return createSingleExternalLinkedResource("/section");
+      }
+
+      @Override
+      public Single<LinkableResource> getCustomGhi() {
+        return createSingleExternalLinkedResource("/ghi");
+      }
 
       @Override
       public Single<LinkableResource> getItem() {
@@ -103,11 +119,12 @@ public class RenderRelatedResourceTest {
         return new Link("/");
       }
 
+
     };
 
     HalResource hal = render(resourceImpl);
 
-    assertThat(hal.getLinks().keys()).containsExactly("self", "alternate", "canonical", "item", "custom:abc", "custom:def");
+    assertThat(hal.getLinks().keys()).containsExactly("self", "alternate", "canonical", "item", "section", "custom:abc", "custom:def", "custom:ghi");
   }
 
   @Test
