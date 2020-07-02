@@ -54,7 +54,7 @@ public class TestResourceTree implements JsonResourceLoader {
 
     HalResource hal = resource.asHalResource();
     urlResourceMap.put(url, resource);
-    hal.setLink(new Link(url));
+    hal.setLink(new Link(url).setTitle("Test HAL resource at " + url));
   }
 
   @Override
