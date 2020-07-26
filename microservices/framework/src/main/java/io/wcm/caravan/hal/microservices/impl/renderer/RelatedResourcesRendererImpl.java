@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.NotImplementedException;
-
 import com.google.common.base.Stopwatch;
 
 import io.reactivex.rxjava3.core.Observable;
@@ -145,7 +143,7 @@ final class RelatedResourcesRendererImpl {
               sw.elapsed(TimeUnit.MICROSECONDS));
 
           if (link == null) {
-            throw new NotImplementedException(linkedResource.getClass().getName() + "#createLink" + " returned a null value");
+            throw new HalApiDeveloperException(linkedResource.getClass().getName() + "#createLink" + " returned a null value");
           }
           return link;
         });

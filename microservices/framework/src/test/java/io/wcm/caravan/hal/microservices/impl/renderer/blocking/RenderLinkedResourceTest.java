@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import io.reactivex.rxjava3.core.Observable;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestResource;
@@ -226,9 +227,38 @@ public class RenderLinkedResourceTest {
     Throwable ex = catchThrowable(
         () -> render(resourceImpl));
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageEndingWith("returned a null value");
 
   }
 
+  @HalApiInterface
+  public interface TestResourceWithInvalidReturnType extends LinkableResource {
+
+    @RelatedResource(relation = LINKED)
+    String getExternal();
+  }
+
+  @Test
+  public void invalid_return_type_should_throw_exception() {
+
+    TestResourceWithInvalidReturnType resourceImpl = new TestResourceWithInvalidReturnType() {
+
+      @Override
+      public Link createLink() {
+        return new Link("/foo");
+      }
+
+      @Override
+      public String getExternal() {
+        return "bar";
+      }
+    };
+
+    Throwable ex = catchThrowable(
+        () -> render(resourceImpl));
+
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
+        .hasMessageStartingWith("The method #getExternal returns String");
+  }
 }

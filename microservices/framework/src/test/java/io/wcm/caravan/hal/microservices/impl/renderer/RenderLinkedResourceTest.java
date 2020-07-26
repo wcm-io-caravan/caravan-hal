@@ -37,6 +37,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.api.annotations.TemplateVariable;
+import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestResource;
@@ -305,7 +306,7 @@ public class RenderLinkedResourceTest {
     Throwable ex = catchThrowable(
         () -> render(resourceImpl));
 
-    assertThat(ex).isInstanceOf(UnsupportedOperationException.class)
+    assertThat(ex).isInstanceOf(HalApiDeveloperException.class)
         .hasMessageEndingWith("returned a null value");
   }
 
