@@ -22,8 +22,10 @@ package io.wcm.caravan.hal.microservices.impl.renderer;
 import static io.wcm.caravan.hal.api.relations.StandardRelations.VIA;
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOUT;
 import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
+import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl.addMetadata;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -68,12 +70,12 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
     HalResource vndResource = new HalResource();
 
     addProperties(vndResource, error);
-    addAboutLinkAndReturnResourceUri(vndResource, resourceImpl, requestUri);
-
+    addAboutAndCanonicalLink(vndResource, resourceImpl, requestUri);
     addEmbeddedCauses(vndResource, error);
-    AsyncHalResponseRendererImpl.addMetadata(metrics, vndResource, resourceImpl);
+    addMetadata(metrics, vndResource, resourceImpl);
 
     int status = ObjectUtils.defaultIfNull(strategy.extractStatusCode(error), 500);
+
     logError(error, requestUri, status);
 
     return new HalResponse()
@@ -85,7 +87,6 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
   private String getShortErrorMessage(Throwable t) {
     return strategy.getErrorMessageWithoutRedundantInformation(t);
   }
-
 
   private void logError(Throwable error, String uri, int status) {
 
@@ -109,7 +110,7 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
     vndResource.getModel().put("title", error.getClass().getSimpleName() + ": " + getShortErrorMessage(error));
   }
 
-  private void addAboutLinkAndReturnResourceUri(HalResource vndResource, LinkableResource resourceImpl, String requestUri) {
+  private void addAboutAndCanonicalLink(HalResource vndResource, LinkableResource resourceImpl, String requestUri) {
 
     Link aboutLink = new Link(requestUri).setTitle("The URI of this resource as it was actually requested");
     vndResource.addLinks(ABOUT, aboutLink);
@@ -124,58 +125,55 @@ public class VndErrorResponseRendererImpl implements VndErrorResponseRenderer {
       // CHECKSTYLE:ON
     }
 
-    if (selfLink != null && !requestUri.endsWith(selfLink.getHref())) {
-      vndResource.addLinks(StandardRelations.CANONICAL, selfLink);
+    if (selfLink != null) {
+      if (!requestUri.endsWith(selfLink.getHref())) {
+        vndResource.addLinks(StandardRelations.CANONICAL, selfLink);
+      }
     }
-
   }
 
   private void addEmbeddedCauses(HalResource vndResource, Throwable error) {
+
     Throwable cause = error.getCause();
     if (cause != null) {
       HalResource embedded = new HalResource();
       addProperties(embedded, cause);
 
-      List<HalResource> vndErrorsFoundInBody = getErrorsFromUpstreamResponse(vndResource, cause);
-
       vndResource.addEmbedded(ERRORS, embedded);
-
       addEmbeddedCauses(vndResource, cause);
 
-      if (vndErrorsFoundInBody != null) {
+      if (cause instanceof HalApiClientException) {
+        List<HalResource> vndErrorsFoundInBody = getErrorsFromUpstreamResponse(vndResource, (HalApiClientException)cause);
         vndResource.addEmbedded(ERRORS, vndErrorsFoundInBody);
       }
-
     }
   }
 
-  private List<HalResource> getErrorsFromUpstreamResponse(HalResource context, Throwable cause) {
+  private List<HalResource> getErrorsFromUpstreamResponse(HalResource context, HalApiClientException cause) {
 
-    if (cause instanceof HalApiClientException) {
-      HalApiClientException hace = (HalApiClientException)cause;
+    HalApiClientException hace = cause;
 
-      Link link = new Link(hace.getRequestUrl()).setTitle("The upstream resource that could not be loaded");
+    Link link = new Link(hace.getRequestUrl()).setTitle("The upstream resource that could not be loaded");
 
-      context.addLinks(VIA, link);
+    context.addLinks(VIA, link);
 
-      HalResponse upstreamJson = hace.getErrorResponse();
-      HalResource upstreamBody = upstreamJson.getBody();
+    HalResponse upstreamJson = hace.getErrorResponse();
+    HalResource upstreamBody = upstreamJson.getBody();
 
-      if (upstreamBody != null && upstreamBody.getModel().size() > 0) {
-        HalResource causeFromBody = new HalResource(upstreamBody.getModel().deepCopy());
-        causeFromBody.removeEmbedded(ResponseMetadataRelations.CARAVAN_METADATA_RELATION);
-
-        List<HalResource> embeddedCauses = causeFromBody.getEmbedded(ERRORS);
-
-        List<HalResource> flatCauses = new ArrayList<>();
-        flatCauses.add(causeFromBody);
-        flatCauses.addAll(embeddedCauses);
-
-        causeFromBody.removeEmbedded(ERRORS);
-        return flatCauses;
-      }
+    if (upstreamBody == null || upstreamBody.getModel().size() == 0) {
+      return Collections.emptyList();
     }
 
-    return null;
+    HalResource causeFromBody = new HalResource(upstreamBody.getModel().deepCopy());
+    causeFromBody.removeEmbedded(ResponseMetadataRelations.CARAVAN_METADATA_RELATION);
+
+    List<HalResource> embeddedCauses = causeFromBody.getEmbedded(ERRORS);
+
+    List<HalResource> flatCauses = new ArrayList<>();
+    flatCauses.add(causeFromBody);
+    flatCauses.addAll(embeddedCauses);
+
+    causeFromBody.removeEmbedded(ERRORS);
+    return flatCauses;
   }
 }

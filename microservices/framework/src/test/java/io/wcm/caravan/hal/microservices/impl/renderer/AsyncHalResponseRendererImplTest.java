@@ -292,6 +292,22 @@ public class AsyncHalResponseRendererImplTest {
   }
 
   @Test
+  public void error_response_should_contain_only_about_link_if_self_link_matches_request_uri() {
+
+    mockExceptionDuringRendering(new RuntimeException("Something went wrong"));
+
+    Link resourceLink = new Link(REQUEST_URI);
+    when(resource.createLink()).thenReturn(resourceLink);
+
+    HalResponse response = renderResponse();
+
+    HalResource vndError = response.getBody();
+    assertThat(vndError.hasLink(ABOUT)).isTrue();
+    assertThat(vndError.getLink(ABOUT).getHref()).isEqualTo(REQUEST_URI);
+    assertThat(vndError.hasLink(CANONICAL)).isFalse();
+  }
+
+  @Test
   public void error_response_should_ignore_exception_when_creating_canonical_link() {
 
     mockExceptionDuringRendering(new RuntimeException("Something went wrong"));
@@ -343,8 +359,7 @@ public class AsyncHalResponseRendererImplTest {
     RuntimeException rootCause = new RuntimeException(causeMessage);
 
     HalApiClientException cause = new HalApiClientException("Failed to load resource", null, "/failed/upstream/url", rootCause);
-    RuntimeException ex = new RuntimeException(cause);
-    return ex;
+    return new RuntimeException(cause);
   }
 
   @Test
@@ -364,5 +379,33 @@ public class AsyncHalResponseRendererImplTest {
     assertThat(causes).hasSize(2);
     assertThat(causes.get(0).getModel().path("message").asText()).isEqualTo("Failed to load resource");
     assertThat(causes.get(1).getModel().path("message").asText()).isEqualTo(clientMessage);
+  }
+
+  private RuntimeException createWrappedHalClientExceptionWithEmptyBody(int status) {
+
+    HalResponse upstreamResponse = new HalResponse()
+        .withStatus(status)
+        .withBody(new HalResource());
+
+    HalApiClientException cause = new HalApiClientException(upstreamResponse, "/failed/upstream/url", null);
+    RuntimeException ex = new RuntimeException(cause);
+    return ex;
+  }
+
+  @Test
+  public void error_response_should_handle_empty_body() {
+
+    RuntimeException ex = createWrappedHalClientExceptionWithEmptyBody(404);
+
+    mockExceptionDuringRendering(ex);
+
+    HalResponse response = renderResponse();
+
+    Link viaLink = response.getBody().getLink(VIA);
+    assertThat(viaLink.getHref()).isEqualTo("/failed/upstream/url");
+
+    List<HalResource> causes = response.getBody().getEmbedded(ERRORS);
+    assertThat(causes).hasSize(1);
+    assertThat(causes.get(0).getModel().path("message").asText()).isEqualTo("HTTP request failed with status code 404");
   }
 }
