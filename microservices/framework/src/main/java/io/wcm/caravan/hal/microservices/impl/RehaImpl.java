@@ -34,12 +34,12 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.microservices.impl.client.HalApiClientImpl;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 final class RehaImpl implements Reha {
 

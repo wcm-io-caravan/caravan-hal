@@ -19,8 +19,8 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
-import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ENTRY_POINT_URI;
+import static io.wcm.caravan.reha.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
@@ -30,13 +30,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.observers.TestObserver;
 import io.reactivex.rxjava3.subjects.SingleSubject;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceLink;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.annotations.ResourceLink;
+import io.wcm.caravan.reha.api.annotations.ResourceState;
 
 public class LazyLoadingTest {
 

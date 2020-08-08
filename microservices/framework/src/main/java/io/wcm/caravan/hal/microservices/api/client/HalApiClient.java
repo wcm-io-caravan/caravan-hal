@@ -3,13 +3,13 @@ package io.wcm.caravan.hal.microservices.api.client;
 
 import org.osgi.annotation.versioning.ProviderType;
 
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.client.HalApiClientImpl;
 import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.annotations.ResourceState;
 
 /**
  * A generic HAL API client that will provide a dynamic proxy implementation of a given HAL API interface

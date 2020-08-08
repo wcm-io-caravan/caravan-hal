@@ -31,11 +31,11 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.MockClientTestSupport;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.ResourceState;
 
 
 public class ResourceStateTest {

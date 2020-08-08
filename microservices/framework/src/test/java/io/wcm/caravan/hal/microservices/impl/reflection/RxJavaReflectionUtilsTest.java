@@ -29,13 +29,13 @@ import java.lang.reflect.Method;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.util.ReflectionUtils;
 
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.HalApiServerException;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * contains only some tests for edge case exception handling that is hard to reproduce with realistic client / renderer

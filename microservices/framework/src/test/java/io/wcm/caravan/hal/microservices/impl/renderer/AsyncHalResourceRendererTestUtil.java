@@ -23,12 +23,12 @@ import org.apache.commons.lang3.RandomUtils;
 
 import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataGenerator;
 import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 
 public final class AsyncHalResourceRendererTestUtil {

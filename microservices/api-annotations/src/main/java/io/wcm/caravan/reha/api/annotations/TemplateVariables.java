@@ -2,7 +2,7 @@
  * #%L
  * wcm.io
  * %%
- * Copyright (C) 2018 wcm.io
+ * Copyright (C) 2017 wcm.io
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,22 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.annotations;
+package io.wcm.caravan.reha.api.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import io.wcm.caravan.hal.resource.Link;
-
 /**
- * Used to define methods that allow clients to only access URI of a resource, or the
- * {@link Link} instance that is pointing to a resource (without actually fetching the resource).
- * The return type of the method must be {@link Link} or {@link String}
+ * Annotation to be used on parameters of methods annotated with {@link RelatedResource} to mark
+ * a single DTO parameter that is used to expand multiple template variables. This can be used
+ * to simply method signatures with a lot of parameters, by defining a single composite DTO type with
+ * multiple fields that are named exactly as the corresponding template variables. Parameters with
+ * this annotation can either be of a class with public fields, or an interface with public getters.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface ResourceLink {
+@Target(ElementType.PARAMETER)
+public @interface TemplateVariables {
   // this is just a marker interface that does not have any configurable options
 }

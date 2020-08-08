@@ -35,12 +35,12 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.ResourceState;
 
 public class RenderResourceStateTest {
 

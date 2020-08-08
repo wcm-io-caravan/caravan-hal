@@ -2,7 +2,7 @@
  * #%L
  * wcm.io
  * %%
- * Copyright (C) 2017 wcm.io
+ * Copyright (C) 2018 wcm.io
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,25 +17,22 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.annotations;
+package io.wcm.caravan.reha.api.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.wcm.caravan.hal.resource.Link;
+
 /**
- * Annotation to be used on parameters of methods annotated with {@link RelatedResource} to define
- * which variable in the URI template should be expanded with the given parameter value. If you
- * have link templates with many variables, consider using {@link TemplateVariables} to simplify
- * your method signatures.
+ * Used to define methods that allow clients to only access URI of a resource, or the
+ * {@link Link} instance that is pointing to a resource (without actually fetching the resource).
+ * The return type of the method must be {@link Link} or {@link String}
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.PARAMETER)
-public @interface TemplateVariable {
-
-  /**
-   * @return the name of the template variable that corresponds to this method parameter
-   */
-  String value();
+@Target(ElementType.METHOD)
+public @interface ResourceLink {
+  // this is just a marker interface that does not have any configurable options
 }

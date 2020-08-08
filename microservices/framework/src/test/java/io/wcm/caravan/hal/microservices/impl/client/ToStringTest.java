@@ -23,11 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
-import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.impl.client.RelatedResourceTest.ResourceWithSingleRelated;
 import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
+import io.wcm.caravan.reha.api.relations.StandardRelations;
 
 public class ToStringTest {
 

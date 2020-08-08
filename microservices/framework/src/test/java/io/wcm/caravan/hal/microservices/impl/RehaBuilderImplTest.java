@@ -19,7 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.impl;
 
-import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
+import static io.wcm.caravan.reha.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.annotation.Retention;
@@ -38,25 +38,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.reactivex.rxjava3.core.Observable;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.Reha;
 import io.wcm.caravan.hal.microservices.api.RehaBuilder;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
-import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
 import io.wcm.caravan.hal.microservices.api.server.HalApiServerException;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.annotations.ResourceState;
+import io.wcm.caravan.reha.api.relations.StandardRelations;
+import io.wcm.caravan.reha.api.resources.EmbeddableResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 @ExtendWith(MockitoExtension.class)
 public class RehaBuilderImplTest {

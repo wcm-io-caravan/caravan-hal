@@ -34,15 +34,15 @@ import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.TemplateVariable;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestResource;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.annotations.TemplateVariable;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 public class RenderLinkedResourceTest {
 

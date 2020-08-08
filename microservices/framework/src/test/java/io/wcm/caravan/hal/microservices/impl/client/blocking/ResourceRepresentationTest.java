@@ -19,21 +19,21 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client.blocking;
 
-import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
+import static io.wcm.caravan.reha.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
-import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceTree;
 import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.ResourceRepresentation;
+import io.wcm.caravan.reha.api.relations.StandardRelations;
 
 /**
  * Variation of the tests in {@link io.wcm.caravan.hal.microservices.impl.client.ResourceRepresentationTest}

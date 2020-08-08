@@ -33,19 +33,19 @@ import com.google.common.base.Stopwatch;
 
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
-import io.wcm.caravan.hal.microservices.api.server.EmbeddableResource;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.resources.EmbeddableResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 final class RelatedResourcesRendererImpl {
 

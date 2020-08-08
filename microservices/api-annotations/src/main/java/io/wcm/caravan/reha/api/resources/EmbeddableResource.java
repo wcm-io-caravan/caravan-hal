@@ -18,7 +18,7 @@
  * #L%
  */
 
-package io.wcm.caravan.hal.microservices.api.server;
+package io.wcm.caravan.reha.api.resources;
 
 import org.osgi.annotation.versioning.ConsumerType;
 

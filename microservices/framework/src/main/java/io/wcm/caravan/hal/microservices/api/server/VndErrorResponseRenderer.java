@@ -19,10 +19,11 @@
  */
 package io.wcm.caravan.hal.microservices.api.server;
 
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.renderer.VndErrorResponseRendererImpl;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 
 /**

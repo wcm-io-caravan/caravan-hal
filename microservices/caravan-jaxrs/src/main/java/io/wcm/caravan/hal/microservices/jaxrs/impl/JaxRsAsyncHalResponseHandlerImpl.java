@@ -37,8 +37,8 @@ import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.jaxrs.JaxRsAsyncHalResponseHandler;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 @Component(service = { JaxRsAsyncHalResponseHandler.class })
 public class JaxRsAsyncHalResponseHandlerImpl implements JaxRsAsyncHalResponseHandler {

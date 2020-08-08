@@ -32,11 +32,11 @@ import org.osgi.service.component.annotations.Reference;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.caravan.CaravanReha;
 import io.wcm.caravan.hal.microservices.caravan.CaravanRehaBuilder;
 import io.wcm.caravan.hal.microservices.jaxrs.JaxRsAsyncHalResponseHandler;
 import io.wcm.caravan.io.http.CaravanHttpClient;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 @Component(service = CaravanRehaBuilder.class)
 public class CaravanRehaBuilderImpl implements CaravanRehaBuilder {

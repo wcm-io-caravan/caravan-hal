@@ -41,12 +41,12 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 
 import com.google.common.collect.Lists;
 
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
-import io.wcm.caravan.hal.api.annotations.TemplateVariables;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.annotations.ResourceState;
+import io.wcm.caravan.reha.api.annotations.TemplateVariables;
 
 /**
  * Utility methods to inspect method signatures

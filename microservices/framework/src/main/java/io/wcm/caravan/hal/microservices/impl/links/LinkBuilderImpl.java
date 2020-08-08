@@ -35,8 +35,8 @@ import com.google.common.collect.Sets;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilder;
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilderSupport;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * Implementation of {@link LinkBuilder} that constructs links and link templates using the {@link UriTemplateBuilder}.

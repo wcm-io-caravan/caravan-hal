@@ -35,11 +35,11 @@ import com.damnhandy.uri.template.UriTemplate;
 import com.google.common.collect.ImmutableList;
 
 import io.reactivex.rxjava3.core.Observable;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
 
 class RelatedResourceHandler {
 

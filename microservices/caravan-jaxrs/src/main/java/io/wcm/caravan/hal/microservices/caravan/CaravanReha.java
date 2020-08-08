@@ -24,7 +24,7 @@ import java.util.function.Function;
 
 import javax.ws.rs.core.UriInfo;
 
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 public interface CaravanReha {
 

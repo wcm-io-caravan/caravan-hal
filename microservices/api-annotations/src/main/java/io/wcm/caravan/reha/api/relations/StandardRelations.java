@@ -1,7 +1,7 @@
 /* Copyright (c) pro!vision GmbH. All rights reserved. */
-package io.wcm.caravan.hal.api.relations;
+package io.wcm.caravan.reha.api.relations;
 
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
 
 /**
  * Constants for standard link relations used in {@link RelatedResource} annotations.

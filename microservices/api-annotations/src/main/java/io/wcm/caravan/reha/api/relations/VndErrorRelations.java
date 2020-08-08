@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.microservices.api.common;
+package io.wcm.caravan.reha.api.relations;
 
 /**
  * Link relations used by the application/vnd.error+json media type

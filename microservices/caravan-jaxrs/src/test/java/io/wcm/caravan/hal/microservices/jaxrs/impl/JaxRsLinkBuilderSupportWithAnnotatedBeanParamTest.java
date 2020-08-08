@@ -30,7 +30,7 @@ import javax.ws.rs.QueryParam;
 
 import org.junit.Test;
 
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 public class JaxRsLinkBuilderSupportWithAnnotatedBeanParamTest extends AbstractJaxRsLinkBuilderSupportTest {
 

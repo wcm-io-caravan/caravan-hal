@@ -19,10 +19,10 @@
  */
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
-import static io.wcm.caravan.hal.api.relations.StandardRelations.CANONICAL;
-import static io.wcm.caravan.hal.api.relations.StandardRelations.VIA;
-import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOUT;
-import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
+import static io.wcm.caravan.reha.api.relations.StandardRelations.CANONICAL;
+import static io.wcm.caravan.reha.api.relations.StandardRelations.VIA;
+import static io.wcm.caravan.reha.api.relations.VndErrorRelations.ABOUT;
+import static io.wcm.caravan.reha.api.relations.VndErrorRelations.ERRORS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -39,7 +39,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
@@ -52,6 +51,7 @@ import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
 
 @ExtendWith(MockitoExtension.class)
 public class AsyncHalResponseRendererImplTest {

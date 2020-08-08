@@ -25,7 +25,7 @@ import javax.ws.rs.core.UriInfo;
 import org.osgi.annotation.versioning.ProviderType;
 
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 @ProviderType
 public interface JaxRsAsyncHalResponseHandler {

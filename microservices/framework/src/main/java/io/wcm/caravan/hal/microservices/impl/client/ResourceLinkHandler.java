@@ -19,9 +19,9 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
-import io.wcm.caravan.hal.api.annotations.ResourceLink;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.ResourceLink;
 
 class ResourceLinkHandler {
 

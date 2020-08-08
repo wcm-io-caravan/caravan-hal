@@ -28,8 +28,8 @@ import javax.ws.rs.Path;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Test;
 
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 
 public abstract class AbstractJaxRsLinkBuilderSupportTest {

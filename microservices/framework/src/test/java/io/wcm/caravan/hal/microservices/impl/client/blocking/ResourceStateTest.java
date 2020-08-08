@@ -32,14 +32,14 @@ import org.mockito.Mockito;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.client.JsonResourceLoader;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.testing.ConversionFunctions;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.ResourceState;
 
 /**
  * Variation of the tests in {@link io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest}

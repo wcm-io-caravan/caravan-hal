@@ -48,7 +48,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import io.wcm.caravan.hal.microservices.api.server.LinkBuilderSupport;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * Implements the JAX-RS specific logic to automatically build links to JAX-RS resource implementations by scanning the

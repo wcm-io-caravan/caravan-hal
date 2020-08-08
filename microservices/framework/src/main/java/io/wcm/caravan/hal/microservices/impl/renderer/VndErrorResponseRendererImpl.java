@@ -19,10 +19,10 @@
  */
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
-import static io.wcm.caravan.hal.api.relations.StandardRelations.VIA;
-import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ABOUT;
-import static io.wcm.caravan.hal.microservices.api.common.VndErrorRelations.ERRORS;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResponseRendererImpl.addMetadata;
+import static io.wcm.caravan.reha.api.relations.StandardRelations.VIA;
+import static io.wcm.caravan.reha.api.relations.VndErrorRelations.ABOUT;
+import static io.wcm.caravan.reha.api.relations.VndErrorRelations.ERRORS;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,16 +35,16 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.wcm.caravan.hal.api.relations.StandardRelations;
 import io.wcm.caravan.hal.microservices.api.client.HalApiClientException;
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.relations.StandardRelations;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * Full implementation of {@link VndErrorResponseRenderer}

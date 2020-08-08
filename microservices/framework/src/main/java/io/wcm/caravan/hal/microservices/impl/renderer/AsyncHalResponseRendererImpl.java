@@ -28,11 +28,11 @@ import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResponseRenderer;
 import io.wcm.caravan.hal.microservices.api.server.ExceptionStatusAndLoggingStrategy;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.api.server.VndErrorResponseRenderer;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations;
 import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * A full implementation of {@link AsyncHalResourceRenderer} that uses {@link VndErrorResponseRendererImpl}

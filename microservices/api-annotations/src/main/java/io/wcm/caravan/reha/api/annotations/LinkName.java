@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.annotations;
+package io.wcm.caravan.reha.api.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -25,14 +25,15 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotation to be used on parameters of methods annotated with {@link RelatedResource} to mark
- * a single DTO parameter that is used to expand multiple template variables. This can be used
- * to simply method signatures with a lot of parameters, by defining a single composite DTO type with
- * multiple fields that are named exactly as the corresponding template variables. Parameters with
- * this annotation can either be of a class with public fields, or an interface with public getters.
+ * An annotation that can be used for parameters of methods annotated with {@link RelatedResource} to indicate
+ * that a HAL API client should only consider link(s) with a specific name attribute.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
-public @interface TemplateVariables {
-  // this is just a marker interface that does not have any configurable options
+public @interface LinkName {
+
+  // TODO: decide if this annotation is really required. The same kind of filtering can also be achieved by
+  // adding a @ResourceLink method on the linked resource and then filtering links by name before following them.
+  // That requires a bit more complicated code, but this is a rare use cases, and the downside of having this
+  // annotation is that it is relevant for the client-side only (you would never *implement* methods using it on the server side)
 }

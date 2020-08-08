@@ -28,9 +28,9 @@ import javax.ws.rs.Path;
 
 import org.junit.Test;
 
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsLinkBuilderSupportWithAnnotatedBeanParamTest.TwoPathParametersBean;
 import io.wcm.caravan.hal.microservices.jaxrs.impl.JaxRsLinkBuilderSupportWithAnnotatedBeanParamTest.TwoQueryParametersBean;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 public class JaxRsLinkBuilderSupportWithBeanConstructorParamTest extends AbstractJaxRsLinkBuilderSupportTest {
 

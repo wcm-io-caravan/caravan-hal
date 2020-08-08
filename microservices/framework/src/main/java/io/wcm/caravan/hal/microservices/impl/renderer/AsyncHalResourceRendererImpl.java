@@ -37,13 +37,13 @@ import io.reactivex.rxjava3.core.Single;
 import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.EmissionStopwatch;
 import io.wcm.caravan.hal.microservices.impl.reflection.HalApiReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
 import io.wcm.caravan.hal.microservices.impl.renderer.RelatedResourcesRendererImpl.RelationRenderResult;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * Full implementation of {@link AsyncHalResourceRenderer} that will collect detailed performance information

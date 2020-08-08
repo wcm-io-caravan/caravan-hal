@@ -19,10 +19,10 @@
  */
 package io.wcm.caravan.hal.microservices.impl.renderer;
 
-import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.createSingleExternalLinkedResource;
 import static io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererTestUtil.render;
 import static io.wcm.caravan.hal.microservices.testing.TestRelations.LINKED;
+import static io.wcm.caravan.reha.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -32,16 +32,16 @@ import org.junit.jupiter.api.Test;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.renderer.RenderLinkedResourceTest.TestResourceWithObservableLinks;
 import io.wcm.caravan.hal.microservices.testing.LinkableTestResource;
 import io.wcm.caravan.hal.microservices.testing.TestResource;
 import io.wcm.caravan.hal.microservices.testing.TestState;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * contains tests for @RelatedResource methods that are identical for linked and embedded resources

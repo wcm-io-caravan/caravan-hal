@@ -19,12 +19,12 @@
  */
 package io.wcm.caravan.hal.microservices.impl.metadata;
 
-import static io.wcm.caravan.hal.api.relations.StandardRelations.VIA;
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.EMISSION_TIMES;
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.INVOCATION_TIMES;
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.MAX_AGE;
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.RESPONSE_TIMES;
 import static io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataRelations.SOURCE_LINKS;
+import static io.wcm.caravan.reha.api.relations.StandardRelations.VIA;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Percentage.withPercentage;
 
@@ -39,10 +39,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.wcm.caravan.hal.microservices.api.client.HalApiClient;
 import io.wcm.caravan.hal.microservices.api.server.AsyncHalResourceRenderer;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataGenerator.TimeMeasurement;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 @ExtendWith(MockitoExtension.class)
 public class ResponseMetadataGeneratorTest {

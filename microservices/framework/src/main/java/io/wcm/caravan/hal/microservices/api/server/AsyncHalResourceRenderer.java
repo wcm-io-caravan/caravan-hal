@@ -22,13 +22,14 @@ package io.wcm.caravan.hal.microservices.api.server;
 import org.osgi.annotation.versioning.ProviderType;
 
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.RequestMetricsCollector;
 import io.wcm.caravan.hal.microservices.impl.reflection.DefaultHalApiTypeSupport;
 import io.wcm.caravan.hal.microservices.impl.renderer.AsyncHalResourceRendererImpl;
 import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * Asynchronously creates a {@link HalResource} representation from a server-side implementation instance of an

@@ -19,7 +19,7 @@
  */
 package io.wcm.caravan.hal.microservices.impl.client;
 
-import static io.wcm.caravan.hal.api.relations.StandardRelations.ITEM;
+import static io.wcm.caravan.reha.api.relations.StandardRelations.ITEM;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.catchThrowable;
 
@@ -28,11 +28,6 @@ import org.junit.jupiter.api.Test;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.LinkName;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceLink;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.impl.client.ClientTestSupport.ResourceTreeClientTestSupport;
 import io.wcm.caravan.hal.microservices.impl.client.ResourceStateTest.ResourceWithSingleState;
@@ -40,6 +35,11 @@ import io.wcm.caravan.hal.microservices.testing.resources.TestResource;
 import io.wcm.caravan.hal.microservices.testing.resources.TestResourceState;
 import io.wcm.caravan.hal.resource.HalResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.LinkName;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.annotations.ResourceLink;
+import io.wcm.caravan.reha.api.annotations.ResourceState;
 
 public class LinkNameTest {
 

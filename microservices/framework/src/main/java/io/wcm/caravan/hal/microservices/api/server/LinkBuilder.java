@@ -25,6 +25,7 @@ import org.osgi.annotation.versioning.ProviderType;
 
 import io.wcm.caravan.hal.microservices.impl.links.LinkBuilderImpl;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * A builder for {@link Link} instances that can be used when implementing {@link LinkableResource#createLink()}

@@ -23,7 +23,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 public class JaxRsLinkBuilderSupportWithIndividualConstructorParamTest extends AbstractJaxRsLinkBuilderSupportTest {
 

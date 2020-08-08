@@ -13,13 +13,13 @@ import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 
-import io.wcm.caravan.hal.api.annotations.LinkName;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.TemplateVariable;
-import io.wcm.caravan.hal.api.annotations.TemplateVariables;
 import io.wcm.caravan.hal.microservices.api.client.HalApiDeveloperException;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.microservices.impl.reflection.RxJavaReflectionUtils;
+import io.wcm.caravan.reha.api.annotations.LinkName;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.annotations.TemplateVariable;
+import io.wcm.caravan.reha.api.annotations.TemplateVariables;
 
 
 class HalApiMethodInvocation {

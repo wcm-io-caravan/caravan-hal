@@ -23,9 +23,9 @@ import java.time.Duration;
 
 import org.osgi.annotation.versioning.ProviderType;
 
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.microservices.impl.metadata.ResponseMetadataGenerator;
 import io.wcm.caravan.hal.resource.HalResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 /**
  * Keeps track of all upstream resource that have been fetched while handling the current-request, and collects

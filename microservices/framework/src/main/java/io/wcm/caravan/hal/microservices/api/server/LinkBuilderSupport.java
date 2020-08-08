@@ -23,6 +23,8 @@ import java.util.Map;
 
 import org.osgi.annotation.versioning.ConsumerType;
 
+import io.wcm.caravan.reha.api.resources.LinkableResource;
+
 /**
  * Extension point interface for the {@link LinkBuilder} that allows to
  * delegate the framework-specific logic of extracting all information to build a valid link

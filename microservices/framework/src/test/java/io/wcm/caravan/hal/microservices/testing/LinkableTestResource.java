@@ -19,9 +19,9 @@
  */
 package io.wcm.caravan.hal.microservices.testing;
 
-import io.wcm.caravan.hal.api.annotations.ResourceLink;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
 import io.wcm.caravan.hal.resource.Link;
+import io.wcm.caravan.reha.api.annotations.ResourceLink;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 public interface LinkableTestResource extends TestResource, LinkableResource {
 

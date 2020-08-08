@@ -32,14 +32,14 @@ import io.reactivex.rxjava3.core.BackpressureStrategy;
 import io.reactivex.rxjava3.core.Maybe;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.core.Single;
-import io.wcm.caravan.hal.api.annotations.HalApiInterface;
-import io.wcm.caravan.hal.api.annotations.RelatedResource;
-import io.wcm.caravan.hal.api.annotations.ResourceLink;
-import io.wcm.caravan.hal.api.annotations.ResourceRepresentation;
-import io.wcm.caravan.hal.api.annotations.ResourceState;
 import io.wcm.caravan.hal.microservices.api.common.HalApiAnnotationSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiReturnTypeSupport;
 import io.wcm.caravan.hal.microservices.api.common.HalApiTypeSupport;
+import io.wcm.caravan.reha.api.annotations.HalApiInterface;
+import io.wcm.caravan.reha.api.annotations.RelatedResource;
+import io.wcm.caravan.reha.api.annotations.ResourceLink;
+import io.wcm.caravan.reha.api.annotations.ResourceRepresentation;
+import io.wcm.caravan.reha.api.annotations.ResourceState;
 
 
 public class DefaultHalApiTypeSupport implements HalApiTypeSupport {

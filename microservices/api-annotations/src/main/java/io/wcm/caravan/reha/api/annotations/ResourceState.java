@@ -17,7 +17,7 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.annotations;
+package io.wcm.caravan.reha.api.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

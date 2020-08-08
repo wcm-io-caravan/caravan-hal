@@ -17,25 +17,24 @@
  * limitations under the License.
  * #L%
  */
-package io.wcm.caravan.hal.api.annotations;
+package io.wcm.caravan.reha.api.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import io.wcm.caravan.hal.resource.HalResource;
+
 /**
- * A marker annotation that is required for all HAL API interfaces, to indicate that it should be scanned for the
- * presence of methods annotated with {@link RelatedResource}, {@link ResourceState}, etc that actually define the API.
+ * Used to annotate a method that allows clients to get the full JSON representation of the resource
+ * (including the _links and _embedded properties). The return type of the method must be a reactive
+ * stream of {@link JsonNode} or {@link HalResource}.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface HalApiInterface {
-
-  /**
-   * Allows to define a custom content type that is used when rendering server-side resource instances implementing
-   * this interface
-   * @return the custom content type (or default value of "application/hal+json")
-   */
-  String contentType() default "application/hal+json";
+@Target(ElementType.METHOD)
+public @interface ResourceRepresentation {
+  // this is just a marker interface that does not have any configurable options
 }

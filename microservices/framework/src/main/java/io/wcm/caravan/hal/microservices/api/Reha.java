@@ -23,7 +23,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletionStage;
 
 import io.wcm.caravan.hal.microservices.api.common.HalResponse;
-import io.wcm.caravan.hal.microservices.api.server.LinkableResource;
+import io.wcm.caravan.reha.api.resources.LinkableResource;
 
 
 public interface Reha {
