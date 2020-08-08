@@ -30,12 +30,12 @@
   </parent>
 
   <groupId>io.wcm.caravan</groupId>
-  <artifactId>io.wcm.caravan.hal.microservices.caravan-jaxrs</artifactId>
+  <artifactId>io.wcm.caravan.hal.reha.caravan-jaxrs</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
 
-  <name>Reactive HAL Microservices - wcm.io.Caravan and JAX-RS implementations</name>
-  <description>OSGi Microservice implementation support based on the wcm.io.Caravan Pipeline and JAX-RS Publisher bundles)</description>
+  <name>Caravan Reha - wcm.io.Caravan and JAX-RS implementations</name>
+  <description>Implementation support classes to build reactive HAL web services based on the OSGi JAX-RS Whiteboard and wcm.io.Caravan Pipeline projects</description>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>
@@ -45,20 +45,20 @@
   </scm>
 
   <properties>
-    <site.url.module.prefix>hal/microservices/caravan-jaxrs</site.url.module.prefix>
+    <site.url.module.prefix>hal/reha/caravan-jaxrs</site.url.module.prefix>
   </properties>
   
   <dependencies>
     <!-- wcm.io -->
     <dependency>
       <groupId>io.wcm.caravan</groupId>
-      <artifactId>io.wcm.caravan.hal.microservices.api-annotations</artifactId>
+      <artifactId>io.wcm.caravan.hal.reha.api-interfaces</artifactId>
       <version>1.0.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>io.wcm.caravan</groupId>
-      <artifactId>io.wcm.caravan.hal.microservices.framework</artifactId>
+      <artifactId>io.wcm.caravan.hal.reha.core</artifactId>
       <version>1.0.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>

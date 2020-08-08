@@ -35,7 +35,8 @@
   <version>1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>HAL Integration Test</name>
+  <name>Caravan Reha - Integration Test</name>
+  <description>An example service based on the OSGi JAX-RS Whiteboard that is started in a Sling Launchpad for integration tests</description>
 
   <modules>
     <module>sample-service</module>

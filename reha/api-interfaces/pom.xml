@@ -30,12 +30,12 @@
   </parent>
 
   <groupId>io.wcm.caravan</groupId>
-  <artifactId>io.wcm.caravan.hal.microservices.api-annotations</artifactId>
+  <artifactId>io.wcm.caravan.hal.reha.api-interfaces</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
 
-  <name>Reactive HAL Microservices API Annotations</name>
-  <description>Annotations to use in reactive HAL API interface bundles</description>
+  <name>Caravan Reha - API Interfaces and Annotations</name>
+  <description>The single dependency required to define annotated HAL API interfaces</description>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>
@@ -45,7 +45,7 @@
   </scm>
 
   <properties>
-    <site.url.module.prefix>hal/microservices/api-annotations</site.url.module.prefix>
+    <site.url.module.prefix>hal/reha/api-interfaces</site.url.module.prefix>
   </properties>
 
   <dependencies>

@@ -21,7 +21,7 @@ package io.wcm.caravan.reha.impl.metadata;
 
 /**
  * Constants for the relation used in the embedded metadata resource created by
- * {@link ResponseMetadataGenerator#createMetadataResource(io.wcm.caravan.hal.microservices.api.server.LinkableResource)}
+ * {@link ResponseMetadataGenerator#createMetadataResource(io.wcm.caravan.reha.api.resources.LinkableResource)}
  */
 public final class ResponseMetadataRelations {
 

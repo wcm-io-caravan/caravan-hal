@@ -46,7 +46,7 @@
     <module>docs-annotations</module>
     <module>docs-maven-plugin</module>
     <module>integration-test</module>
-    <module>microservices</module>
+    <module>reha</module>
     <module>resource</module>
   </modules>
 

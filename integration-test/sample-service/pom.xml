@@ -34,8 +34,8 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>bundle</packaging>
 
-  <name>HAL API Test and Example Service</name>
-  <description>Example service using HAL API annotation, client, server and documentation bundles</description>
+  <name>Caravan Reha - Test and Example Service</name>
+  <description>A reactive HAL web service based on the OSGi JAX-RS Whiteboard and wcm.io.Caravan Pipeline integration. Used for the integration test launchpad.</description>
 
   <scm>
     <connection>scm:git:https://github.com/wcm-io-caravan/caravan-hal.git</connection>
@@ -45,25 +45,25 @@
   </scm>
 
   <properties>
-    <site.url.module.prefix>hal/integration-test</site.url.module.prefix>
+    <site.url.module.prefix>hal/integration-test/sample-service</site.url.module.prefix>
   </properties>
   
   <dependencies>
     <dependency>
       <groupId>io.wcm.caravan</groupId>
-      <artifactId>io.wcm.caravan.hal.microservices.api-annotations</artifactId>
+      <artifactId>io.wcm.caravan.hal.reha.api-interfaces</artifactId>
       <version>1.0.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>io.wcm.caravan</groupId>
-      <artifactId>io.wcm.caravan.hal.microservices.caravan-jaxrs</artifactId>
+      <artifactId>io.wcm.caravan.hal.reha.caravan-jaxrs</artifactId>
       <version>1.0.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>io.wcm.caravan</groupId>
-      <artifactId>io.wcm.caravan.hal.microservices.framework</artifactId>
+      <artifactId>io.wcm.caravan.hal.reha.core</artifactId>
       <version>1.0.0-SNAPSHOT</version>
       <scope>compile</scope>
     </dependency>

@@ -31,16 +31,17 @@
   </parent>
 
   <groupId>io.wcm.caravan</groupId>
-  <artifactId>io.wcm.caravan.hal.microservices</artifactId>
+  <artifactId>io.wcm.caravan.hal.reha</artifactId>
   <version>1-SNAPSHOT</version>
   <packaging>pom</packaging>
 
-  <name>Reactive HAL Microservices Framework</name>
+  <name>Caravan Reha</name>
+  <description>A framework to build reactive HAL web services</description>
 
   <modules>
-    <module>api-annotations</module>
+    <module>api-interfaces</module>
     <module>caravan-jaxrs</module>
-    <module>framework</module>
+    <module>core</module>
   </modules>
 
   <build>
