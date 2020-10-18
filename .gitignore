@@ -16,6 +16,7 @@ npm-debug.log
 .externalToolBuilders
 .pmd
 .checkstyle
+.eclipse-pmd
 .idea
 .iml
 *.iml
