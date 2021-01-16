@@ -63,6 +63,13 @@
       <scope>compile</scope>
     </dependency>
 
+    <!-- Testing -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <scope>test</scope>
+    </dependency>
+
   </dependencies>
 
   <build>
