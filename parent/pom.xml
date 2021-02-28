@@ -44,6 +44,11 @@
     <tag>HEAD</tag>
   </scm>
 
+  <ciManagement>
+    <system>GitHub Actions</system>
+    <url>https://github.com/wcm-io-caravan/caravan-hal/actions</url>
+  </ciManagement>
+
   <properties>
     <site.url.module.prefix>hal</site.url.module.prefix>
   </properties>
