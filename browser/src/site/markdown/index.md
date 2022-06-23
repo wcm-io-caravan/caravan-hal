@@ -2,7 +2,7 @@
 
 [HAL Browser][hal-browser] packaged in an OSGi bundle.
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.browser/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.browser)
+[![Maven Central](https://img.shields.io/maven-central/v/io.wcm.caravan/io.wcm.caravan.hal.browser)](https://repo1.maven.org/maven2/io/wcm/caravan/io.wcm.caravan.hal.browser/)
 
 
 ### Documentation

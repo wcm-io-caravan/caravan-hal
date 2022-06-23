@@ -2,7 +2,7 @@
 
 Runtime support for interface documentation of HAL-based JAX-RS services.
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.docs/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.docs)
+[![Maven Central](https://img.shields.io/maven-central/v/io.wcm.caravan/io.wcm.caravan.hal.docs)](https://repo1.maven.org/maven2/io/wcm/caravan/io.wcm.caravan.hal.docs/)
 
 
 ### Documentation

@@ -2,7 +2,7 @@
 
 Library for recursively comparing a tree of JSON HAL resources.
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.comparison/badge.svg)](https://maven-badges.herokuapp.com/maven-central/io.wcm.caravan/io.wcm.caravan.hal.comparison)
+[![Maven Central](https://img.shields.io/maven-central/v/io.wcm.caravan/io.wcm.caravan.hal.comparison)](https://repo1.maven.org/maven2/io/wcm/caravan/io.wcm.caravan.hal.comparison/)
 
 
 ### Documentation
