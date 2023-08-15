@@ -48,7 +48,7 @@
   <properties>
     <site.url.module.prefix>hal/docs-maven-plugin</site.url.module.prefix>
 
-    <maven.version>3.0.5</maven.version>
+    <maven.version>3.8.1</maven.version>
   </properties>
 
   <prerequisites>
