@@ -49,6 +49,11 @@
     <url>https://github.com/wcm-io-caravan/caravan-hal/actions</url>
   </ciManagement>
 
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/wcm-io-caravan/caravan-hal/issues/</url>
+  </issueManagement>
+
   <properties>
     <site.url.module.prefix>hal</site.url.module.prefix>
   </properties>
