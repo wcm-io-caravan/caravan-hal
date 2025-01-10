@@ -21,5 +21,5 @@ See [Usage][usage] for a detailed description.
 
 
 [usage]: usage.html
-[changelog]: changes-report.html
+[changelog]: changes.html
 [hal-browser]: https://caravan.wcm.io/hal/browser/

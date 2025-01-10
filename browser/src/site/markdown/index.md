@@ -15,5 +15,5 @@
 Contains the [HAL Browser][hal-browser] JavaScript application from Mike Kelly and mounts it at `/hal`
 
 
-[changelog]: changes-report.html
+[changelog]: changes.html
 [hal-browser]: https://github.com/mikekelly/hal-browser

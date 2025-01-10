@@ -12,4 +12,4 @@ Library for recursively comparing a tree of JSON HAL resources.
 
 
 [apidocs]: apidocs/
-[changelog]: changes-report.html
+[changelog]: changes.html

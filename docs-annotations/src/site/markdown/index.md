@@ -17,5 +17,5 @@ See [HAL Interface Documentation][hal-docs] for a usage description.
 
 
 [apidocs]: apidocs/
-[changelog]: changes-report.html
+[changelog]: changes.html
 [hal-docs]: https://caravan.wcm.io/hal/docs/

@@ -14,7 +14,7 @@ Library for building and reading JSON HAL resources.
 
 [usage]: usage.html
 [apidocs]: apidocs/
-[changelog]: changes-report.html
+[changelog]: changes.html
 
 
 ### Overview
